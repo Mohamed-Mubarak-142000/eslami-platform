@@ -15,6 +15,12 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(search).toBeVisible();
     await expect(actions).toBeVisible();
+    await expect(page.locator(".app-shell__topnav")).toBeHidden();
+    await expect(actions.locator(".social-media-actions a")).toHaveCount(3);
+    await expect(actions.locator("a[aria-label='فيديو مباشر']")).toBeVisible();
+    await expect(actions.locator("a[aria-label='إضافة صورة']")).toBeVisible();
+    await expect(actions.locator("a[aria-label='إنشاء مقطع']")).toBeVisible();
+    await expect(actions.locator(".shell-actions, .shell-control, .app-shell__notifications")).toHaveCount(0);
     await expect(navigation).toBeVisible();
     await expect(rail).toBeVisible();
     await expect(page.locator(".feed-stories")).toBeVisible();
