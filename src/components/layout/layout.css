@@ -62,7 +62,11 @@
   font-family: var(--ds-font-heading);
   font-size: var(--ds-font-size-xl);
   font-weight: 800;
+  overflow: hidden;
+  background: var(--ds-color-surface);
 }
+
+.app-shell__brand-mark img { inline-size: 100%; block-size: 100%; object-fit: contain; }
 
 .app-shell__search { inline-size: min(100%, 16rem); }
 .app-shell__search > * { inline-size: 100%; }
