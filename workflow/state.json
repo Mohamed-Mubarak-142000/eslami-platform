@@ -1,10 +1,10 @@
 {
   "workflow_version": 1,
   "milestone": "public-landing-community-radio-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "fa147c4",
-  "active_task_ids": ["LAND-01", "AUTH-01", "RADIO-01"],
+  "status": "complete",
+  "active_agent": "orchestrator-agent",
+  "base_ref": "50537e1",
+  "active_task_ids": [],
   "acceptance_criteria": [
     "Define public landing scope and conversion actions",
     "Define authenticated-only community access behavior",
@@ -19,6 +19,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
