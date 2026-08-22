@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "public-navigation-refresh-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "de1df30",
-  "active_task_ids": ["QA-DROPDOWN-THEME-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "6b5c383",
+  "active_task_ids": ["RELEASE-PUBLIC-NAV-THEME-001"],
   "acceptance_criteria": [
-    "Verify theme is the fourth account dropdown action",
-    "Verify no independent theme control remains",
-    "Verify theme toggling, menu closing, notifications, RTL, and mobile behavior",
-    "Run focused cross-browser QA and boundary guard"
+    "Review public navigation and dropdown theme acceptance",
+    "Review accessibility, privacy, SEO, removed-route, and regression risk",
+    "Issue explicit release recommendation and rollback triggers",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
