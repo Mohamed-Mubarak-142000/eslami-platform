@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "compact-social-header-v1",
   "status": "active",
-  "active_agent": "integration-agent",
-  "base_ref": "1af5af5",
-  "active_task_ids": ["INT-COMPACT-HEADER-001"],
+  "active_agent": "qa-agent",
+  "base_ref": "6e37fd7",
+  "active_task_ids": ["QA-COMPACT-HEADER-001"],
   "acceptance_criteria": [
-    "Compose profile mark, wide search, and exactly three media actions",
-    "Remove settings, account, notifications, language, theme, and desktop destination strip from the compact header",
-    "Give every media action an accessible name and stable focus target",
-    "Preserve focused-auth composition and mobile bottom navigation"
+    "Verify profile, wide search, and exactly three named media actions",
+    "Verify removed desktop controls and hidden destination strip",
+    "Verify keyboard focus, RTL order, responsive overflow, and mobile navigation",
+    "Run focused cross-browser QA and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
