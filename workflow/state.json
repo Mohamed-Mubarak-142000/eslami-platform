@@ -2,15 +2,15 @@
   "workflow_version": 1,
   "milestone": "social-ui-auth-v2",
   "status": "active",
-  "active_agent": "ux-agent",
+  "active_agent": "design-system-agent",
   "base_ref": "HEAD",
-  "active_task_ids": ["UX-SOCIAL-UI-001"],
+  "active_task_ids": ["DS-SOCIAL-UI-001"],
   "acceptance_criteria": [
-    "Translate the accepted product requirements into complete RTL desktop and mobile screen specifications",
-    "Define feed, composer, navigation, rail, content interaction, login, registration, and recovery flows",
-    "Specify responsive states, focus order, keyboard behavior, validation, motion intent, and content hierarchy",
-    "Map every product acceptance criterion to UX evidence",
-    "Run the UX ownership boundary guard and create exactly one milestone handoff"
+    "Create the brand-original Facebook-familiar visual system using the accepted emerald, gold, parchment, and ink palette",
+    "Define and implement reusable shadcn-compatible primitives and social/auth patterns without feature logic",
+    "Provide Tailwind token mapping plus Motion and GSAP motion contracts including reduced-motion behavior",
+    "Cover RTL, responsive, hover, focus, loading, error, empty, and disabled states with WCAG AA evidence",
+    "Run design-system checks and the ownership boundary guard and create exactly one milestone handoff"
   ],
   "release_decision": "CONDITIONAL_GO",
   "approved_target": "internal_access_restricted_frontend_mock_demo",
@@ -18,8 +18,8 @@
   "release_report": "reports/release/frontend-mvp-release-review.md",
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "active" },
-    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 2, "agent": "ux-agent", "status": "accepted" },
+    { "order": 3, "agent": "design-system-agent", "status": "active" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
