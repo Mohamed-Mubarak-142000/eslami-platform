@@ -1,0 +1,5 @@
+"use client";
+import { Button } from "@/components/ui";
+import { FeatureState, type FeatureStatus } from "../shared/FeatureState";
+export interface NotificationItem { id: string; title: string; occurredAt: string; unread: boolean; unavailable?: boolean; sensitive?: boolean }
+export function Notifications({ items, status = "ready", onMarkAll }: { items: readonly NotificationItem[]; status?: FeatureStatus; onMarkAll?: () => void }) { const actual = status === "ready" && items.length === 0 ? "empty" : status; return <section aria-labelledby="notifications-title"><h1 id="notifications-title">الإشعارات</h1><Button variant="secondary" onClick={onMarkAll}>تحديد كل الإشعارات كمقروءة</Button><FeatureState status={actual}><ul>{items.map(item => <li key={item.id}><strong>{item.sensitive ? "لديك تحديث على عنصر خاص" : item.title}</strong><p>{item.unavailable ? "هذا العنصر لم يعد متاحًا." : item.unread ? "غير مقروء" : "مقروء"}</p><time dateTime={item.occurredAt}>{item.occurredAt}</time></li>)}</ul></FeatureState></section>; }

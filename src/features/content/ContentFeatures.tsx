@@ -1,0 +1,13 @@
+"use client";
+import type { KnowledgeContent, ScholarProfile } from "@/domain";
+import { Button } from "@/components/ui";
+import { ScholarIdentity, SourceCitation } from "@/components/patterns";
+import { FeatureState, type FeatureStatus } from "../shared/FeatureState";
+
+export function ContentCard({ content, saved = false, onSave }: { content: KnowledgeContent; saved?: boolean; onSave?: (id: string) => void }) { return <article aria-labelledby={`${content.id}-title`}><p>{content.kind === "article" ? "مقال" : content.kind === "answer" ? "إجابة" : "منشور"}</p><h2 id={`${content.id}-title`}>{content.title}</h2><p>{content.summary}</p><time dateTime={content.publishedAt}>{content.publishedAt}</time><Button variant="secondary" aria-pressed={saved} onClick={() => onSave?.(content.id)}>{saved ? "محفوظ" : "حفظ"}</Button></article>; }
+
+export function Feed({ items, status = "ready", onRetry }: { items: readonly KnowledgeContent[]; status?: FeatureStatus; onRetry?: () => void }) { const actual = status === "ready" && items.length === 0 ? "empty" : status; return <FeatureState status={actual} {...(onRetry ? { onRetry } : {})}><section aria-labelledby="feed-title"><h1 id="feed-title">معرفة موثقة لك</h1><nav aria-label="ترتيب المحتوى"><Button variant="secondary">لك</Button><Button variant="secondary">تتابعهم</Button><Button variant="secondary">الأحدث</Button></nav>{items.map(item => <ContentCard key={item.id} content={item} />)}</section></FeatureState>; }
+
+export function ContentDetail({ content, author }: { content: KnowledgeContent; author: ScholarProfile }) { return <article aria-labelledby="content-title"><p>{content.kind}</p><h1 id="content-title">{content.title}</h1><ScholarIdentity name={author.displayName} specialty="باحث متخصص" initials={author.displayName.slice(0, 2)} status={author.verificationStatus === "approved" ? "approved" : "unverified"} /><p>{content.body}</p><section aria-labelledby="sources-title"><h2 id="sources-title">المصادر</h2>{content.sources.map((source, i) => <SourceCitation key={source.id} index={i + 1} type={source.type} title={source.title} {...(source.authorOrOrganization ? { authorOrOrg: source.authorOrOrganization } : {})} {...(source.locator ? { locator: source.locator } : {})} {...(source.url ? { url: source.url } : {})} />)}</section></article>; }
+
+export function SavedCollections({ items, unavailable = false }: { items: readonly KnowledgeContent[]; unavailable?: boolean }) { return <section aria-labelledby="saved-title"><h1 id="saved-title">المحفوظات</h1>{unavailable && <p role="status">لم يعد هذا العنصر متاحًا. يمكنك إزالته من المجموعة.</p>}{items.length ? items.map(item => <ContentCard key={item.id} content={item} saved />) : <p>لا يوجد محتوى هنا بعد.</p>}</section>; }
