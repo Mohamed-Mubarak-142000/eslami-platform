@@ -1,0 +1,61 @@
+# Handoff: foundation-agent / frontend-mvp
+
+- Status: `review`
+- Base ref: `778147728850ab6c75219963c04846f918742edc`
+- Result ref: `working-tree marker`
+- Tasks completed: `FOUND-001, FOUND-002, FOUND-003, FOUND-004, FOUND-005, FOUND-006`
+
+## Delivered outputs
+
+| Path | Purpose |
+|---|---|
+| `package.json`, `package-lock.json` | Reproducible Next.js 16 / React 19 / strict TypeScript toolchain and commands |
+| `*.config.*`, `tsconfig.json` | Next, ESLint, PostCSS, Vitest, and Playwright configuration |
+| `.storybook/**` | RTL design-system wiring, accessibility addon, mobile/desktop viewports |
+| `.github/workflows/ci.yml` | Clean-install lint, typecheck, unit-test, and Storybook-build gate |
+| `.github/scripts/Invoke-AgentBoundaryPS51.ps1` | Owned PS5.1-compatible entrypoint delegating to the canonical boundary guard |
+| `.github/BOUNDARY_GUARD.md` | Reproducible compatibility invocation and ownership rationale |
+| `src/domain/**` | Stable domain models and deny-by-default permission primitives |
+| `src/lib/**` | API/result, auth, safe-return, error, query-key, analytics, and test contracts |
+| `src/mocks/**` | Deterministic fictional Arabic fixtures and in-memory API gateway |
+| `src/components/layout/**` | Responsive RTL AppShell/AdminShell importing the accepted design system |
+
+## Acceptance evidence
+
+| Criterion | Evidence/command | Result |
+|---|---|---|
+| Reproducible strict foundation | clean `npm ci`; `node_modules/.bin/tsc.cmd` exists (323 bytes); `npm run typecheck` | pass |
+| Lint and unit contracts | `npm run lint`; `npm test` (4/4) | pass |
+| Accepted design-system sources render | `npm run build-storybook` (10.5.10) | pass |
+| CI commands and production dependency audit | CI workflow inspection; `npm audit --package-lock-only --omit=dev --audit-level=high` | pass — 0 production vulnerabilities |
+| PS5.1 compatibility success/failure behavior | wrapper with active agent/base; separate-process unknown agent and invalid ref | pass — success 0, failures 1/1 |
+| Foundation ownership | compatibility wrapper against exact activation ref after preserving installed dependencies | pass — 35 owned source files including handoff; generated artifacts excluded |
+
+## Decisions and assumptions
+
+- The package uses npm and pins exact versions; Node 22+ is the supported baseline.
+- API adapters return discriminated results rather than throwing expected HTTP failures.
+- Permission presentation is advisory only; server authorization remains mandatory.
+- Private question text/details are excluded from analytics contracts and public query keys.
+- Existing design-system files are imported unchanged by Storybook and AppShell.
+- Application `next build` and Playwright smoke execution are deferred because route creation belongs exclusively to `integration-agent`; no placeholder `src/app` route was created.
+
+## Open risks and deferred work
+
+- Storybook's current Next/Vite adapter has three development-only high advisories through `image-size`, with no upstream fix available in the installed release; production dependency audit is clean. Recheck on the next Storybook release.
+- `node_modules` now remains installed in the shared workspace after the clean-install verification. `.github/git-excludes` excludes only reproducible install/build/test artifacts for the compatibility guard because the repository has no owner-assigned root `.gitignore`.
+- The requested canonical `workflow/scripts/Test-AgentBoundary.ps1` edit is outside Foundation ownership. The owned wrapper supplies PS5.1 compatibility without changing it.
+- An out-of-owner failure fixture was not created in this working tree because doing so would itself violate the active agent contract; unknown-agent and invalid-ref failures were verified, and the canonical guard's current changed-file set validates the owned-path success case.
+- Pre-commit hook files and root `.gitignore` are not assigned to Foundation ownership. CI is the committed quality gate; later orchestration should assign an owner before adding hooks or ignore rules.
+
+## Cross-owner requests
+
+- `workflow/requests/20260822-orchestrator-to-foundation-powershell-guard.md` remains only partially resolved: use `.github/scripts/Invoke-AgentBoundaryPS51.ps1`, or have the workflow owner port the canonical script.
+
+## Boundary check
+
+- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId foundation-agent -BaseRef 778147728850ab6c75219963c04846f918742edc`
+- Result: `pass — 35 owned source files checked including this handoff; node_modules remains installed`
+
+The agent stops after creating this handoff. Only the orchestrator may accept it and activate
+the successor.
