@@ -2,18 +2,18 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "product-agent",
-  "base_ref": "1a73e37",
-  "active_task_ids": ["PROD-FB-LAYOUT-001"],
+  "active_agent": "ux-agent",
+  "base_ref": "2cd182c",
+  "active_task_ids": ["UX-FB-LAYOUT-001"],
   "acceptance_criteria": [
-    "Define a Facebook-inspired but independently branded social home experience",
-    "Require desktop three-column composition with stories, composer, feed, shortcuts, and contacts",
-    "Require responsive tablet and mobile behavior with RTL and accessibility",
-    "Preserve the platform knowledge and trust positioning"
+    "Map the accepted requirements to a responsive Arabic-first page structure",
+    "Specify stories, composer, feed, shortcuts, and contacts interactions and states",
+    "Specify desktop, tablet, and mobile reflow without overflow",
+    "Define keyboard, landmark, focus, and reduced-motion behavior"
   ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "active" },
-    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 1, "agent": "product-agent", "status": "accepted" },
+    { "order": 2, "agent": "ux-agent", "status": "active" },
     { "order": 3, "agent": "design-system-agent", "status": "pending" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
