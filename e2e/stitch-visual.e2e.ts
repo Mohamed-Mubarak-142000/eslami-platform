@@ -1,6 +1,21 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Mounir Stitch shell visual contract", () => {
+  test("brand logo and public SEO metadata are exposed", async ({ page, request }) => {
+    await page.goto("/");
+    const brand = page.locator(".app-shell__brand");
+    await expect(brand).toHaveAttribute("aria-label", /الصفحة الرئيسية/);
+    await expect(brand.locator("img")).toBeVisible();
+    await expect(page.locator("head link[rel='canonical']")).toHaveCount(1);
+    await expect(page.locator("head meta[property='og:title']")).toHaveCount(1);
+    await expect(page.locator("head meta[name='twitter:card']")).toHaveAttribute("content", "summary_large_image");
+
+    for (const endpoint of ["/icon.png", "/apple-icon.png", "/opengraph-image.png", "/robots.txt", "/sitemap.xml"]) {
+      const response = await request.get(endpoint);
+      expect(response.ok(), `${endpoint} should respond successfully`).toBe(true);
+    }
+  });
+
   test("desktop RTL shell places navigation right, content center, and discovery rail left", async ({ page, browserName }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/");
