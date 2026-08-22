@@ -101,6 +101,11 @@
 
 .app-shell__topnav .app-shell__nav-label { display: none; }
 
+.app-shell[data-compact-header] .app-shell__topnav { display: none; }
+.app-shell[data-compact-header] .app-shell__header-start { flex: 1 1 36rem; }
+.app-shell[data-compact-header] .app-shell__search { inline-size: min(100%, 34rem); }
+.app-shell[data-compact-header] .app-shell__actions { flex: 0 0 auto; }
+
 .app-shell__actions {
   display: flex;
   gap: var(--ds-space-2);

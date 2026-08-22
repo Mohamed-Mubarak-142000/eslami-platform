@@ -48,6 +48,7 @@ export interface AppShellProps {
   search?: ReactNode;
   actions?: ReactNode;
   controls?: ReactNode;
+  compactHeader?: boolean;
   navigationLabel?: string;
   navigationRailLabel?: string;
   railLabel?: string;
@@ -67,6 +68,7 @@ export function AppShell({
   search,
   actions,
   controls,
+  compactHeader = false,
   navigationLabel = "التنقل الأساسي",
   navigationRailLabel = navigationLabel,
   railLabel = "اكتشف المزيد",
@@ -82,6 +84,7 @@ export function AppShell({
     <div
       className={cn("app-shell", "bg-background text-foreground")}
       data-nested={nested || undefined}
+      data-compact-header={compactHeader || undefined}
       data-leading-rail={navigationRail ? "visible" : undefined}
       data-rail={contextualRail ? "visible" : undefined}
     >
