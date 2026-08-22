@@ -1,22 +1,24 @@
 {
   "workflow_version": 1,
-  "milestone": "dark-header-tabless-feed-v1",
-  "status": "accepted",
-  "active_agent": null,
-  "base_ref": "2e984a8",
-  "active_task_ids": [],
-  "acceptance_criteria": [],
-  "release_decision": "GO",
-  "approved_target": "internal_access_restricted_frontend_mock_demo",
-  "release_report": "reports/release/dark-header-tabless-feed-v1.md",
+  "milestone": "composer-header-restore-v1",
+  "status": "active",
+  "active_agent": "feature-ui-agent",
+  "base_ref": "a24490a",
+  "active_task_ids": ["FEATURE-COMPOSER-BAR-001"],
+  "acceptance_criteria": [
+    "Move the avatar, thought prompt, and three media actions into the feed composer",
+    "Replace the oversized nested textarea presentation with a compact social bar",
+    "Keep progressive expansion, validation, keyboard labels, and publishing behavior",
+    "Preserve composer, stories, feed order and tabless layout"
+  ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
