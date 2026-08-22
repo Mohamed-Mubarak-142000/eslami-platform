@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "secondary-pages-social-ui-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "aa7c3f7",
-  "active_task_ids": ["QA-SECONDARY-PAGES-UI-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "e60ca87",
+  "active_task_ids": ["RELEASE-SECONDARY-PAGES-UI-001"],
   "acceptance_criteria": [
-    "Verify explore, search, ask, and saved share the social-page visual contract",
-    "Verify route-specific controls and content remain operable",
-    "Verify RTL desktop and mobile layouts have no horizontal overflow",
-    "Run focused cross-browser QA and boundary guard"
+    "Review four-route acceptance and QA evidence",
+    "Review accessibility, RTL, privacy, and regression risk",
+    "Issue explicit release recommendation and rollback trigger",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
