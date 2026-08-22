@@ -1,0 +1,88 @@
+:root {
+  color-scheme: light;
+  --ds-color-canvas: #f7f5ef;
+  --ds-color-surface: #fffefa;
+  --ds-color-surface-subtle: #efeee7;
+  --ds-color-text: #17221d;
+  --ds-color-text-muted: #5b6861;
+  --ds-color-border: #d7d5cc;
+  --ds-color-primary: #145c45;
+  --ds-color-primary-hover: #0d4735;
+  --ds-color-on-primary: #ffffff;
+  --ds-color-accent: #9a641e;
+  --ds-color-success: #167047;
+  --ds-color-warning: #8b550c;
+  --ds-color-danger: #a63232;
+  --ds-color-info: #285d83;
+  --ds-color-focus: #2563eb;
+  --ds-color-overlay: rgb(9 18 14 / 64%);
+
+  --ds-font-ui: "IBM Plex Sans Arabic", "Noto Sans Arabic", system-ui, sans-serif;
+  --ds-font-reading: "Noto Naskh Arabic", "Amiri", serif;
+  --ds-font-size-xs: 0.75rem;
+  --ds-font-size-sm: 0.875rem;
+  --ds-font-size-md: 1rem;
+  --ds-font-size-lg: 1.125rem;
+  --ds-font-size-xl: 1.25rem;
+  --ds-font-size-2xl: 1.5rem;
+  --ds-font-size-3xl: 1.875rem;
+  --ds-font-size-4xl: 2.375rem;
+  --ds-leading-ui: 1.55;
+  --ds-leading-reading: 1.85;
+
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.25rem;
+  --ds-space-6: 1.5rem;
+  --ds-space-8: 2rem;
+  --ds-space-10: 2.5rem;
+  --ds-space-12: 3rem;
+  --ds-space-16: 4rem;
+  --ds-radius-sm: 0.5rem;
+  --ds-radius-md: 0.75rem;
+  --ds-radius-lg: 1rem;
+  --ds-radius-xl: 1.5rem;
+  --ds-radius-pill: 999px;
+  --ds-shadow-raised: 0 8px 24px rgb(23 34 29 / 9%);
+  --ds-shadow-overlay: 0 20px 48px rgb(9 18 14 / 20%);
+  --ds-duration-fast: 120ms;
+  --ds-duration-normal: 180ms;
+  --ds-duration-slow: 220ms;
+  --ds-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ds-content-reading: 45rem;
+  --ds-content-app: 90rem;
+  --ds-touch-target: 2.75rem;
+  --ds-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-color-focus) 32%, transparent);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --ds-color-canvas: #101714;
+  --ds-color-surface: #17201c;
+  --ds-color-surface-subtle: #202d27;
+  --ds-color-text: #f3f0e7;
+  --ds-color-text-muted: #b5c0ba;
+  --ds-color-border: #405149;
+  --ds-color-primary: #69c9a4;
+  --ds-color-primary-hover: #91ddbf;
+  --ds-color-on-primary: #092219;
+  --ds-color-accent: #e4b564;
+  --ds-color-success: #77d6a5;
+  --ds-color-warning: #f2c66d;
+  --ds-color-danger: #ff9b93;
+  --ds-color-info: #8bc6ef;
+  --ds-color-focus: #8ab4ff;
+  --ds-color-overlay: rgb(0 0 0 / 72%);
+  --ds-shadow-raised: 0 8px 24px rgb(0 0 0 / 28%);
+  --ds-shadow-overlay: 0 20px 48px rgb(0 0 0 / 48%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ds-duration-fast: 1ms;
+    --ds-duration-normal: 1ms;
+    --ds-duration-slow: 1ms;
+  }
+}
