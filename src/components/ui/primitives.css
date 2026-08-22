@@ -3,6 +3,8 @@
 .ds-button--primary:hover:not(:disabled) { background: var(--ds-color-primary-hover); }
 .ds-button--secondary { background: var(--ds-color-surface-raised); color: var(--ds-color-primary); border-color: var(--ds-color-border); }
 .ds-button--secondary:hover:not(:disabled) { background: var(--ds-color-surface-subtle); border-color: var(--ds-color-primary); }
+.ds-button--ghost { background: transparent; color: var(--ds-color-text-muted); }
+.ds-button--ghost:hover:not(:disabled) { background: var(--ds-color-surface-subtle); color: var(--ds-color-primary); }
 .ds-button--danger { background: var(--ds-color-danger); color: white; }
 .ds-button:disabled, .ds-button[aria-disabled="true"] { cursor: not-allowed; opacity: .58; }
 .ds-field { display: grid; gap: var(--ds-space-2); }

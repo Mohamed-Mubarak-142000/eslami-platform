@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Badge, Button } from "../ui";
 import "./patterns.css";
+export { AuthShell, ComposerCard, ErrorSummary, SocialContentCard, TopicHighlights } from "./social";
+export type { AuthShellProps, ComposerCardProps, ErrorSummaryItem, SocialContentCardProps, TopicHighlight } from "./social";
 
 export type VerificationStatus = "approved" | "suspended" | "revoked" | "unverified";
 export interface ScholarIdentityProps { name: string; specialty: string; status: VerificationStatus; avatarUrl?: string; initials: string; onTrustDetails?: () => void }

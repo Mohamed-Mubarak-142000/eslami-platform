@@ -1,0 +1,18 @@
+.ds-social-card { background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--ds-radius-lg); box-shadow: var(--ds-shadow-raised); }
+.ds-textarea { inline-size: 100%; min-block-size: 7rem; resize: vertical; padding: var(--ds-space-3); border: 1px solid var(--input); border-radius: var(--radius); background: var(--card); color: var(--foreground); }
+.ds-textarea::placeholder { color: var(--muted-foreground); opacity: 1; }
+.ds-textarea[aria-invalid="true"] { border-color: var(--destructive); }
+.ds-checkbox { display: flex; align-items: flex-start; gap: var(--ds-space-2); min-block-size: var(--ds-touch-target); cursor: pointer; }
+.ds-checkbox input { inline-size: 1.125rem; block-size: 1.125rem; margin-block-start: .2rem; accent-color: var(--primary); }
+.ds-checkbox__label { display: block; font-weight: 650; }
+.ds-checkbox__description { display: block; color: var(--muted-foreground); font-size: var(--ds-font-size-sm); }
+.ds-alert { display: grid; gap: var(--ds-space-1); padding: var(--ds-space-3) var(--ds-space-4); border: 1px solid var(--border); border-inline-start: .25rem solid var(--ds-color-info); border-radius: var(--radius); background: var(--muted); }
+.ds-alert--success { border-inline-start-color: var(--ds-color-success); }
+.ds-alert--warning { border-inline-start-color: var(--ds-color-warning); }
+.ds-alert--error { border-inline-start-color: var(--destructive); }
+.ds-alert__title { color: var(--foreground); }
+.ds-skeleton { min-block-size: 1rem; border-radius: var(--radius); background: color-mix(in srgb, var(--muted-foreground) 16%, var(--muted)); }
+.ds-icon-button { inline-size: var(--ds-touch-target); block-size: var(--ds-touch-target); display: inline-grid; place-items: center; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--foreground); cursor: pointer; }
+.ds-icon-button:hover { background: var(--muted); color: var(--primary); }
+.ds-icon-button:disabled { cursor: not-allowed; opacity: .52; }
+@media (forced-colors: active) { .ds-social-card, .ds-textarea, .ds-alert, .ds-icon-button { border-color: CanvasText; } }

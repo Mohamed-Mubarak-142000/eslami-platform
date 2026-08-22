@@ -1,0 +1,45 @@
+.ds-auth-shell { min-block-size: 100dvh; display: grid; background: var(--background); color: var(--foreground); }
+.ds-auth-shell__promise { display: none; padding: clamp(2rem, 6vw, 5rem); background: var(--primary); color: var(--primary-foreground); }
+.ds-auth-shell__promise h2 { max-inline-size: 18ch; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.25; }
+.ds-auth-shell__promise ul { display: grid; gap: var(--ds-space-3); padding: 0; list-style: none; }
+.ds-auth-shell__promise li::before { content: "◆"; margin-inline-end: var(--ds-space-2); color: var(--ds-color-accent-muted); font-size: .65em; }
+.ds-auth-shell__eyebrow { color: var(--ds-color-accent-container); font-weight: 700; }
+.ds-auth-shell__main { inline-size: min(100% - 2rem, 32rem); margin: auto; padding-block: var(--ds-space-8); }
+.ds-auth-card { padding: clamp(1.25rem, 4vw, 2rem); }
+.ds-auth-card header { margin-block-end: var(--ds-space-6); }
+.ds-auth-card h1 { margin: 0; color: var(--primary); font-size: var(--ds-font-size-3xl); }
+.ds-auth-card form { display: grid; gap: var(--ds-space-4); }
+.ds-auth-shell__footer { padding-block: var(--ds-space-4); color: var(--muted-foreground); text-align: center; font-size: var(--ds-font-size-sm); }
+.ds-error-summary { padding: var(--ds-space-3); border: 1px solid var(--destructive); border-radius: var(--radius); background: color-mix(in srgb, var(--destructive) 7%, var(--card)); }
+.ds-error-summary ul { margin-block-end: 0; }
+
+.ds-highlights { overflow: hidden; }
+.ds-highlights__track { display: flex; gap: var(--ds-space-3); overflow-x: auto; padding: var(--ds-space-2) var(--ds-space-1); scrollbar-width: thin; scroll-snap-type: inline proximity; }
+.ds-highlight { flex: 0 0 6.5rem; min-block-size: 7.5rem; display: grid; justify-items: center; align-content: center; gap: var(--ds-space-1); padding: var(--ds-space-2); border: 1px solid transparent; border-radius: var(--ds-radius-lg); background: transparent; color: var(--foreground); cursor: pointer; scroll-snap-align: start; }
+.ds-highlight:hover, .ds-highlight[aria-pressed="true"] { border-color: var(--ds-color-accent-muted); background: var(--accent); color: var(--accent-foreground); }
+.ds-highlight__mark { inline-size: 3.5rem; block-size: 3.5rem; display: grid; place-items: center; border: 2px solid var(--ds-color-accent-muted); border-radius: 50%; background: var(--primary); color: var(--primary-foreground); font-family: var(--ds-font-heading); font-size: var(--ds-font-size-xl); }
+.ds-highlight small { color: inherit; }
+
+.ds-composer { padding: var(--ds-space-4); }
+.ds-composer form { display: grid; gap: var(--ds-space-3); }
+.ds-composer__footer { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); }
+.ds-social-post { background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--ds-radius-lg); box-shadow: var(--ds-shadow-raised); }
+.ds-social-post > header, .ds-social-post__body, .ds-social-post__citation { padding: var(--ds-space-4); }
+.ds-social-post > header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ds-space-3); }
+.ds-social-post__meta { color: var(--muted-foreground); font-size: var(--ds-font-size-sm); }
+.ds-social-post__body { padding-block-start: 0; font-family: var(--ds-font-reading); line-height: var(--ds-leading-reading); }
+.ds-social-post__body h2 { margin-block-start: 0; font-family: var(--ds-font-heading); color: var(--primary); }
+.ds-social-post__citation { margin-inline: var(--ds-space-4); padding: var(--ds-space-3); border-inline-start: .1875rem solid var(--ds-color-accent-muted); background: var(--muted); }
+.ds-social-post__actions { display: grid; grid-template-columns: repeat(3, 1fr); padding: var(--ds-space-2); border-block-start: 1px solid var(--border); }
+.ds-social-post__actions .ds-button[aria-pressed="true"] { color: var(--primary); background: var(--muted); }
+
+@media (min-width: 64rem) {
+  .ds-auth-shell { grid-template-columns: minmax(0, 1.1fr) minmax(26rem, .9fr); }
+  .ds-auth-shell__promise { display: grid; align-content: center; }
+}
+@media (max-width: 30rem) {
+  .ds-composer__footer { align-items: stretch; flex-direction: column; }
+  .ds-composer__footer .ds-button { inline-size: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .ds-highlights__track { scroll-behavior: auto; } }
+@media (forced-colors: active) { .ds-social-post, .ds-highlight, .ds-error-summary { border-color: CanvasText; } }

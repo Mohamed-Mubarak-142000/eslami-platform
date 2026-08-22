@@ -12,6 +12,11 @@ The story source intentionally has no Storybook package imports, so it can exist
 | PAT-05 | idle, pending, success, rollback error, uncertain | 360, 768 | pending announced; one submit; persistent result |
 | PAT-06 | short, long, actor omitted | 360, 1280 | ordered semantic list; status not color-only |
 | STA panel | loading, empty, error, offline, permission, privacy, conflict | 360, 768 | alert only when urgent; privacy wording does not disclose existence |
+| Social primitives | card, textarea, checkbox, alert, skeleton, icon button | 360, 768, 1280 | native keyboard, required names, fixed skeleton, forced-colors borders |
+| AuthShell/ErrorSummary | login, register errors, pending, disabled, success | 360, 768, 1024, 1440 | one H1, labels/autocomplete, summary links, no focus jump |
+| TopicHighlights | default, selected, long Arabic, overflow | 360, 768, 1280 | permanent topics, `aria-pressed`, keyboard scroll path |
+| ComposerCard | empty, draft, validation error, offline, pending | 360, 768 | labelled textarea, inline alert, duplicate submit prevention |
+| SocialContentCard | default, helpful, saved, pending, private | 360, 768, 1280 | author/trust/source precede actions; pressed state is announced |
 
 Run every story in light/dark, RTL/LTR, `prefers-reduced-motion`, forced colors, 200% zoom,
 keyboard-only, and an automated WCAG scan. Baseline names are

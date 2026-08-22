@@ -61,6 +61,27 @@
   --ds-content-app: 80rem;
   --ds-touch-target: 2.75rem;
   --ds-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-color-focus) 32%, transparent);
+
+  /* shadcn-compatible semantic aliases; values remain owned by DS tokens. */
+  --background: var(--ds-color-canvas);
+  --foreground: var(--ds-color-text);
+  --card: var(--ds-color-surface-raised);
+  --card-foreground: var(--ds-color-text);
+  --popover: var(--ds-color-surface-raised);
+  --popover-foreground: var(--ds-color-text);
+  --primary: var(--ds-color-primary);
+  --primary-foreground: var(--ds-color-on-primary);
+  --secondary: var(--ds-color-surface-subtle);
+  --secondary-foreground: var(--ds-color-primary);
+  --muted: var(--ds-color-surface-subtle);
+  --muted-foreground: var(--ds-color-text-muted);
+  --accent: var(--ds-color-accent-container);
+  --accent-foreground: var(--ds-color-on-accent-container);
+  --destructive: var(--ds-color-danger);
+  --border: var(--ds-color-border);
+  --input: var(--ds-color-border);
+  --ring: var(--ds-color-focus);
+  --radius: var(--ds-radius-md);
 }
 
 [data-theme="dark"] {
