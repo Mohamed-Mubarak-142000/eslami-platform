@@ -2,28 +2,29 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "design-system-agent",
+  "active_agent": "foundation-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "DS-001",
-    "DS-002",
-    "DS-003",
-    "DS-004",
-    "DS-005"
+    "FOUND-001",
+    "FOUND-002",
+    "FOUND-003",
+    "FOUND-004",
+    "FOUND-005",
+    "FOUND-006"
   ],
   "acceptance_criteria": [
-    "Semantic tokens cover color, typography, spacing, radii, elevation, motion, and themes",
-    "Required accessible primitives and product patterns expose stable typed contracts",
-    "RTL, responsive, focus, reduced-motion, and WCAG AA behavior is explicit",
-    "Storybook stories cover states, themes, direction, and key viewports",
-    "Design-to-code mapping traces UX PAT/STA requirements",
-    "Design-system-agent boundary check passes from the clean activation HEAD"
+    "Next.js and strict TypeScript scaffold installs and builds reproducibly",
+    "Lint, typecheck, unit test, Storybook, and CI commands are wired",
+    "Domain, API, auth, permission, error, query, analytics, and mock contracts are stable",
+    "Design-system CSS, fonts, layouts, and stories are wired without changing owner files",
+    "Boundary guard runs unchanged on Windows PowerShell 5.1 and validates pass/fail fixtures",
+    "Foundation-agent boundary check passes from the clean activation HEAD"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
-    { "order": 3, "agent": "design-system-agent", "status": "active" },
-    { "order": 4, "agent": "foundation-agent", "status": "pending" },
+    { "order": 3, "agent": "design-system-agent", "status": "accepted" },
+    { "order": 4, "agent": "foundation-agent", "status": "active" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
