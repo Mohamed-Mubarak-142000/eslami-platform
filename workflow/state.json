@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "public-navigation-refresh-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "5002c47",
-  "active_task_ids": ["QA-PUBLIC-NAV-ROUTES-001"],
+  "active_agent": "integration-agent",
+  "base_ref": "c2a348d",
+  "active_task_ids": ["INTEGRATION-DROPDOWN-THEME-001"],
   "acceptance_criteria": [
-    "Verify removed routes return not found and header search is absent",
-    "Verify four navigation destinations and new public pages",
-    "Verify RTL desktop/mobile layouts, metadata, and no overflow",
-    "Run focused cross-browser QA and boundary guard"
+    "Move theme mode control inside the account dropdown",
+    "Remove the independent header theme button",
+    "Keep account, settings, language, notifications, RTL, and keyboard behavior intact",
+    "Run integration checks and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
+    { "order": 6, "agent": "integration-agent", "status": "active" },
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
