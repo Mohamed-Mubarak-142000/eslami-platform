@@ -2,8 +2,8 @@
   "workflow_version": 1,
   "milestone": "unified-brand-egypt-radio-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "9eed29f",
+  "active_agent": "release-review-agent",
+  "base_ref": "4a09c05",
   "active_task_ids": ["BRAND-01", "RADIO-02", "THEME-01"],
   "acceptance_criteria": [
     "Use the supplied Basira logo on the public home and shared application chrome",
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
