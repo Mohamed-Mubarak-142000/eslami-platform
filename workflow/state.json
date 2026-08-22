@@ -2,23 +2,23 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "1d59bb9",
-  "active_task_ids": ["QA-FB-LAYOUT-001"],
+  "active_agent": "foundation-agent",
+  "base_ref": "7501fc6",
+  "active_task_ids": ["FOUND-FB-LAYOUT-DEFECT-001"],
   "acceptance_criteria": [
-    "Verify desktop three-column, tablet collapse, and mobile single-column behavior",
-    "Verify stories, composer, feed interactions, landmarks, keyboard focus, RTL, and reduced motion",
-    "Capture objective browser evidence without production source edits",
-    "Run regression suites and QA boundary guard"
+    "Eliminate the reproducible 142px horizontal overflow at 768px",
+    "Keep primary destinations available through the bottom navigation until the desktop header has room",
+    "Preserve desktop three-column and mobile single-column behavior",
+    "Run focused responsive checks and foundation boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 4, "agent": "foundation-agent", "status": "active" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
+    { "order": 7, "agent": "qa-agent", "status": "changes_requested" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
