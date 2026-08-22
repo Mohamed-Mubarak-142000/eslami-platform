@@ -44,7 +44,10 @@ test.describe("Arabic, RTL, accessibility, and responsive gates", () => {
     for (const route of routes) {
       await page.goto(route);
       await expect(page.locator("main")).toHaveCount(1);
-      await expect(page.locator("main h1").first()).toBeVisible();
+      const heading = page.locator("main h1").first();
+      await expect(heading).toHaveCount(1);
+      if (route === "/") await expect(heading).toHaveClass(/feed-sr-only/);
+      else await expect(heading).toBeVisible();
     }
   });
 });

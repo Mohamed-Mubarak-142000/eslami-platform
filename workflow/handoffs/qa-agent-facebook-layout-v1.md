@@ -3,7 +3,7 @@
 - Status: `review`
 - Base ref: `14ff746`
 - Result ref: `committed handoff; see repository HEAD`
-- Tasks completed: `QA-FB-LAYOUT-001`
+- Tasks completed: `QA-FB-LAYOUT-001`, `QA-FB-LAYOUT-ORDER-002`
 
 ## Delivered outputs
 
@@ -22,6 +22,7 @@
 | RTL, landmarks, keyboard, privacy, and overflow | Cross-browser suite | pass |
 | Stories and side-region composition | Visible story and bounding-box assertions | pass |
 | Full regression | `npx playwright test --config=e2e/playwright.cross-browser.config.ts` | pass — 66/66 |
+| Requested compact order | Focused desktop/mobile/overflow/heading rerun across three engines | pass — 18/18; composer precedes stories |
 
 ## Decisions and assumptions
 

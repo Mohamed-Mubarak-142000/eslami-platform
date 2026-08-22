@@ -18,6 +18,10 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(navigation).toBeVisible();
     await expect(rail).toBeVisible();
     await expect(page.locator(".feed-stories")).toBeVisible();
+    const feedOrder = await page.locator(".social-feed").evaluate((element) =>
+      [...element.children].map((child) => child.className),
+    );
+    expect(feedOrder.slice(1, 3)).toEqual(["feed-composer", "feed-stories"]);
 
     const [navBox, contentBox, railBox] = await Promise.all([
       navigation.boundingBox(),
