@@ -2,30 +2,30 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "foundation-agent",
+  "active_agent": "feature-ui-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "FOUND-001",
-    "FOUND-002",
-    "FOUND-003",
-    "FOUND-004",
-    "FOUND-005",
-    "FOUND-006"
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003",
+    "FEAT-004",
+    "FEAT-005",
+    "FEAT-006"
   ],
   "acceptance_criteria": [
-    "Next.js and strict TypeScript foundation installs reproducibly; typecheck/test/Storybook build pass, with application build deferred to route owner",
-    "Lint, typecheck, unit test, Storybook, and CI commands are wired",
-    "Domain, API, auth, permission, error, query, analytics, and mock contracts are stable",
-    "Design-system CSS, fonts, layouts, and stories are wired without changing owner files",
-    "A repository-documented PowerShell 5.1 compatibility invocation validates boundary pass/fail fixtures without modifying unowned workflow scripts",
-    "Foundation-agent boundary check passes from the clean activation HEAD"
+    "All P0 feature modules exist against approved domain and mock contracts",
+    "Feature UI covers auth/onboarding, feed/content, explore/search, scholars/topics, Q&A, saved, notifications, verification, and moderation",
+    "Every feature covers required loading, empty, error, offline, permission, privacy, and conflict states",
+    "Feature components use frozen design-system and foundation contracts without modifying them",
+    "Feature-level unit and interaction tests pass with RTL and accessibility behavior",
+    "Feature-ui-agent boundary check passes from the clean activation HEAD"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
