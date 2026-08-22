@@ -1,10 +1,10 @@
 {
   "workflow_version": 1,
   "milestone": "header-account-dropdown-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "73bf81d",
-  "active_task_ids": ["RELEASE-ACCOUNT-DROPDOWN-001"],
+  "status": "complete",
+  "active_agent": "orchestrator-agent",
+  "base_ref": "5beb6e9",
+  "active_task_ids": [],
   "acceptance_criteria": [
     "Review dropdown acceptance and QA evidence",
     "Review accessibility, RTL, privacy, and regression risk",
@@ -19,6 +19,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
