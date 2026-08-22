@@ -2,21 +2,21 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "foundation-agent",
-  "base_ref": "39ab1ab",
-  "active_task_ids": ["FOUND-FB-LAYOUT-001"],
+  "active_agent": "feature-ui-agent",
+  "base_ref": "cfd9da4",
+  "active_task_ids": ["FEATURE-FB-LAYOUT-001"],
   "acceptance_criteria": [
-    "Extend the shared shell with independent start and end complementary regions",
-    "Implement desktop, tablet, and mobile grid behavior without overflow",
-    "Keep header, bottom navigation, RTL/LTR, and focus behavior stable",
-    "Run foundation checks and boundary guard"
+    "Implement accessible horizontally scrolling stories with a create card",
+    "Enhance the composer and feed to match the accepted familiar social hierarchy",
+    "Provide responsive media, text, interaction, and reduced-motion behavior",
+    "Use public mock/decorative content and preserve knowledge-source context"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
