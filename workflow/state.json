@@ -2,16 +2,17 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "qa-agent",
+  "active_agent": "release-review-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "QA-RETEST-001",
-    "QA-RETEST-002"
+    "REL-001",
+    "REL-002",
+    "REL-003"
   ],
   "acceptance_criteria": [
-    "QA-DEF-001 and QA-DEF-002 pass across Chromium, Firefox, and WebKit",
-    "Full cross-browser E2E suite has zero release-blocking failures",
-    "Typecheck, lint, tests, build, QA evidence, defect dispositions, and QA boundary pass"
+    "Acceptance traceability, scope, privacy, security, accessibility, RTL, performance, SEO, observability, and rollback readiness are reviewed",
+    "All open requests, defects, assumptions, and residual risks have explicit disposition",
+    "Release report gives GO, CONDITIONAL_GO, or NO_GO with evidence and boundary pass"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -20,7 +21,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
