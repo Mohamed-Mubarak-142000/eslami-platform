@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
+import "@/lib/styles/tailwind.css";
 import "@/styles/tokens.css";
 import "@/styles/foundations.css";
 import "./layout.css";
@@ -35,7 +37,7 @@ export function AppShell({
     : <main className="app-shell__main" id="main-content" tabIndex={-1}>{children}</main>;
 
   return (
-    <div className="app-shell" data-nested={nested || undefined} data-rail={contextualRail ? "visible" : undefined} dir="rtl">
+    <div className={cn("app-shell", "bg-background text-foreground")} data-nested={nested || undefined} data-rail={contextualRail ? "visible" : undefined} dir="rtl">
       {!nested && <a className="app-shell__skip" href="#main-content">تجاوز إلى المحتوى</a>}
       <header className="app-shell__header">
         <a href="/" className="app-shell__brand" aria-label={`${title} — الصفحة الرئيسية`}>

@@ -1,4 +1,5 @@
 import type { Preview } from "@storybook/nextjs-vite";
+import "../src/lib/styles/tailwind.css";
 import "../src/styles/tokens.css";
 import "../src/styles/foundations.css";
 
