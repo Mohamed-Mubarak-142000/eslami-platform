@@ -2,27 +2,26 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "product-agent",
+  "active_agent": "ux-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "PROD-001",
-    "PROD-002",
-    "PROD-003",
-    "PROD-004",
-    "PROD-005",
-    "PROD-006"
+    "UX-001",
+    "UX-002",
+    "UX-003",
+    "UX-004",
+    "UX-005"
   ],
   "acceptance_criteria": [
-    "MVP scope and exclusions are explicit and traceable",
-    "Personas and permission matrix cover all product roles",
-    "Every P0 capability has testable user stories and edge cases",
-    "Verification, privacy, moderation, and disagreement rules are explicit",
-    "Domain glossary and status/content models are internally consistent",
-    "Product-agent boundary check passes from the clean activation HEAD"
+    "Every P0 acceptance criterion maps to a screen, flow, and UI state",
+    "Arabic-first sitemap and navigation cover user, scholar, and admin surfaces",
+    "Responsive wireframe specifications cover mobile, tablet, and desktop",
+    "Loading, empty, error, offline, permission, and privacy states are explicit",
+    "Usability test plan and Arabic microcopy inventory are implementation-ready",
+    "UX-agent boundary check passes from the clean activation HEAD"
   ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "active" },
-    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 1, "agent": "product-agent", "status": "accepted" },
+    { "order": 2, "agent": "ux-agent", "status": "active" },
     { "order": 3, "agent": "design-system-agent", "status": "pending" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
