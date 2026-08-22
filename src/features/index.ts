@@ -2,6 +2,7 @@ export * from "./admin/AdminFeatures";
 export * from "./auth/AuthFeatures";
 export * from "./content/ContentFeatures";
 export * from "./explore/ExploreFeatures";
+export * from "./landing/LandingPage";
 export * from "./notifications/NotificationFeatures";
 export * from "./questions/QuestionFeatures";
 export * from "./scholars/ScholarFeatures";
