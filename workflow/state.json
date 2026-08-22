@@ -1,22 +1,24 @@
 {
   "workflow_version": 1,
-  "milestone": "compact-social-header-v1",
-  "status": "accepted",
-  "active_agent": null,
-  "base_ref": "85cbf54",
-  "active_task_ids": [],
-  "acceptance_criteria": [],
-  "release_decision": "GO",
-  "approved_target": "internal_access_restricted_frontend_mock_demo",
-  "release_report": "reports/release/compact-social-header-v1.md",
+  "milestone": "dark-header-tabless-feed-v1",
+  "status": "active",
+  "active_agent": "foundation-agent",
+  "base_ref": "4d09bf3",
+  "active_task_ids": ["FOUND-DARK-HEADER-001"],
+  "acceptance_criteria": [
+    "Make the reference dark palette the deterministic default",
+    "Preserve saved user theme choice",
+    "Keep server/client theme hydration stable",
+    "Run foundation checks and boundary guard"
+  ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
+    { "order": 4, "agent": "foundation-agent", "status": "active" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
