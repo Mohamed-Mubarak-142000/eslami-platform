@@ -1,16 +1,14 @@
 {
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "5124781",
-  "active_task_ids": ["RELEASE-FB-LAYOUT-001"],
-  "acceptance_criteria": [
-    "Review acceptance traceability and final QA evidence",
-    "Review accessibility, RTL, privacy, security, performance, and rollback readiness",
-    "Issue explicit release recommendation without production edits",
-    "Run release-review boundary guard"
-  ],
+  "status": "accepted",
+  "active_agent": null,
+  "base_ref": "d25ae52",
+  "active_task_ids": [],
+  "acceptance_criteria": [],
+  "release_decision": "GO",
+  "approved_target": "internal_access_restricted_frontend_mock_demo",
+  "release_report": "reports/release/facebook-inspired-social-layout-v1.md",
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
@@ -19,6 +17,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
