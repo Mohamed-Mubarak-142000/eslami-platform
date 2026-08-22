@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Clapperboard, ImageIcon, Video } from "lucide-react";
 import type { ScholarProfile, Topic } from "@/domain";
 import type { NavigationItem } from "@/components/layout";
 import { useTranslations } from "@/i18n/LocaleProvider";
@@ -64,6 +65,17 @@ export function ShellActions() {
       <Link href="/me/questions" aria-label={t.account}>
         {t.account}
       </Link>
+    </div>
+  );
+}
+
+export function SocialMediaActions() {
+  const t = useTranslations("shell");
+  return (
+    <div className="social-media-actions" aria-label={t.accountActions}>
+      <a className="social-media-actions__video" href="#feed-composer-input" aria-label="فيديو مباشر"><Video size={22} aria-hidden="true" /></a>
+      <a className="social-media-actions__photo" href="#feed-composer-input" aria-label="إضافة صورة"><ImageIcon size={22} aria-hidden="true" /></a>
+      <a className="social-media-actions__reel" href="#feed-composer-input" aria-label="إنشاء مقطع"><Clapperboard size={22} aria-hidden="true" /></a>
     </div>
   );
 }
