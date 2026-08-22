@@ -2,15 +2,14 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "active",
-  "active_agent": "integration-agent",
+  "active_agent": "qa-agent",
   "base_ref": "HEAD",
-  "active_task_ids": ["INT-STITCH-COMPOSE-001"],
+  "active_task_ids": ["QA-STITCH-VISUAL-001"],
   "acceptance_criteria": [
-    "Import the accepted application stylesheet once in the root layout",
-    "Compose approved search, header actions, and discovery rail slots without changing feature or foundation ownership",
-    "Preserve metadata, privacy, route behavior, RTL, responsive behavior, and accessibility",
-    "Run integration checks, route smoke tests, and the ownership boundary guard",
-    "Create exactly one iteration handoff for orchestrator review"
+    "Independently verify the Mounir Stitch shell at desktop and mobile viewports",
+    "Verify RTL landmarks, overflow, accessibility, privacy, navigation, and route stability",
+    "Run regression tests and record objective evidence without production source edits",
+    "Run the QA ownership boundary guard and create exactly one iteration handoff"
   ],
   "release_decision": "CONDITIONAL_GO",
   "approved_target": "internal_access_restricted_frontend_mock_demo",
@@ -22,8 +21,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
