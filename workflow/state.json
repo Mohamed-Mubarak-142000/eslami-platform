@@ -3,7 +3,7 @@
   "milestone": "frontend-mvp",
   "status": "in_progress",
   "active_agent": "product-agent",
-  "base_ref": "989d5d5",
+  "base_ref": "HEAD",
   "active_task_ids": [
     "PROD-001",
     "PROD-002",
@@ -18,7 +18,7 @@
     "Every P0 capability has testable user stories and edge cases",
     "Verification, privacy, moderation, and disagreement rules are explicit",
     "Domain glossary and status/content models are internally consistent",
-    "Product-agent boundary check passes from base ref 989d5d5"
+    "Product-agent boundary check passes from the clean activation HEAD"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "active" },
