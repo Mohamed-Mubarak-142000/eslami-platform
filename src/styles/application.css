@@ -1,0 +1,108 @@
+/* Application composition for the Mounir scholarly-library visual language. */
+body { min-block-size: 100dvh; background: var(--ds-color-canvas); }
+a { color: var(--ds-color-primary); text-decoration-thickness: .06em; text-underline-offset: .22em; }
+
+.app-shell__header {
+  position: sticky; inset-block-start: 0; z-index: 20; min-block-size: 4rem;
+  padding-inline: clamp(1rem, 2.5vw, 2rem);
+  background: color-mix(in srgb, var(--ds-color-surface) 94%, transparent);
+  border-block-end: 1px solid var(--ds-color-border); backdrop-filter: blur(12px);
+}
+.app-shell__brand {
+  color: var(--ds-color-primary); font-family: var(--ds-font-heading);
+  font-size: var(--ds-font-size-xl); font-weight: 700; text-decoration: none;
+}
+.app-shell__header > a:last-child {
+  display: inline-flex; align-items: center; min-block-size: 2.5rem; padding-inline: var(--ds-space-3);
+  border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-raised); font-size: var(--ds-font-size-sm); text-decoration: none;
+}
+
+.app-shell__nav {
+  z-index: 15; gap: var(--ds-space-1); padding: var(--ds-space-2);
+  background: var(--ds-color-surface); border-block-start: 1px solid var(--ds-color-border);
+}
+.app-shell__nav a {
+  border-radius: var(--ds-radius-md); color: var(--ds-color-text-muted); font-weight: 600;
+  text-decoration: none; transition: color var(--ds-duration-normal), background-color var(--ds-duration-normal);
+}
+.app-shell__nav a:hover, .app-shell__nav a:focus-visible {
+  color: var(--ds-color-on-accent-container); background: var(--ds-color-accent-container);
+}
+
+.app-shell__main { padding: clamp(1.25rem, 3.5vw, 3rem); }
+.app-shell__main > section, .app-shell__main > article, .app-shell__main > form,
+.app-shell__main > div > section, .app-shell__main > div > article, .app-shell__main > div > form {
+  inline-size: min(100%, var(--ds-content-reading)); margin-inline: auto;
+}
+.app-shell__main h1 {
+  max-inline-size: 22ch; margin-block: 0 var(--ds-space-6); color: var(--ds-color-primary);
+  font-size: clamp(2rem, 4vw, 3rem); line-height: 1.25; letter-spacing: -.015em;
+}
+.app-shell__main h2 { margin-block: var(--ds-space-8) var(--ds-space-3); font-size: clamp(1.25rem, 2.5vw, 1.6rem); line-height: 1.4; }
+.app-shell__main p { color: var(--ds-color-text-muted); }
+
+.app-shell__main section > nav {
+  display: flex; gap: var(--ds-space-6); margin-block-end: var(--ds-space-6);
+  border-block-end: 1px solid var(--ds-color-border); overflow-x: auto;
+}
+.app-shell__main section > nav a {
+  min-block-size: var(--ds-touch-target); display: inline-flex; align-items: center;
+  border-block-end: 2px solid transparent; color: var(--ds-color-text-muted); white-space: nowrap; text-decoration: none;
+}
+.app-shell__main section > nav a:hover, .app-shell__main section > nav a:focus-visible {
+  border-block-end-color: var(--ds-color-accent-muted); color: var(--ds-color-primary);
+}
+
+.app-shell__main section > article, .app-shell__main > article, .app-shell__main form,
+.app-shell__main table, .app-shell__main section > ul > li {
+  background: var(--ds-color-surface-raised); border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg);
+}
+.app-shell__main section > article, .app-shell__main > article, .app-shell__main form { padding: clamp(1rem, 2.5vw, 1.5rem); }
+.app-shell__main section > article + article { margin-block-start: var(--ds-space-4); }
+.app-shell__main article > p:first-child {
+  display: inline-flex; margin-block: 0 var(--ds-space-3); padding: .125rem var(--ds-space-2);
+  border: 1px solid color-mix(in srgb, var(--ds-color-accent) 32%, var(--ds-color-border));
+  border-radius: var(--ds-radius-pill); color: var(--ds-color-accent);
+  background: color-mix(in srgb, var(--ds-color-accent-container) 28%, transparent);
+  font-size: var(--ds-font-size-sm); font-weight: 650;
+}
+.app-shell__main article h2 { margin-block: 0 var(--ds-space-3); }
+.app-shell__main article time { color: var(--ds-color-text-muted); font-size: var(--ds-font-size-sm); }
+
+.app-shell__main form { display: grid; gap: var(--ds-space-5); }
+.app-shell__main textarea, .app-shell__main select {
+  inline-size: 100%; min-block-size: 8rem; border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md); padding: var(--ds-space-3);
+  background: var(--ds-color-surface-raised); color: var(--ds-color-text); resize: vertical;
+}
+.app-shell__main fieldset, .app-shell__main aside[role="note"] {
+  border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-4); background: var(--ds-color-surface-subtle);
+}
+.app-shell__main fieldset label { display: inline-flex; align-items: center; gap: var(--ds-space-2); margin-inline-end: var(--ds-space-5); }
+.app-shell__main ul { list-style: none; padding: 0; }
+.app-shell__main section > ul { display: grid; gap: var(--ds-space-3); }
+.app-shell__main section > ul > li { padding: var(--ds-space-4); }
+.app-shell__main table { inline-size: 100%; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.app-shell__main caption { padding-block-end: var(--ds-space-3); color: var(--ds-color-text-muted); text-align: start; }
+.app-shell__main th, .app-shell__main td { padding: var(--ds-space-3); border-block-end: 1px solid var(--ds-color-border); text-align: start; }
+.app-shell__main th { background: var(--ds-color-surface-subtle); color: var(--ds-color-primary); }
+
+@media (min-width: 64rem) {
+  .app-shell__nav {
+    min-block-size: calc(100dvh - 4rem); padding: var(--ds-space-6) var(--ds-space-4);
+    border-block-start: 0; border-inline-end: 1px solid var(--ds-color-border);
+  }
+  .app-shell__nav a { justify-content: flex-start; padding-inline: var(--ds-space-4); }
+  .app-shell__main { padding-inline: clamp(2rem, 5vw, 4rem); }
+}
+@media (max-width: 39.99rem) {
+  .app-shell__header { min-block-size: 3.75rem; }
+  .app-shell__brand { font-size: var(--ds-font-size-lg); }
+  .app-shell__main h1 { font-size: 2rem; }
+  .app-shell__main section > nav { gap: var(--ds-space-4); }
+  .app-shell__main table { display: block; overflow-x: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .app-shell__nav a { transition: none; } }
+@media (forced-colors: active) { .app-shell__header, .app-shell__nav, .app-shell__main article { border-color: CanvasText; } }
