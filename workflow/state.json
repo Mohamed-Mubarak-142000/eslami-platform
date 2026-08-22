@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "remove-discovery-topics-v1",
   "status": "active",
-  "active_agent": "integration-agent",
-  "base_ref": "6f54643",
-  "active_task_ids": ["INTEGRATION-REMOVE-DISCOVERY-TOPICS-001"],
+  "active_agent": "qa-agent",
+  "base_ref": "68e2e50",
+  "active_task_ids": ["QA-REMOVE-DISCOVERY-TOPICS-001"],
   "acceptance_criteria": [
-    "Remove the suggested-topics section from the discovery sidebar",
-    "Keep the library banner, follow suggestions, and scholars intact",
-    "Remove obsolete integration markup and styling",
-    "Run integration checks and boundary guard"
+    "Verify suggested topics are absent from the discovery sidebar",
+    "Verify banner, follow suggestions, and scholars remain visible",
+    "Verify RTL desktop layout and responsive behavior remain stable",
+    "Run focused cross-browser QA and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
