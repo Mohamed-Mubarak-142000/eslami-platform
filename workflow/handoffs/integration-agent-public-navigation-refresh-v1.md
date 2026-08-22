@@ -1,9 +1,9 @@
 # Handoff: integration-agent / public-navigation-refresh-v1
 
 - Status: `review`
-- Base ref: `64db5ce`
+- Base ref: `72a6b91`
 - Result ref: `committed handoff; see repository HEAD`
-- Tasks completed: `INTEGRATION-PUBLIC-NAV-ROUTES-001`
+- Tasks completed: `INTEGRATION-PUBLIC-NAV-ROUTES-001`, `INTEGRATION-DROPDOWN-THEME-001`
 
 ## Delivered outputs
 
@@ -18,6 +18,8 @@
 | `src/integrations/ApplicationFrame.tsx` | Removes header search composition |
 | `src/integrations/ShellComposition.tsx` | New navigation icon mapping; obsolete search UI removed |
 | `src/integrations/public-pages.css` | Responsive dark RTL public-page styling |
+| `src/integrations/ShellComposition.tsx` | Theme mode added as the fourth account-menu action |
+| `src/integrations/ApplicationFrame.tsx` | Independent theme control removed from the header |
 
 ## Acceptance evidence
 
@@ -27,6 +29,7 @@
 | New navigation/pages | Home, about, contact, categories with semantic pages | pass |
 | Search removed | Header no longer composes ShellSearch | pass |
 | Production integration | Typecheck after route generation and `npm run build` | pass |
+| Theme inside dropdown | Mode action toggles theme and closes the menu | pass |
 
 ## Decisions and assumptions
 
@@ -43,7 +46,7 @@
 
 ## Boundary check
 
-- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId integration-agent -BaseRef 64db5ce`
+- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId integration-agent -BaseRef 72a6b91`
 - Result: `pass`
 
 The agent stops after creating this handoff. Only the orchestrator may accept it and activate

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, ChevronDown, Clapperboard, Grid3X3, Home, ImageIcon, Info, Languages, Landmark, Library, Mail, Settings, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronDown, Clapperboard, Grid3X3, Home, ImageIcon, Info, Languages, Landmark, Library, Mail, Moon, Settings, Sparkles, Sun, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useRef } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
 import type { NavigationItem } from "@/components/layout";
@@ -54,6 +55,7 @@ export function ShortcutsRail({ navigation, topics }: { navigation: readonly Nav
 export function ShellActions() {
   const t = useTranslations("shell");
   const { locale, setLocale } = useLocale();
+  const { resolvedTheme, setTheme } = useTheme();
   const menuRef = useRef<HTMLDetailsElement>(null);
   const nextLocale = locale === "ar" ? "en" : "ar";
   const languageLabel = nextLocale === "en" ? "English" : "العربية";
@@ -69,6 +71,10 @@ export function ShellActions() {
         <Link href="/settings/privacy" role="menuitem"><Settings size={18} aria-hidden="true" /><span>{t.settings}</span></Link>
         <button type="button" role="menuitem" onClick={() => { setLocale(nextLocale); menuRef.current?.removeAttribute("open"); }}>
           <Languages size={18} aria-hidden="true" /><span>{languageLabel}</span>
+        </button>
+        <button type="button" role="menuitem" onClick={() => { setTheme(resolvedTheme === "dark" ? "light" : "dark"); menuRef.current?.removeAttribute("open"); }}>
+          {resolvedTheme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+          <span>{resolvedTheme === "dark" ? "الوضع الفاتح" : "الوضع الداكن"}</span>
         </button>
       </div>
     </details>

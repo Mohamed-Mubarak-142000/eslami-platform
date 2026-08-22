@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
-import { AppShell, ThemeToggle, type NavigationItem } from "@/components/layout";
+import { AppShell, type NavigationItem } from "@/components/layout";
 import { DiscoveryRail, ShellActions, ShortcutsRail } from "./ShellComposition";
 
 const focusedAuthRoutes = new Set([
@@ -56,7 +56,6 @@ export function ApplicationFrame({
       navigationLabel={t.primaryNavigation}
       navigationRailLabel={t.primaryNavigation}
       railLabel={t.discoverMore}
-      controls={<ThemeToggle />}
     >
       {children}
     </AppShell>
