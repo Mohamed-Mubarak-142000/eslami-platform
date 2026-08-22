@@ -2,8 +2,8 @@
   "workflow_version": 1,
   "milestone": "public-landing-community-radio-v1",
   "status": "active",
-  "active_agent": "foundation-agent",
-  "base_ref": "dd58d12",
+  "active_agent": "feature-ui-agent",
+  "base_ref": "693810f",
   "active_task_ids": ["LAND-01", "AUTH-01", "RADIO-01"],
   "acceptance_criteria": [
     "Define public landing scope and conversion actions",
@@ -15,8 +15,8 @@
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
