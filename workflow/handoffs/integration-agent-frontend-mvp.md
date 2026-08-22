@@ -1,9 +1,9 @@
 # Handoff: integration-agent / frontend-mvp
 
 - Status: `review`
-- Base ref: `a85fcd1f649715c4171531f3ac5e57cc30c7894f`
+- Base ref: `92046361b81c60849e7d5d7e17d57b216fd2f972`
 - Result ref: `working-tree marker`
-- Tasks completed: `INT-001, INT-002, INT-003, INT-004, INT-005`
+- Tasks completed: `INT-001, INT-002, INT-003, INT-004, INT-005, FIX-QA-DEF-001`
 
 ## Delivered outputs
 
@@ -18,6 +18,8 @@
 | `src/integrations/services.ts` | Mock-backed data, safe analytics, and error-monitoring interfaces |
 | `src/integrations/SearchController.tsx` | URL-synchronized, shareable search query integration |
 | `src/integrations/integrations.test.ts` | Adapter and sensitive-telemetry contract checks |
+| `src/integrations/route-authorization.ts` | Deny-by-default mapping from admin routes to accepted permission actions |
+| `src/app/(private)/admin/{moderation,verification}/[id]/page.tsx` | Route-boundary authorization before privileged case data or decision controls render |
 
 ## Acceptance evidence
 
@@ -31,6 +33,9 @@
 | Strict compilation, lint, unit/smoke tests | `npm run typecheck`; `npm run lint`; `npm test` — 4 files, 24 tests | pass |
 | Optimized production application compiles | `npm run build` | pass |
 | Patch whitespace | `git diff --check` | pass |
+| Member sessions cannot render moderation or verification decision controls | Targeted Chromium permission-boundary tests in `e2e/p0-journeys.e2e.ts` | pass — 2 tests |
+| Unauthorized admin detail routes are non-disclosing | Both routes return the shared neutral `privacy` state before constructing `ReviewDecision` | pass |
+| QA maintenance compilation and regression gates | `npm run typecheck`; `npm run lint`; `npm test`; `npm run build` | pass — 5 files / 28 tests; 29 routes built |
 
 ## Decisions and assumptions
 
@@ -39,6 +44,7 @@
 - The accepted deterministic mock session represents a signed-in member for presentation. Real authentication and server authorization remain backend responsibilities; UI permission checks are not treated as security enforcement.
 - Search serializes only the trimmed `q` parameter. Empty searches return the canonical `/search` URL, and telemetry records the action without the query text.
 - Expected integration failures use the monitoring interface without sending request content; development logging is limited to error/context objects.
+- Admin detail authorization is centralized in a closed route-to-action map. Unknown route keys and missing, inactive, or unauthorized sessions deny access; denial uses the neutral privacy state and does not construct case data or privileged controls.
 
 ## Open risks and deferred work
 
@@ -46,6 +52,7 @@
 - `next build` reports that `experimental.typedRoutes` moved to `typedRoutes`. `next.config.ts` belongs to Foundation and was not changed.
 - Next 16 generates `next-env.d.ts` and reformats/adds an include to `tsconfig.json` during build because the generated declaration is not tracked. Both generated out-of-owner changes were removed/restored after successful build so this handoff remains boundary-clean.
 - Full browser navigation, responsive visual, accessibility, and authorization matrix verification remain QA work.
+- `QA-DEF-001` is fixed at the integration route boundary and its targeted Chromium regression now passes. QA still owns independent cross-browser rerun and defect closure.
 
 ## Cross-owner requests
 
@@ -53,8 +60,8 @@
 
 ## Boundary check
 
-- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId integration-agent -BaseRef a85fcd1f649715c4171531f3ac5e57cc30c7894f`
-- Result: `pass — 41 owned paths checked`
+- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId integration-agent -BaseRef 92046361b81c60849e7d5d7e17d57b216fd2f972`
+- Result: `pass — 4 owned paths checked`
 
 The agent stops after creating this handoff. Only the orchestrator may accept it and activate
 the successor.
