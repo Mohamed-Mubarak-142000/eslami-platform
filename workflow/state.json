@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "integration-agent",
-  "base_ref": "ad4f627",
-  "active_task_ids": ["INT-FB-LAYOUT-001"],
+  "active_agent": "qa-agent",
+  "base_ref": "1d59bb9",
+  "active_task_ids": ["QA-FB-LAYOUT-001"],
   "acceptance_criteria": [
-    "Compose shortcuts and contacts into the accepted three-column shell",
-    "Keep the home route and focused auth composition stable",
-    "Provide labelled navigation, shortcuts, contacts, and online-state semantics",
-    "Run integration, build, and boundary checks"
+    "Verify desktop three-column, tablet collapse, and mobile single-column behavior",
+    "Verify stories, composer, feed interactions, landmarks, keyboard focus, RTL, and reduced motion",
+    "Capture objective browser evidence without production source edits",
+    "Run regression suites and QA boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
