@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "shamela-sidebar-banner-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "9f82053",
-  "active_task_ids": ["QA-SHAMELA-BANNER-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "a5724b7",
+  "active_task_ids": ["RELEASE-SHAMELA-BANNER-001"],
   "acceptance_criteria": [
-    "Verify the library banner replaces the former text header",
-    "Verify accessible Shamela link destination and safe new-tab behavior",
-    "Verify desktop visibility, mobile hiding, and no overflow",
-    "Run focused cross-browser QA and boundary guard"
+    "Review banner acceptance and external-link safety",
+    "Review accessibility, performance, and responsive risk",
+    "Issue an explicit release recommendation and rollback trigger",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
