@@ -3,7 +3,7 @@
 - Status: `review`
 - Base ref: `18c7957`
 - Result ref: `committed handoff; see repository HEAD`
-- Tasks completed: `FOUND-FB-LAYOUT-001`
+- Tasks completed: `FOUND-FB-LAYOUT-001`, `FOUND-FB-LAYOUT-DEFECT-001`
 
 ## Delivered outputs
 
@@ -20,10 +20,12 @@
 | Responsive no-overflow grid | 64rem two-column and 80rem three-column CSS | pass |
 | Preserve navigation and RTL/LTR | Existing logical properties and bottom navigation retained | pass |
 | Static and unit checks | `npm run typecheck`; `npm run lint`; `npm test -- --run` | pass — 32/32 tests |
+| Eliminate 768px document overflow | Focused Playwright check in Chromium, Firefox, and WebKit | pass — 3/3, reduced from 142px to ≤1px |
 
 ## Decisions and assumptions
 
 - DOM keeps navigation rail before main and contextual rail after main; logical CSS grid placement mirrors correctly in RTL.
+- The desktop destination strip now starts at 70rem; at 64–79.99rem the shortcut rail and bottom navigation remain available, and the contacts rail waits until 80rem.
 
 ## Open risks and deferred work
 

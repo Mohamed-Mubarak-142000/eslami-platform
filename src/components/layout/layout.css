@@ -188,7 +188,7 @@
   .app-shell__nav a { flex: 1 0 auto; }
 }
 
-@media (min-width: 40rem) {
+@media (min-width: 70rem) {
   .app-shell__topnav { display: flex; }
   .app-shell__nav { display: none; }
   .app-shell {
@@ -197,36 +197,16 @@
 }
 
 @media (min-width: 64rem) {
-  .app-shell[data-rail] {
+  .app-shell[data-leading-rail] {
     grid-template:
       "header header" auto
-      "content rail" minmax(0, 1fr)
-      / minmax(0, 1fr) minmax(0, 20rem);
+      "leading content" minmax(0, 1fr)
+      "leading navigation" auto
+      / minmax(15rem, 17rem) minmax(0, 1fr);
   }
 
   .app-shell__header { padding-inline: clamp(var(--ds-space-6), 4vw, var(--ds-space-12)); }
   .app-shell__search { inline-size: min(100%, 22rem); }
-
-  .app-shell__rail {
-    grid-area: rail;
-    display: block;
-    position: sticky;
-    inset-block-start: 4rem;
-    min-inline-size: 0;
-    max-block-size: calc(100dvh - 4rem);
-    overflow-y: auto;
-    padding: var(--ds-space-6) var(--ds-space-4);
-    border-inline-start: 1px solid var(--ds-color-border);
-  }
-}
-
-@media (min-width: 80rem) {
-  .app-shell[data-leading-rail][data-rail] {
-    grid-template:
-      "header header header" auto
-      "leading content rail" minmax(0, 1fr)
-      / minmax(15rem, 18rem) minmax(0, 1fr) minmax(15rem, 18rem);
-  }
 
   .app-shell__leading-rail {
     grid-area: leading;
@@ -238,6 +218,27 @@
     overflow-y: auto;
     padding: var(--ds-space-6) var(--ds-space-4);
     border-inline-end: 1px solid var(--ds-color-border);
+  }
+}
+
+@media (min-width: 80rem) {
+  .app-shell[data-leading-rail][data-rail] {
+    grid-template:
+      "header header header" auto
+      "leading content rail" minmax(0, 1fr)
+      / minmax(15rem, 18rem) minmax(0, 1fr) minmax(15rem, 18rem);
+  }
+
+  .app-shell__rail {
+    grid-area: rail;
+    display: block;
+    position: sticky;
+    inset-block-start: 4rem;
+    min-inline-size: 0;
+    max-block-size: calc(100dvh - 4rem);
+    overflow-y: auto;
+    padding: var(--ds-space-6) var(--ds-space-4);
+    border-inline-start: 1px solid var(--ds-color-border);
   }
 
   .app-shell[data-leading-rail][data-rail] .app-shell__main {
