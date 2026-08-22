@@ -2,23 +2,23 @@
   "workflow_version": 1,
   "milestone": "composer-dialog-feed-spacing-v1",
   "status": "active",
-  "active_agent": "feature-ui-agent",
-  "base_ref": "6a9b5d8",
-  "active_task_ids": ["FEATURE-COMPOSER-DIALOG-001"],
+  "active_agent": "qa-agent",
+  "base_ref": "18e9fc1",
+  "active_task_ids": ["QA-COMPOSER-DIALOG-001"],
   "acceptance_criteria": [
-    "Open an accessible create-post dialog from the thought prompt",
-    "Support close button, backdrop, Escape, initial focus, validation, and submit states",
-    "Hide the stories scrollbar while preserving horizontal scrolling",
-    "Reduce horizontal padding only for the center social feed"
+    "Verify dialog open, focus, Escape, backdrop/close, validation, and submit controls",
+    "Verify story horizontal scrolling remains available without a visible scrollbar",
+    "Verify reduced social-feed padding and no document overflow",
+    "Run focused cross-browser QA and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
