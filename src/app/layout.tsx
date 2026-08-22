@@ -18,10 +18,33 @@ async function resolveLocale() {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await resolveLocale();
   const t = dictionaries[locale].meta;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://basira.example";
   return {
-    metadataBase: new URL("https://basira.example"),
+    metadataBase: new URL(siteUrl),
+    applicationName: locale === "ar" ? "بصيرة" : "Basira",
     title: { default: t.title, template: t.titleTemplate },
     description: t.description,
+    keywords: locale === "ar"
+      ? ["بصيرة", "معرفة إسلامية", "علوم القرآن", "الحديث", "باحثون", "مصادر موثوقة"]
+      : ["Basira", "Islamic knowledge", "Quran studies", "Hadith", "researchers", "trusted sources"],
+    authors: [{ name: locale === "ar" ? "فريق بصيرة" : "Basira Team" }],
+    creator: locale === "ar" ? "بصيرة" : "Basira",
+    alternates: { canonical: "./" },
+    openGraph: {
+      type: "website",
+      locale: locale === "ar" ? "ar_AR" : "en_US",
+      url: "./",
+      siteName: locale === "ar" ? "بصيرة" : "Basira",
+      title: t.title,
+      description: t.description,
+      images: [{ url: "/opengraph-image.png", width: 1254, height: 1254, alt: locale === "ar" ? "شعار منصة بصيرة" : "Basira platform logo" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.title,
+      description: t.description,
+      images: ["/opengraph-image.png"],
+    },
     robots: { index: true, follow: true },
   };
 }
