@@ -2,31 +2,30 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "feature-ui-agent",
+  "active_agent": "integration-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "FEAT-001",
-    "FEAT-002",
-    "FEAT-003",
-    "FEAT-004",
-    "FEAT-005",
-    "FEAT-006"
+    "INT-001",
+    "INT-002",
+    "INT-003",
+    "INT-004",
+    "INT-005"
   ],
   "acceptance_criteria": [
-    "All P0 feature modules exist against approved domain and mock contracts",
-    "Feature UI covers auth/onboarding, feed/content, explore/search, scholars/topics, Q&A, saved, notifications, verification, and moderation",
-    "Every feature covers required loading, empty, error, offline, permission, privacy, and conflict states",
-    "Feature components use frozen design-system and foundation contracts without modifying them",
-    "Feature-level unit and interaction tests pass with RTL and accessibility behavior",
-    "Feature-ui-agent boundary check passes from the clean activation HEAD"
+    "All accepted P0 screens are reachable through Arabic-first Next.js routes and layouts",
+    "Feature modules are composed without modifying frozen feature or shared contracts",
+    "Auth/session, DTO adapters, analytics, error monitoring, cache, metadata, and privacy behavior are wired",
+    "Search/filter state is URL-shareable and private content never enters metadata or public caches",
+    "Typecheck, lint, tests, route smoke checks, and production Next.js build pass",
+    "Integration-agent boundary check passes from the clean activation HEAD"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
-    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
+    { "order": 6, "agent": "integration-agent", "status": "active" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
