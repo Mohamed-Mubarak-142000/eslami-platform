@@ -13,10 +13,10 @@ export default function HomePage() {
     <LandingPage
       isAuthenticated={isAuthenticatedSession(services.session)}
       station={{
-        name: "الإذاعة العامة — تلاوات متنوعة",
-        streamUrl: process.env.NEXT_PUBLIC_QURAN_RADIO_URL ?? "https://backup.qurango.net/radio/mix",
-        providerName: "MP3Quran.net",
-        providerUrl: "https://www.mp3quran.net/ar/radios",
+        name: "إذاعة القرآن الكريم من القاهرة — مصر",
+        streamUrl: process.env.NEXT_PUBLIC_QURAN_RADIO_URL ?? "https://stream.radiojar.com/8s5u5tpdtwzuv",
+        providerName: "إذاعة القرآن الكريم المصرية — الموقع الرسمي",
+        providerUrl: "https://misrquran.gov.eg/",
       }}
     />
   );
