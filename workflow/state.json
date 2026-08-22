@@ -2,22 +2,22 @@
   "workflow_version": 1,
   "milestone": "dark-header-tabless-feed-v1",
   "status": "active",
-  "active_agent": "feature-ui-agent",
-  "base_ref": "8d96f54",
-  "active_task_ids": ["FEATURE-TABLESS-FEED-001"],
+  "active_agent": "integration-agent",
+  "base_ref": "862b58b",
+  "active_task_ids": ["INT-REFERENCE-HEADER-002"],
   "acceptance_criteria": [
-    "Remove the visible For You/Following/Latest tab row",
-    "Keep composer, stories, and feed in that order",
-    "Remove obsolete tab state without changing feed content",
-    "Run feature checks and boundary guard"
+    "Match the reference icon order, sizes, search prompt, and compact spacing",
+    "Keep avatar at the RTL start and media icons at the opposite edge",
+    "Preserve search keyboard behavior and accessible labels",
+    "Run integration checks and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
-    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
+    { "order": 6, "agent": "integration-agent", "status": "active" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
