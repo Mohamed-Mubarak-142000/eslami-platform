@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "header-account-dropdown-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "3a3307a",
-  "active_task_ids": ["QA-ACCOUNT-DROPDOWN-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "73bf81d",
+  "active_task_ids": ["RELEASE-ACCOUNT-DROPDOWN-001"],
   "acceptance_criteria": [
-    "Verify account, settings, and language are hidden until the dropdown opens",
-    "Verify notification and theme controls remain independent",
-    "Verify keyboard interaction, RTL placement, and mobile behavior",
-    "Run focused cross-browser QA and boundary guard"
+    "Review dropdown acceptance and QA evidence",
+    "Review accessibility, RTL, privacy, and regression risk",
+    "Issue explicit release recommendation and rollback trigger",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
