@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "public-navigation-refresh-v1",
   "status": "active",
-  "active_agent": "integration-agent",
-  "base_ref": "c7dd189",
-  "active_task_ids": ["INTEGRATION-PUBLIC-NAV-ROUTES-001"],
+  "active_agent": "qa-agent",
+  "base_ref": "5002c47",
+  "active_task_ids": ["QA-PUBLIC-NAV-ROUTES-001"],
   "acceptance_criteria": [
-    "Remove explore, search, and ask routes and header search",
-    "Replace primary navigation with home, about, contact, and all categories",
-    "Add cohesive about, contact, and categories pages with metadata",
-    "Update sitemap and run integration checks and boundary guard"
+    "Verify removed routes return not found and header search is absent",
+    "Verify four navigation destinations and new public pages",
+    "Verify RTL desktop/mobile layouts, metadata, and no overflow",
+    "Run focused cross-browser QA and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
