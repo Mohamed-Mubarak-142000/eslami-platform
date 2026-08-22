@@ -23,12 +23,17 @@
 
 .app-shell__header {
   grid-area: header;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-3);
   padding: var(--ds-space-2) var(--ds-space-4);
   border-block-end: 1px solid var(--ds-color-border);
+  background: color-mix(in srgb, var(--ds-color-surface) 94%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 .app-shell__header-start {
@@ -174,7 +179,8 @@
 .app-shell__nav-icon { display: inline-flex; line-height: 1; }
 .app-shell__nav-label { font-size: .68rem; }
 
-.app-shell__rail { display: none; }
+.app-shell__rail,
+.app-shell__leading-rail { display: none; }
 
 @media (max-width: 39.99rem) {
   .app-shell__search { display: none; }
@@ -214,9 +220,35 @@
   }
 }
 
+@media (min-width: 80rem) {
+  .app-shell[data-leading-rail][data-rail] {
+    grid-template:
+      "header header header" auto
+      "leading content rail" minmax(0, 1fr)
+      / minmax(15rem, 18rem) minmax(0, 1fr) minmax(15rem, 18rem);
+  }
+
+  .app-shell__leading-rail {
+    grid-area: leading;
+    display: block;
+    position: sticky;
+    inset-block-start: 4rem;
+    min-inline-size: 0;
+    max-block-size: calc(100dvh - 4rem);
+    overflow-y: auto;
+    padding: var(--ds-space-6) var(--ds-space-4);
+    border-inline-end: 1px solid var(--ds-color-border);
+  }
+
+  .app-shell[data-leading-rail][data-rail] .app-shell__main {
+    inline-size: min(100% - 2 * var(--ds-space-5), 46rem);
+  }
+}
+
 @media (forced-colors: active) {
   .app-shell__brand-mark,
   .app-shell__header,
   .app-shell__nav,
-  .app-shell__rail { border-color: CanvasText; }
+  .app-shell__rail,
+  .app-shell__leading-rail { border-color: CanvasText; }
 }

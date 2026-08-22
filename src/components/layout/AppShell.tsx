@@ -41,6 +41,7 @@ export interface AppShellProps {
   children: ReactNode;
   navigation: readonly NavigationItem[];
   title?: string;
+  navigationRail?: ReactNode;
   contextualRail?: ReactNode;
   unreadNotifications?: number;
   nested?: boolean;
@@ -48,6 +49,7 @@ export interface AppShellProps {
   actions?: ReactNode;
   controls?: ReactNode;
   navigationLabel?: string;
+  navigationRailLabel?: string;
   railLabel?: string;
   skipToContentLabel?: string;
   notificationsLabel?: string;
@@ -58,6 +60,7 @@ export function AppShell({
   children,
   navigation,
   title = "بصيرة",
+  navigationRail,
   contextualRail,
   unreadNotifications = 0,
   nested = false,
@@ -65,6 +68,7 @@ export function AppShell({
   actions,
   controls,
   navigationLabel = "التنقل الأساسي",
+  navigationRailLabel = navigationLabel,
   railLabel = "اكتشف المزيد",
   skipToContentLabel = "تجاوز إلى المحتوى",
   notificationsLabel = "الإشعارات",
@@ -75,7 +79,12 @@ export function AppShell({
     : <main className="app-shell__main" id="main-content" tabIndex={-1}>{children}</main>;
 
   return (
-    <div className={cn("app-shell", "bg-background text-foreground")} data-nested={nested || undefined} data-rail={contextualRail ? "visible" : undefined}>
+    <div
+      className={cn("app-shell", "bg-background text-foreground")}
+      data-nested={nested || undefined}
+      data-leading-rail={navigationRail ? "visible" : undefined}
+      data-rail={contextualRail ? "visible" : undefined}
+    >
       {!nested && <a className="app-shell__skip" href="#main-content">{skipToContentLabel}</a>}
       <header className="app-shell__header">
         <div className="app-shell__header-start">
@@ -102,6 +111,7 @@ export function AppShell({
       <nav className="app-shell__nav" aria-label={navigationLabel}>
         <NavLinks navigation={navigation} variant="bottom" />
       </nav>
+      {navigationRail && <aside className="app-shell__leading-rail" aria-label={navigationRailLabel}>{navigationRail}</aside>}
       {content}
       {contextualRail && <aside className="app-shell__rail" aria-label={railLabel}>{contextualRail}</aside>}
     </div>
