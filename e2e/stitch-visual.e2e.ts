@@ -51,6 +51,10 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(libraryBanner).toHaveAttribute("target", "_blank");
     await expect(libraryBanner.locator("img")).toBeVisible();
     await expect(rail.locator("header")).toHaveCount(0);
+    await expect(rail.locator(".discovery-rail__topics")).toHaveCount(0);
+    await expect(rail.getByRole("heading", { name: "موضوعات مقترحة" })).toHaveCount(0);
+    await expect(rail.locator(".discovery-rail__suggestions")).toBeVisible();
+    await expect(rail.locator(".discovery-rail__scholars")).toBeVisible();
     await expect(navigation.locator(".shortcuts-rail nav a > span svg")).toHaveCount(5);
     await expect(navigation.locator(".shortcuts-rail__profile > span svg")).toHaveCount(1);
     await expect(navigation.locator(".shortcuts-rail__tile svg")).toHaveCount(1);
