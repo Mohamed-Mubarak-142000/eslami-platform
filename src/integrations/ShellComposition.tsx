@@ -1,35 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { Clapperboard, ImageIcon, Video } from "lucide-react";
+import { Bookmark, BookOpen, Clapperboard, Compass, Home, ImageIcon, Landmark, Library, MessageCircleQuestion, Search, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
 import type { ScholarProfile, Topic } from "@/domain";
 import type { NavigationItem } from "@/components/layout";
 import { useTranslations } from "@/i18n/LocaleProvider";
 
 export function ShortcutsRail({ navigation, topics }: { navigation: readonly NavigationItem[]; topics: readonly Topic[] }) {
   const t = useTranslations("shell");
+  const navigationIcons: Record<string, LucideIcon> = {
+    "/": Home,
+    "/explore": Compass,
+    "/search": Search,
+    "/ask": MessageCircleQuestion,
+    "/me/questions": Bookmark,
+  };
+  const topicIcons = [BookOpen, Library, Landmark, Sparkles] as const;
   return (
     <div className="shortcuts-rail">
       <Link className="shortcuts-rail__profile" href="/me/questions">
-        <span aria-hidden="true">ب</span>
+        <span aria-hidden="true"><UserRound size={20} /></span>
         <strong>{t.account}</strong>
       </Link>
       <nav aria-label={t.primaryNavigation}>
-        {navigation.map((item) => (
-          <a key={item.href} href={item.href} aria-current={item.active ? "page" : undefined}>
-            <span aria-hidden="true">{item.label.slice(0, 1)}</span>
-            {item.label}
-          </a>
-        ))}
+        {navigation.map((item) => {
+          const NavigationIcon = navigationIcons[item.href] ?? Sparkles;
+          return (
+            <a key={item.href} href={item.href} aria-current={item.active ? "page" : undefined}>
+              <span aria-hidden="true"><NavigationIcon size={20} /></span>
+              {item.label}
+            </a>
+          );
+        })}
       </nav>
       <section aria-labelledby="shortcuts-topics-title">
         <h2 id="shortcuts-topics-title">{t.suggestedTopics}</h2>
-        {topics.slice(0, 4).map((topic, index) => (
-          <Link key={topic.id} href={`/topics/${topic.slug}`}>
-            <span className={`shortcuts-rail__tile shortcuts-rail__tile--${index + 1}`} aria-hidden="true">{topic.name.slice(0, 1)}</span>
-            {topic.name}
-          </Link>
-        ))}
+        {topics.slice(0, 4).map((topic, index) => {
+          const TopicIcon = topicIcons[index] ?? BookOpen;
+          return (
+            <Link key={topic.id} href={`/topics/${topic.slug}`}>
+              <span className={`shortcuts-rail__tile shortcuts-rail__tile--${index + 1}`} aria-hidden="true"><TopicIcon size={19} /></span>
+              {topic.name}
+            </Link>
+          );
+        })}
       </section>
     </div>
   );
@@ -88,6 +102,11 @@ export function DiscoveryRail({
   scholars: readonly ScholarProfile[];
 }) {
   const t = useTranslations("shell");
+  const notableProfiles = [
+    { id: "ahmed-zewail", name: "أحمد زويل", field: "عالم كيمياء" },
+    { id: "farouk-el-baz", name: "فاروق الباز", field: "عالم فضاء وجيولوجيا" },
+    { id: "magdi-yacoub", name: "مجدي يعقوب", field: "جرّاح قلب" },
+  ] as const;
   return (
     <div className="discovery-rail">
       <header>
@@ -95,7 +114,7 @@ export function DiscoveryRail({
         <h2>{t.discoverMore}</h2>
       </header>
 
-      <section aria-labelledby="discovery-topics-title">
+      <section className="discovery-rail__topics" aria-labelledby="discovery-topics-title">
         <h3 id="discovery-topics-title">{t.suggestedTopics}</h3>
         <ul>
           {topics.map((topic) => (
@@ -109,7 +128,23 @@ export function DiscoveryRail({
         </Link>
       </section>
 
-      <section aria-labelledby="discovery-scholars-title">
+      <section className="discovery-rail__suggestions" aria-labelledby="discovery-suggestions-title">
+        <h3 id="discovery-suggestions-title">اقتراحات للمتابعة</h3>
+        <ul>
+          {notableProfiles.map((profile) => (
+            <li key={profile.id}>
+              <span className="discovery-rail__suggestion-avatar" aria-hidden="true"><UsersRound size={19} /></span>
+              <span className="discovery-rail__suggestion-copy">
+                <strong>{profile.name}</strong>
+                <small>{profile.field}</small>
+              </span>
+              <button type="button" aria-label={`متابعة ${profile.name}`}>متابعة</button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="discovery-rail__scholars" aria-labelledby="discovery-scholars-title">
         <h3 id="discovery-scholars-title">{t.scholarsAndResearchers}</h3>
         <ul>
           {scholars.map((scholar) => (
