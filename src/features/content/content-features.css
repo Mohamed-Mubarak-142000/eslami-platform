@@ -4,6 +4,22 @@
 .social-feed__intro p, .social-feed__intro h1 { margin: 0; }
 .social-feed__intro p, .social-feed__intro > span { color: var(--muted-foreground); font-size: .78rem; }
 .social-feed__intro h1 { color: var(--primary); font-family: var(--ds-font-heading); font-size: 1.65rem; }
+.feed-stories { min-inline-size: 0; }
+.feed-stories__track { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(7.2rem, 19vw, 8.4rem); gap: .55rem; overflow-x: auto; padding: .15rem .1rem .55rem; scroll-snap-type: inline mandatory; scrollbar-width: thin; }
+.feed-story { position: relative; min-block-size: 12.5rem; overflow: hidden; display: flex; align-items: flex-end; padding: .75rem; border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.7); background: hsl(218 24% 16%); color: white; box-shadow: var(--ds-shadow-raised); scroll-snap-align: start; cursor: pointer; isolation: isolate; }
+.feed-story::after { content: ""; position: absolute; inset: 38% 0 0; z-index: -1; background: linear-gradient(transparent, rgb(0 0 0 / 82%)); }
+.feed-story__visual { position: absolute; inset: 0; z-index: -2; background: radial-gradient(circle at 68% 20%, hsl(42 93% 72% / 85%) 0 11%, transparent 12%), linear-gradient(145deg, hsl(215 88% 54%), hsl(268 66% 38%) 48%, hsl(18 82% 55%)); transform: scale(1.02); transition: transform .25s ease; }
+.feed-story[data-story="2"] .feed-story__visual { background: radial-gradient(circle at 35% 28%, hsl(44 95% 75%) 0 12%, transparent 13%), linear-gradient(155deg, hsl(160 56% 38%), hsl(194 76% 32%) 55%, hsl(222 53% 22%)); }
+.feed-story[data-story="3"] .feed-story__visual { background: linear-gradient(32deg, transparent 46%, hsl(48 90% 72% / 75%) 47% 53%, transparent 54%), linear-gradient(145deg, hsl(8 72% 50%), hsl(329 62% 39%) 52%, hsl(258 58% 31%)); }
+.feed-story[data-story="4"] .feed-story__visual { background: radial-gradient(circle at 70% 35%, hsl(188 78% 74%) 0 16%, transparent 17%), linear-gradient(145deg, hsl(28 82% 53%), hsl(44 68% 44%) 48%, hsl(204 63% 26%)); }
+.feed-story:hover .feed-story__visual { transform: scale(1.07); }
+.feed-story strong { position: relative; z-index: 1; font-size: .82rem; text-align: start; text-shadow: 0 1px 3px rgb(0 0 0 / 65%); }
+.feed-story__ring { position: absolute; inset-block-start: .65rem; inset-inline-start: .65rem; z-index: 2; inline-size: 2.7rem; block-size: 2.7rem; display: grid; place-items: center; border: 3px solid var(--primary); border-radius: 50%; background: var(--card); color: var(--foreground); font-weight: 850; box-shadow: 0 0 0 2px hsl(0 0% 100% / 85%); }
+.feed-story--create { display: grid; grid-template-rows: 1fr auto; place-items: center; padding: 0 0 .8rem; background: var(--card); color: var(--foreground); }
+.feed-story--create::after { content: none; }
+.feed-story--create strong { text-shadow: none; }
+.feed-story__portrait { inline-size: 100%; block-size: 100%; display: grid; place-items: center; background: linear-gradient(145deg, var(--primary), color-mix(in srgb, var(--primary) 45%, var(--accent))); color: var(--primary-foreground); font-size: 3.5rem; font-weight: 900; }
+.feed-story__create-icon { position: absolute; inset-block-end: 2.15rem; display: grid; place-items: center; inline-size: 2.3rem; block-size: 2.3rem; border: 4px solid var(--card); border-radius: 50%; background: var(--primary); color: var(--primary-foreground); }
 .feed-composer, .feed-post, .feed-tabs { border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.5); background: var(--card); box-shadow: var(--ds-shadow-raised); transition: box-shadow var(--ds-duration-normal) var(--ds-ease-standard); }
 .feed-post:hover { box-shadow: 0 2px 4px rgb(0 0 0 / 14%), 0 1px 3px rgb(0 0 0 / 10%); }
 @media (prefers-reduced-motion: reduce) { .feed-post:hover { box-shadow: var(--ds-shadow-raised); } }
@@ -11,6 +27,9 @@
 .feed-composer__row { display: flex; align-items: flex-start; gap: .75rem; }
 .feed-avatar { flex: 0 0 auto; inline-size: 2.75rem; block-size: 2.75rem; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: var(--primary-foreground); font-weight: 850; }
 .feed-composer textarea { min-block-size: 2.9rem; resize: none; border-radius: 999px; background: var(--muted); }
+.feed-composer__quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: .25rem; margin-block-start: .75rem; padding-block-start: .65rem; border-block-start: 1px solid var(--border); }
+.feed-composer__quick-actions button { min-block-size: 2.75rem; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; border: 0; border-radius: var(--radius); background: transparent; color: var(--muted-foreground); font-family: inherit; font-weight: 750; cursor: pointer; }
+.feed-composer__quick-actions button:hover { background: var(--muted); color: var(--primary); }
 .feed-composer__expanded { display: grid; gap: .75rem; margin-block-start: .75rem; padding-block-start: .75rem; border-block-start: 1px solid var(--border); }
 .feed-composer__expanded p { margin: 0; color: var(--muted-foreground); font-size: .8rem; }
 .feed-composer__expanded > div { display: flex; align-items: center; gap: .35rem; }
@@ -34,6 +53,9 @@
 .feed-post__body h2 { margin: 0 0 .45rem; color: var(--foreground); font-family: var(--ds-font-heading); font-size: 1.25rem; line-height: 1.45; }
 .feed-post__body p { margin: 0; }
 .feed-post__continue { min-block-size: 2.4rem; padding: 0; border: 0; background: transparent; color: var(--primary); font-weight: 750; cursor: pointer; }
+.feed-post__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; margin: 0; display: grid; place-items: center; background: linear-gradient(135deg, hsl(220 74% 36%), hsl(195 70% 47%) 48%, hsl(42 86% 62%)); }
+.feed-post__media > span { inline-size: min(68%, 23rem); aspect-ratio: 1.65; border: 1px solid hsl(0 0% 100% / 45%); border-radius: 1.25rem; background: linear-gradient(145deg, hsl(0 0% 100% / 28%), hsl(0 0% 100% / 4%)); box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 24%); transform: rotate(-4deg); backdrop-filter: blur(8px); }
+.feed-post__media figcaption { position: absolute; inset-inline-start: 1rem; inset-block-end: 1rem; padding: .35rem .65rem; border-radius: 999px; background: rgb(0 0 0 / 58%); color: white; font-size: .75rem; }
 .feed-source { display: flex; align-items: center; gap: .7rem; margin-inline: 1rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--ds-color-accent-muted) 55%, var(--border)); border-inline-start: .22rem solid var(--ds-color-accent-muted); border-radius: var(--radius); background: var(--muted); }
 .feed-source > span:nth-child(2) { min-inline-size: 0; display: grid; }
 .feed-source small { overflow: hidden; color: var(--muted-foreground); text-overflow: ellipsis; white-space: nowrap; }
@@ -52,5 +74,6 @@
 .feed-comments input { min-inline-size: 0; flex: 1; min-block-size: 2.75rem; padding-inline: 1rem; border: 1px solid var(--input); border-radius: 999px; background: var(--card); color: var(--foreground); }
 .feed-comments small { color: var(--muted-foreground); }
 .content-detail, .saved-collections { max-inline-size: 48rem; margin-inline: auto; padding: clamp(1rem, 4vw, 2rem); border: 1px solid var(--border); border-radius: calc(var(--radius) * 2); background: var(--card); }
-@media (max-width: 32rem) { .social-feed__intro > span { display: none; } .feed-actions { margin-inline: .5rem; } .feed-actions button { font-size: .75rem; } .feed-actions button span { display: none; } .feed-composer__expanded > div { flex-wrap: wrap; } }
+@media (max-width: 32rem) { .social-feed__intro > span { display: none; } .feed-stories__track { grid-auto-columns: 7.15rem; } .feed-story { min-block-size: 11.5rem; } .feed-actions { margin-inline: .5rem; } .feed-actions button { font-size: .72rem; gap: .2rem; } .feed-composer { padding: .75rem; } .feed-composer__quick-actions button { font-size: .7rem; } .feed-composer__expanded > div { flex-wrap: wrap; } }
+@media (prefers-reduced-motion: reduce) { .feed-story__visual { transition: none; } .feed-story:hover .feed-story__visual { transform: none; } }
 @media (forced-colors: active) { .feed-post, .feed-composer, .feed-tabs { border: 2px solid CanvasText; } }

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { BadgeCheck, BookOpen, Bookmark, Info, MessageCircle, MoreHorizontal, Share2, ThumbsUp } from "lucide-react";
+import { BadgeCheck, BookOpen, Bookmark, ImageIcon, Info, MessageCircle, MoreHorizontal, Plus, Share2, Smile, ThumbsUp, Video } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type { KnowledgeContent, ScholarProfile } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
@@ -23,6 +23,39 @@ function MiniIdentity({ name, role, verified = true }: { name: string; role: str
         <small>{role}</small>
       </span>
     </div>
+  );
+}
+
+function StoryStrip() {
+  const t = useTranslations("feed");
+  const [status, setStatus] = useState("");
+  const stories = t.highlights.slice(1);
+
+  return (
+    <section className="feed-stories" aria-labelledby="feed-stories-title">
+      <h2 id="feed-stories-title" className="feed-sr-only">{t.highlightsAria}</h2>
+      <div className="feed-stories__track" role="list">
+        <button
+          className="feed-story feed-story--create"
+          type="button"
+          role="listitem"
+          onClick={() => setStatus(t.composerNote)}
+          aria-label={`${t.publish}: ${t.homeTitle}`}
+        >
+          <span className="feed-story__portrait" aria-hidden="true">م</span>
+          <span className="feed-story__create-icon" aria-hidden="true"><Plus size={20} strokeWidth={3} /></span>
+          <strong>{t.publish}</strong>
+        </button>
+        {stories.map((story, index) => (
+          <button className="feed-story" type="button" role="listitem" key={story.id} data-story={index + 1} aria-label={`${story.label}: ${story.meta}`}>
+            <span className="feed-story__ring" aria-hidden="true">{story.label.slice(0, 1)}</span>
+            <span className="feed-story__visual" aria-hidden="true" />
+            <strong>{story.label}</strong>
+          </button>
+        ))}
+      </div>
+      {status && <p className="feed-sr-only" role="status">{status}</p>}
+    </section>
   );
 }
 
@@ -63,6 +96,11 @@ export function FeedComposer({ onSubmit }: { onSubmit?: (text: string) => void |
             aria-invalid={Boolean(message)}
             aria-describedby={message ? "composer-error" : undefined}
           />
+        </div>
+        <div className="feed-composer__quick-actions" aria-label={t.composerAria}>
+          <button type="button"><Video size={19} aria-hidden="true" /> {t.kindPost}</button>
+          <button type="button"><ImageIcon size={19} aria-hidden="true" /> {t.addSource}</button>
+          <button type="button"><Smile size={19} aria-hidden="true" /> {t.chooseTopic}</button>
         </div>
         {message && <p id="composer-error" role="alert" className="feed-error">{message}</p>}
         {expanded && (
@@ -129,6 +167,10 @@ export function ContentCard({ content, saved = false, onSave, onHelpful, onComme
         <p>{content.summary}</p>
         <button type="button" className="feed-post__continue">{t.continueReading}</button>
       </div>
+      <figure className="feed-post__media" aria-label={content.title}>
+        <span aria-hidden="true" />
+        <figcaption>{kind}</figcaption>
+      </figure>
       {content.sources.length > 0 && (
         <aside className="feed-source" aria-label={t.sourceAria}>
           <BookOpen size={18} aria-hidden="true" />
@@ -198,6 +240,7 @@ export function Feed({ items, status = "ready", onRetry }: { items: readonly Kno
           <div><p>{t.homeEyebrow}</p><h1>{t.homeTitle}</h1></div>
           <span>{t.homeNote}</span>
         </header>
+        <StoryStrip />
         <TopicHighlights items={t.highlights} activeId={activeTopic} onSelect={setActiveTopic} label={t.highlightsAria} />
         <FeedComposer />
         <nav className="feed-tabs" aria-label={t.tabsAria}>
