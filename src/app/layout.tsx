@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AppShell } from "@/components/layout";
-import { DiscoveryRail, IntegrationProvider, services, ShellActions, ShellSearch } from "@/integrations";
+import { ApplicationFrame, IntegrationProvider, services } from "@/integrations";
 import "@/styles/application.css";
 import "@/integrations/shell-composition.css";
 
@@ -12,15 +11,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ar" dir="rtl">
       <body>
         <IntegrationProvider session={services.session}>
-          <AppShell
+          <ApplicationFrame
             navigation={navigation}
-            search={<ShellSearch />}
-            actions={<ShellActions />}
-            contextualRail={<DiscoveryRail topics={services.data.topics} scholars={services.data.scholars} />}
+            topics={services.data.topics}
+            scholars={services.data.scholars}
             unreadNotifications={1}
           >
             {children}
-          </AppShell>
+          </ApplicationFrame>
         </IntegrationProvider>
       </body>
     </html>
