@@ -1,29 +1,24 @@
 {
   "workflow_version": 1,
-  "milestone": "social-ui-auth-v2",
+  "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "HEAD",
-  "active_task_ids": ["QA-SOCIAL-AUTH-001"],
+  "active_agent": "product-agent",
+  "base_ref": "1a73e37",
+  "active_task_ids": ["PROD-FB-LAYOUT-001"],
   "acceptance_criteria": [
-    "Independently verify feed and auth acceptance criteria across desktop, tablet, and mobile",
-    "Test keyboard, landmarks, RTL, validation, loading/error/success, responsive overflow, and reduced motion",
-    "Verify Tailwind output, shadcn-style primitives, Framer Motion interactions, and GSAP isolation without private data leakage",
-    "Capture objective visual evidence and run full regression suites without production source edits",
-    "Run the QA ownership boundary guard and create exactly one milestone handoff"
+    "Define a Facebook-inspired but independently branded social home experience",
+    "Require desktop three-column composition with stories, composer, feed, shortcuts, and contacts",
+    "Require responsive tablet and mobile behavior with RTL and accessibility",
+    "Preserve the platform knowledge and trust positioning"
   ],
-  "release_decision": "CONDITIONAL_GO",
-  "approved_target": "internal_access_restricted_frontend_mock_demo",
-  "production_decision": "NO_GO",
-  "release_report": "reports/release/frontend-mvp-release-review.md",
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "accepted" },
-    { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
+    { "order": 1, "agent": "product-agent", "status": "active" },
+    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
