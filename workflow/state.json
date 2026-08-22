@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "composer-header-restore-v1",
   "status": "active",
-  "active_agent": "integration-agent",
-  "base_ref": "130528c",
-  "active_task_ids": ["INT-RESTORE-HEADER-001"],
+  "active_agent": "qa-agent",
+  "base_ref": "7d9d677",
+  "active_task_ids": ["QA-COMPOSER-HEADER-001"],
   "acceptance_criteria": [
-    "Restore the original global search/navigation/account header composition",
-    "Remove compact social prompt/media actions from the global header",
-    "Restore notifications, language, and theme controls",
-    "Preserve focused-auth composition and responsive mobile navigation"
+    "Verify social prompt and three media actions exist only in the compact composer",
+    "Verify original global header search, navigation, account, notification, language, and theme controls",
+    "Verify composer expansion, keyboard behavior, RTL, and responsive overflow",
+    "Run focused cross-browser QA and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
