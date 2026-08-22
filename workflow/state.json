@@ -2,23 +2,23 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "8af30cf",
-  "active_task_ids": ["QA-FB-LAYOUT-001"],
+  "active_agent": "feature-ui-agent",
+  "base_ref": "7ea0a1b",
+  "active_task_ids": ["FEATURE-FB-LAYOUT-ORDER-002"],
   "acceptance_criteria": [
-    "Verify desktop three-column, tablet collapse, and mobile single-column behavior",
-    "Update obsolete Stitch expectations to the accepted RTL and mobile-search contracts",
-    "Verify stories, composer, landmarks, keyboard focus, RTL, reduced motion, and no overflow",
-    "Run full cross-browser regression and QA boundary guard"
+    "Place the composer before the stories strip on the home feed",
+    "Remove the redundant circular topic-highlights row",
+    "Keep stories, tabs, feed cards, accessibility, and responsive behavior unchanged",
+    "Run feature checks and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
