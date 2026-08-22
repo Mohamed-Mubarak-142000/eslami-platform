@@ -229,7 +229,6 @@ export function ContentCard({ content, saved = false, onSave, onHelpful, onComme
 
 export function Feed({ items, status = "ready", onRetry }: { items: readonly KnowledgeContent[]; status?: FeatureStatus; onRetry?: () => void }) {
   const t = useTranslations("feed");
-  const [tab, setTab] = useState<"for-you" | "following" | "latest">("for-you");
   const actual = status === "ready" && items.length === 0 ? "empty" : status;
 
   return (
@@ -238,11 +237,6 @@ export function Feed({ items, status = "ready", onRetry }: { items: readonly Kno
         <h1 className="feed-sr-only">{t.homeTitle}</h1>
         <FeedComposer />
         <StoryStrip />
-        <nav className="feed-tabs" aria-label={t.tabsAria}>
-          <button type="button" aria-current={tab === "for-you" ? "page" : undefined} onClick={() => setTab("for-you")}>{t.tabForYou}</button>
-          <button type="button" aria-current={tab === "following" ? "page" : undefined} onClick={() => setTab("following")}>{t.tabFollowing}</button>
-          <button type="button" aria-current={tab === "latest" ? "page" : undefined} onClick={() => setTab("latest")}>{t.tabLatest}</button>
-        </nav>
         <motion.section
           className="feed-list"
           aria-labelledby="feed-title"
