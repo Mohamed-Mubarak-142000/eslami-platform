@@ -2,8 +2,8 @@
   "workflow_version": 1,
   "milestone": "public-landing-community-radio-v1",
   "status": "active",
-  "active_agent": "product-agent",
-  "base_ref": "0b9739b",
+  "active_agent": "ux-agent",
+  "base_ref": "9ae2c94",
   "active_task_ids": ["LAND-01", "AUTH-01", "RADIO-01"],
   "acceptance_criteria": [
     "Define public landing scope and conversion actions",
@@ -12,8 +12,8 @@
     "Preserve Arabic-first responsive accessibility and existing community experience"
   ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "active" },
-    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 1, "agent": "product-agent", "status": "accepted" },
+    { "order": 2, "agent": "ux-agent", "status": "active" },
     { "order": 3, "agent": "design-system-agent", "status": "pending" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
