@@ -2,15 +2,15 @@
   "workflow_version": 1,
   "milestone": "social-ui-auth-v2",
   "status": "active",
-  "active_agent": "foundation-agent",
+  "active_agent": "feature-ui-agent",
   "base_ref": "HEAD",
-  "active_task_ids": ["FOUND-SOCIAL-STACK-001"],
+  "active_task_ids": ["FEAT-SOCIAL-FEED-001", "FEAT-AUTH-BUSINESS-001"],
   "acceptance_criteria": [
-    "Install and configure Tailwind CSS v4 with the accepted semantic theme and existing PostCSS/Next.js stack",
-    "Configure shadcn-compatible aliases and cn utility without replacing accepted component APIs",
-    "Install Framer Motion and GSAP with client-boundary-safe, reduced-motion-aware shared foundations",
-    "Preserve strict TypeScript, lint, test, Storybook, and production build stability",
-    "Run the foundation ownership boundary guard and create exactly one milestone handoff"
+    "Build the Facebook-familiar brand-original feed, composer, highlights, content interactions, comments, and responsive feature behavior",
+    "Build professional login, registration, password recovery, and reset feature surfaces with complete validation and state handling",
+    "Use accepted Tailwind/shadcn patterns, Framer Motion interactions, and the isolated GSAP auth brand timeline responsibly",
+    "Preserve existing domain/service contracts, accessibility, RTL, reduced motion, and mock-demo disclosure",
+    "Run feature checks and the ownership boundary guard and create exactly one milestone handoff"
   ],
   "release_decision": "CONDITIONAL_GO",
   "approved_target": "internal_access_restricted_frontend_mock_demo",
@@ -20,8 +20,8 @@
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
