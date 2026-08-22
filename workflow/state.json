@@ -2,23 +2,23 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "feature-ui-agent",
-  "base_ref": "7ea0a1b",
-  "active_task_ids": ["FEATURE-FB-LAYOUT-ORDER-002"],
+  "active_agent": "qa-agent",
+  "base_ref": "9d92eb1",
+  "active_task_ids": ["QA-FB-LAYOUT-ORDER-002"],
   "acceptance_criteria": [
-    "Place the composer before the stories strip on the home feed",
-    "Remove the redundant circular topic-highlights row",
-    "Keep stories, tabs, feed cards, accessibility, and responsive behavior unchanged",
-    "Run feature checks and boundary guard"
+    "Verify composer precedes stories and the redundant topic row is absent",
+    "Verify the compact home retains an accessible primary heading",
+    "Rerun responsive overflow and social visual contracts across browsers",
+    "Update QA evidence and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
