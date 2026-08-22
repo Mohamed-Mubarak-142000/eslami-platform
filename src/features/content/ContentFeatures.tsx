@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { BadgeCheck, BookOpen, Bookmark, ImageIcon, Info, MessageCircle, MoreHorizontal, Plus, Share2, Smile, ThumbsUp, Video } from "lucide-react";
+import { BadgeCheck, BookOpen, Bookmark, Clapperboard, ImageIcon, Info, MessageCircle, MoreHorizontal, Plus, Share2, ThumbsUp, Video } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type { KnowledgeContent, ScholarProfile } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
@@ -92,15 +92,15 @@ export function FeedComposer({ onSubmit }: { onSubmit?: (text: string) => void |
             value={text}
             onFocus={() => setExpanded(true)}
             onChange={(event) => setText(event.currentTarget.value)}
-            placeholder={t.composerPlaceholder}
+            placeholder="بم تفكر يا Mohamed؟"
             aria-invalid={Boolean(message)}
             aria-describedby={message ? "composer-error" : undefined}
           />
         </div>
         <div className="feed-composer__quick-actions" aria-label={t.composerAria}>
-          <button type="button"><Video size={19} aria-hidden="true" /> {t.kindPost}</button>
-          <button type="button"><ImageIcon size={19} aria-hidden="true" /> {t.addSource}</button>
-          <button type="button"><Smile size={19} aria-hidden="true" /> {t.chooseTopic}</button>
+          <button type="button" aria-label="إنشاء مقطع"><Clapperboard size={21} aria-hidden="true" /><span>{t.kindPost}</span></button>
+          <button type="button" aria-label="إضافة صورة"><ImageIcon size={21} aria-hidden="true" /><span>{t.addSource}</span></button>
+          <button type="button" aria-label="فيديو مباشر"><Video size={21} aria-hidden="true" /><span>{t.chooseTopic}</span></button>
         </div>
         {message && <p id="composer-error" role="alert" className="feed-error">{message}</p>}
         {expanded && (
