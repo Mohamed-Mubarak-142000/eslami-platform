@@ -2,24 +2,25 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "foundation-agent",
+  "active_agent": "qa-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "FIX-QA-DEF-002"
+    "QA-RETEST-001",
+    "QA-RETEST-002"
   ],
   "acceptance_criteria": [
-    "Admin pages expose exactly one primary main landmark",
-    "AppShell and AdminShell remain composable without nested main elements",
-    "Typecheck, lint, tests, build, targeted three-browser QA test, and foundation boundary pass"
+    "QA-DEF-001 and QA-DEF-002 pass across Chromium, Firefox, and WebKit",
+    "Full cross-browser E2E suite has zero release-blocking failures",
+    "Typecheck, lint, tests, build, QA evidence, defect dispositions, and QA boundary pass"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "changes_requested" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
