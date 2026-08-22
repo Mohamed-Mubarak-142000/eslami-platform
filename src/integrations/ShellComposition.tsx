@@ -48,7 +48,7 @@ export function ShellSearch() {
         type="search"
         inputMode="search"
         autoComplete="off"
-        placeholder={t.searchPlaceholder}
+        placeholder="بم تفكر يا Mohamed؟"
       />
       <button type="submit">{t.searchSubmit}</button>
     </form>
@@ -73,9 +73,9 @@ export function SocialMediaActions() {
   const t = useTranslations("shell");
   return (
     <div className="social-media-actions" aria-label={t.accountActions}>
-      <a className="social-media-actions__video" href="#feed-composer-input" aria-label="فيديو مباشر"><Video size={22} aria-hidden="true" /></a>
-      <a className="social-media-actions__photo" href="#feed-composer-input" aria-label="إضافة صورة"><ImageIcon size={22} aria-hidden="true" /></a>
       <a className="social-media-actions__reel" href="#feed-composer-input" aria-label="إنشاء مقطع"><Clapperboard size={22} aria-hidden="true" /></a>
+      <a className="social-media-actions__photo" href="#feed-composer-input" aria-label="إضافة صورة"><ImageIcon size={22} aria-hidden="true" /></a>
+      <a className="social-media-actions__video" href="#feed-composer-input" aria-label="فيديو مباشر"><Video size={22} aria-hidden="true" /></a>
     </div>
   );
 }

@@ -62,14 +62,15 @@
 
 .shell-actions a:hover { background: var(--ds-color-surface-subtle); color: var(--ds-color-primary); }
 
-.social-media-actions { display: flex; align-items: center; gap: .25rem; direction: ltr; }
+.social-media-actions { display: flex; align-items: center; gap: .1rem; direction: ltr; }
 .social-media-actions a { min-inline-size: 2.75rem; min-block-size: 2.75rem; display: inline-grid; place-items: center; border-radius: 50%; text-decoration: none; transition: background-color var(--ds-duration-normal), transform var(--ds-duration-normal); }
 .social-media-actions a:hover { background: var(--ds-color-surface-subtle); transform: translateY(-1px); }
 .social-media-actions__video,
 .social-media-actions__reel { color: #ff2f68; }
 .social-media-actions__photo { color: #31b968; }
 .app-shell[data-compact-header] .app-shell__brand-mark { background: radial-gradient(circle at 50% 30%, #f2c69f 0 18%, transparent 19%), linear-gradient(145deg, #284e64, #d88a57); border: 2px solid var(--ds-color-surface); box-shadow: 0 0 0 1px var(--ds-color-border); color: white; font-size: .8rem; }
-.app-shell[data-compact-header] .shell-search { background: var(--ds-color-surface-subtle); }
+.app-shell[data-compact-header] .shell-search { min-block-size: 2.5rem; border: 0; border-radius: 999px; background: var(--ds-color-surface-subtle); box-shadow: none; }
+.app-shell[data-compact-header] .shell-search input { min-block-size: 2.5rem; text-align: start; }
 .app-shell[data-compact-header] .shell-search button { display: none; }
 
 .discovery-rail { display: grid; gap: var(--ds-space-8); }
