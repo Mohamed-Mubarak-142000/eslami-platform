@@ -1,6 +1,30 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Mounir Stitch shell visual contract", () => {
+  test("secondary routes share the responsive social page contract", async ({ page }) => {
+    test.setTimeout(60_000);
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: width > 600 ? 900 : 844 });
+      for (const route of ["/explore", "/search", "/ask/1", "/saved"]) {
+        await page.goto(route);
+        await expect(page.locator(".social-page")).toBeVisible();
+        await expect(page.locator(".social-page__hero h1")).toBeVisible();
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(overflow, `${route} at ${width}px`).toBeLessThanOrEqual(1);
+      }
+    }
+
+    await page.goto("/explore");
+    await expect(page.locator(".topic-grid a")).toHaveCount(1);
+    await expect(page.locator(".scholar-grid")).toBeVisible();
+    await page.goto("/search");
+    await expect(page.locator(".social-search__form")).toBeVisible();
+    await page.goto("/ask/1");
+    await expect(page.locator(".visibility-picker label")).toHaveCount(2);
+    await page.goto("/saved");
+    await expect(page.locator(".saved-collections .feed-post").first()).toBeVisible();
+  });
+
   test("brand logo and public SEO metadata are exposed", async ({ page, request }) => {
     await page.goto("/");
     const brand = page.locator(".app-shell__brand");
