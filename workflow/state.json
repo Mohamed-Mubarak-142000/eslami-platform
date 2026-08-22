@@ -2,27 +2,27 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "ux-agent",
+  "active_agent": "design-system-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "UX-001",
-    "UX-002",
-    "UX-003",
-    "UX-004",
-    "UX-005"
+    "DS-001",
+    "DS-002",
+    "DS-003",
+    "DS-004",
+    "DS-005"
   ],
   "acceptance_criteria": [
-    "Every P0 acceptance criterion maps to a screen, flow, and UI state",
-    "Arabic-first sitemap and navigation cover user, scholar, and admin surfaces",
-    "Responsive wireframe specifications cover mobile, tablet, and desktop",
-    "Loading, empty, error, offline, permission, and privacy states are explicit",
-    "Usability test plan and Arabic microcopy inventory are implementation-ready",
-    "UX-agent boundary check passes from the clean activation HEAD"
+    "Semantic tokens cover color, typography, spacing, radii, elevation, motion, and themes",
+    "Required accessible primitives and product patterns expose stable typed contracts",
+    "RTL, responsive, focus, reduced-motion, and WCAG AA behavior is explicit",
+    "Storybook stories cover states, themes, direction, and key viewports",
+    "Design-to-code mapping traces UX PAT/STA requirements",
+    "Design-system-agent boundary check passes from the clean activation HEAD"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "active" },
-    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 2, "agent": "ux-agent", "status": "accepted" },
+    { "order": 3, "agent": "design-system-agent", "status": "active" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
