@@ -15,7 +15,7 @@ const focusedAuthRoutes = new Set([
 ]);
 
 function isFocusedAuthRoute(pathname: string): boolean {
-  return pathname.startsWith("/auth/") || focusedAuthRoutes.has(pathname);
+  return pathname === "/" || pathname.startsWith("/auth/") || focusedAuthRoutes.has(pathname);
 }
 
 function isActiveHref(pathname: string, href: string): boolean {

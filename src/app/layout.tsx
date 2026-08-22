@@ -51,9 +51,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await resolveLocale();
-  const t = dictionaries[locale].shell;
   const navigation = [
-    { href: "/", label: t.navHome },
+    { href: "/community", label: locale === "ar" ? "المجتمع" : "Community" },
     { href: "/about", label: locale === "ar" ? "من نحن" : "About" },
     { href: "/contact", label: locale === "ar" ? "اتصل بنا" : "Contact" },
     { href: "/categories", label: locale === "ar" ? "جميع الأقسام" : "All categories" },

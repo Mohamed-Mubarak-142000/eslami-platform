@@ -14,6 +14,7 @@ export function ShortcutsRail({ navigation, topics }: { navigation: readonly Nav
   const t = useTranslations("shell");
   const navigationIcons: Record<string, LucideIcon> = {
     "/": Home,
+    "/community": UsersRound,
     "/about": Info,
     "/contact": Mail,
     "/categories": Grid3X3,
