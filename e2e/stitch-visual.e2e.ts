@@ -22,7 +22,7 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(actions.locator(".shell-control")).toHaveCount(2);
     await expect(actions.locator(".app-shell__notifications")).toHaveCount(1);
     await expect(page.locator("#shell-search-query")).toHaveAttribute("placeholder", /ابحث/);
-    await expect(page.locator("#feed-composer-input")).toHaveAttribute("placeholder", "بم تفكر يا Mohamed؟");
+    await expect(page.locator(".feed-composer__prompt")).toHaveText("بم تفكر يا Mohamed؟");
     await expect(page.locator(".feed-composer__quick-actions button")).toHaveCount(3);
     await expect(page.locator(".feed-composer__quick-actions button[aria-label='إنشاء مقطع']")).toBeVisible();
     await expect(page.locator(".feed-composer__quick-actions button[aria-label='إضافة صورة']")).toBeVisible();
@@ -99,6 +99,41 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await query.press("Enter");
     await expect(page).toHaveURL(/\/search\?q=%D9%85%D8%AF%D8%AE%D9%84$/);
     await expect(page.locator("main h1")).toBeVisible();
+  });
+
+  test("composer prompt opens an accessible dialog and stories scroll without visible chrome", async ({ page, browserName }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/");
+
+    const prompt = page.locator(".feed-composer__prompt");
+    await prompt.click();
+    const dialog = page.getByRole("dialog", { name: "إنشاء منشور" });
+    await expect(dialog).toBeVisible();
+    const editor = dialog.locator("#feed-composer-input");
+    await expect(editor).toBeFocused();
+    await expect(dialog.getByRole("button", { name: "نشر" })).toBeDisabled();
+    await editor.fill("مشاركة معرفية تجريبية للاختبار");
+    await expect(dialog.getByRole("button", { name: "نشر" })).toBeEnabled();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+
+    const stories = page.locator(".feed-stories__track");
+    const storyStyle = await stories.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        overflowX: style.overflowX,
+        scrollbarWidth: style.scrollbarWidth,
+        canScroll: element.scrollWidth > element.clientWidth,
+      };
+    });
+    expect(storyStyle.overflowX).toBe("auto");
+    expect(storyStyle.canScroll).toBe(true);
+    if (browserName === "firefox") expect(storyStyle.scrollbarWidth).toBe("none");
+
+    const padding = await page.locator(".app-shell__main").evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).paddingInlineStart),
+    );
+    expect(padding).toBeLessThanOrEqual(16);
   });
 
   test("shell landmarks remain unique and public discovery excludes private fixtures", async ({ page }) => {
