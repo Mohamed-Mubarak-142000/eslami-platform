@@ -1,11 +1,27 @@
 {
   "workflow_version": 1,
   "milestone": "frontend-mvp",
-  "status": "not_started",
-  "active_agent": null,
-  "base_ref": null,
+  "status": "in_progress",
+  "active_agent": "product-agent",
+  "base_ref": "989d5d5",
+  "active_task_ids": [
+    "PROD-001",
+    "PROD-002",
+    "PROD-003",
+    "PROD-004",
+    "PROD-005",
+    "PROD-006"
+  ],
+  "acceptance_criteria": [
+    "MVP scope and exclusions are explicit and traceable",
+    "Personas and permission matrix cover all product roles",
+    "Every P0 capability has testable user stories and edge cases",
+    "Verification, privacy, moderation, and disagreement rules are explicit",
+    "Domain glossary and status/content models are internally consistent",
+    "Product-agent boundary check passes from base ref 989d5d5"
+  ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "pending" },
+    { "order": 1, "agent": "product-agent", "status": "active" },
     { "order": 2, "agent": "ux-agent", "status": "pending" },
     { "order": 3, "agent": "design-system-agent", "status": "pending" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
