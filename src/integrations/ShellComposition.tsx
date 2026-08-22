@@ -2,7 +2,37 @@
 
 import Link from "next/link";
 import type { ScholarProfile, Topic } from "@/domain";
+import type { NavigationItem } from "@/components/layout";
 import { useTranslations } from "@/i18n/LocaleProvider";
+
+export function ShortcutsRail({ navigation, topics }: { navigation: readonly NavigationItem[]; topics: readonly Topic[] }) {
+  const t = useTranslations("shell");
+  return (
+    <div className="shortcuts-rail">
+      <Link className="shortcuts-rail__profile" href="/me/questions">
+        <span aria-hidden="true">ب</span>
+        <strong>{t.account}</strong>
+      </Link>
+      <nav aria-label={t.primaryNavigation}>
+        {navigation.map((item) => (
+          <a key={item.href} href={item.href} aria-current={item.active ? "page" : undefined}>
+            <span aria-hidden="true">{item.label.slice(0, 1)}</span>
+            {item.label}
+          </a>
+        ))}
+      </nav>
+      <section aria-labelledby="shortcuts-topics-title">
+        <h2 id="shortcuts-topics-title">{t.suggestedTopics}</h2>
+        {topics.slice(0, 4).map((topic, index) => (
+          <Link key={topic.id} href={`/topics/${topic.slug}`}>
+            <span className={`shortcuts-rail__tile shortcuts-rail__tile--${index + 1}`} aria-hidden="true">{topic.name.slice(0, 1)}</span>
+            {topic.name}
+          </Link>
+        ))}
+      </section>
+    </div>
+  );
+}
 
 export function ShellSearch() {
   const t = useTranslations("shell");
@@ -73,7 +103,10 @@ export function DiscoveryRail({
           {scholars.map((scholar) => (
             <li key={scholar.id}>
               <Link href={`/scholars/${scholar.slug}`}>
-                <span aria-hidden="true">{scholar.displayName.slice(0, 2)}</span>
+                <span className="discovery-rail__contact-avatar" aria-hidden="true">
+                  {scholar.displayName.slice(0, 2)}
+                  <i />
+                </span>
                 <span>
                   <strong>{scholar.displayName}</strong>
                   <small>{t.trialVerifiedProfile}</small>
