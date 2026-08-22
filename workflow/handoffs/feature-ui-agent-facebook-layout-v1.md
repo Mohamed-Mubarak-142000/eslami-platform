@@ -3,7 +3,7 @@
 - Status: `review`
 - Base ref: `7013b7d`
 - Result ref: `committed handoff; see repository HEAD`
-- Tasks completed: `FEATURE-FB-LAYOUT-001`
+- Tasks completed: `FEATURE-FB-LAYOUT-001`, `FEATURE-FB-LAYOUT-ORDER-002`
 
 ## Delivered outputs
 
@@ -20,10 +20,12 @@
 | Familiar composer and feed hierarchy | Persistent video/source/topic actions and media surface | pass |
 | Responsive and reduced motion | Mobile story sizing, horizontal scroll snap, motion media query | pass |
 | Static and unit checks | `npm run typecheck`; `npm run lint`; `npm test -- --run` | pass — 32/32 tests |
+| Match requested feed order | Composer precedes stories; redundant visible intro and circular topic row removed | pass |
 
 ## Decisions and assumptions
 
 - Decorative gradient illustrations provide stable image-like visual content without third-party tracking or copied Facebook imagery.
+- The home retains a screen-reader heading while removing the visible introductory block to match the requested compact ordering.
 
 ## Open risks and deferred work
 

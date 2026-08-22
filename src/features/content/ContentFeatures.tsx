@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import type { KnowledgeContent, ScholarProfile } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
 import { Alert, Button, Textarea } from "@/components/ui";
-import { ScholarIdentity, SourceCitation, TopicHighlights } from "@/components/patterns";
+import { ScholarIdentity, SourceCitation } from "@/components/patterns";
 import { useSocialMotionPreset } from "@/lib/motion";
 import { FeatureState, type FeatureStatus } from "../shared/FeatureState";
 import "./content-features.css";
@@ -229,20 +229,15 @@ export function ContentCard({ content, saved = false, onSave, onHelpful, onComme
 
 export function Feed({ items, status = "ready", onRetry }: { items: readonly KnowledgeContent[]; status?: FeatureStatus; onRetry?: () => void }) {
   const t = useTranslations("feed");
-  const [activeTopic, setActiveTopic] = useState("all");
   const [tab, setTab] = useState<"for-you" | "following" | "latest">("for-you");
   const actual = status === "ready" && items.length === 0 ? "empty" : status;
 
   return (
     <FeatureState status={actual} {...(onRetry ? { onRetry } : {})}>
       <div className="social-feed">
-        <header className="social-feed__intro">
-          <div><p>{t.homeEyebrow}</p><h1>{t.homeTitle}</h1></div>
-          <span>{t.homeNote}</span>
-        </header>
-        <StoryStrip />
-        <TopicHighlights items={t.highlights} activeId={activeTopic} onSelect={setActiveTopic} label={t.highlightsAria} />
+        <h1 className="feed-sr-only">{t.homeTitle}</h1>
         <FeedComposer />
+        <StoryStrip />
         <nav className="feed-tabs" aria-label={t.tabsAria}>
           <button type="button" aria-current={tab === "for-you" ? "page" : undefined} onClick={() => setTab("for-you")}>{t.tabForYou}</button>
           <button type="button" aria-current={tab === "following" ? "page" : undefined} onClick={() => setTab("following")}>{t.tabFollowing}</button>
