@@ -1,10 +1,10 @@
 {
   "workflow_version": 1,
   "milestone": "composer-dialog-feed-spacing-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "ac81ad5",
-  "active_task_ids": ["REL-SIDEBAR-ICONS-FOLLOWS-001"],
+  "status": "complete",
+  "active_agent": "orchestrator-agent",
+  "base_ref": "e3ee25a",
+  "active_task_ids": [],
   "acceptance_criteria": [
     "Confirm acceptance evidence and ownership gates are complete",
     "Review accessibility, RTL, privacy, and release risk",
@@ -19,6 +19,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
