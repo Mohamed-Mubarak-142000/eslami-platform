@@ -2,22 +2,15 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "in_progress",
-  "active_agent": "qa-agent",
+  "active_agent": "integration-agent",
   "base_ref": "HEAD",
   "active_task_ids": [
-    "QA-001",
-    "QA-002",
-    "QA-003",
-    "QA-004",
-    "QA-005"
+    "FIX-QA-DEF-001"
   ],
   "acceptance_criteria": [
-    "P0 user, scholar, moderator, and admin journeys have executable E2E or integration coverage",
-    "Accessibility, RTL, responsive, privacy, permission, and cross-browser evidence is recorded",
-    "Defects include severity, owner, reproduction, expected/actual, and evidence",
-    "No production source is modified and tests are not weakened to pass",
-    "Typecheck, lint, unit/integration, production build, and QA suites pass or blockers are explicit",
-    "QA-agent boundary check passes from the clean activation HEAD"
+    "Member sessions cannot render admin moderation or verification decision controls",
+    "Unauthorized admin routes use neutral non-disclosing permission state",
+    "Typecheck, lint, tests, build, targeted Chromium QA test, and integration boundary pass"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -25,8 +18,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
+    { "order": 6, "agent": "integration-agent", "status": "active" },
+    { "order": 7, "agent": "qa-agent", "status": "changes_requested" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
