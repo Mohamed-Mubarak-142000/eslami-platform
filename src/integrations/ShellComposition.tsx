@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Bookmark, BookOpen, Clapperboard, Compass, Home, ImageIcon, Landmark, Library, MessageCircleQuestion, Search, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
+import { Bookmark, BookOpen, ChevronDown, Clapperboard, Compass, Home, ImageIcon, Languages, Landmark, Library, MessageCircleQuestion, Search, Settings, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
+import { useRef } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
 import type { NavigationItem } from "@/components/layout";
-import { useTranslations } from "@/i18n/LocaleProvider";
+import { useLocale, useTranslations } from "@/i18n/LocaleProvider";
 import shamelaLibraryBanner from "./assets/shamela-library-banner.png";
 
 export function ShortcutsRail({ navigation, topics }: { navigation: readonly NavigationItem[]; topics: readonly Topic[] }) {
@@ -73,15 +74,25 @@ export function ShellSearch() {
 
 export function ShellActions() {
   const t = useTranslations("shell");
+  const { locale, setLocale } = useLocale();
+  const menuRef = useRef<HTMLDetailsElement>(null);
+  const nextLocale = locale === "ar" ? "en" : "ar";
+  const languageLabel = nextLocale === "en" ? "English" : "العربية";
   return (
-    <div className="shell-actions" aria-label={t.accountActions}>
-      <Link href="/settings/privacy" aria-label={t.settings}>
-        {t.settings}
-      </Link>
-      <Link href="/me/questions" aria-label={t.account}>
-        {t.account}
-      </Link>
-    </div>
+    <details className="account-menu" ref={menuRef}>
+      <summary aria-label={t.accountActions}>
+        <span aria-hidden="true"><UserRound size={19} /></span>
+        <strong>{t.account}</strong>
+        <ChevronDown className="account-menu__chevron" size={16} aria-hidden="true" />
+      </summary>
+      <div className="account-menu__panel" role="menu">
+        <Link href="/me/questions" role="menuitem"><UserRound size={18} aria-hidden="true" /><span>{t.account}</span></Link>
+        <Link href="/settings/privacy" role="menuitem"><Settings size={18} aria-hidden="true" /><span>{t.settings}</span></Link>
+        <button type="button" role="menuitem" onClick={() => { setLocale(nextLocale); menuRef.current?.removeAttribute("open"); }}>
+          <Languages size={18} aria-hidden="true" /><span>{languageLabel}</span>
+        </button>
+      </div>
+    </details>
   );
 }
 
