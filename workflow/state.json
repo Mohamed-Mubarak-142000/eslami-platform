@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "composer-header-restore-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "7d9d677",
-  "active_task_ids": ["QA-COMPOSER-HEADER-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "0863d1b",
+  "active_task_ids": ["RELEASE-COMPOSER-HEADER-001"],
   "acceptance_criteria": [
-    "Verify social prompt and three media actions exist only in the compact composer",
-    "Verify original global header search, navigation, account, notification, language, and theme controls",
-    "Verify composer expansion, keyboard behavior, RTL, and responsive overflow",
-    "Run focused cross-browser QA and boundary guard"
+    "Review composer/header acceptance and QA evidence",
+    "Confirm accessibility, privacy, rollback, and residual risks",
+    "Issue explicit recommendation",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
