@@ -67,6 +67,10 @@
 }
 
 .app-shell__brand-mark img { inline-size: 100%; block-size: 100%; object-fit: contain; }
+.brand-logo { display: inline-flex; align-items: center; gap: .65rem; color: var(--ds-color-primary); font-family: var(--ds-font-heading); font-weight: 800; }
+.brand-logo__image { position: relative; display: inline-flex; inline-size: 2.6rem; block-size: 2.6rem; flex: 0 0 auto; }
+.brand-logo__image img { inline-size: 100%; block-size: 100%; object-fit: contain; }
+.brand-logo__name { font-size: 1.25rem; line-height: 1; }
 
 .app-shell__search { inline-size: min(100%, 16rem); }
 .app-shell__search > * { inline-size: 100%; }

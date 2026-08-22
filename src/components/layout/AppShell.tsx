@@ -1,12 +1,11 @@
 import { Bell, Bookmark, Compass, Grid3X3, Home, Info, Mail, PenSquare, Search, type LucideIcon } from "lucide-react";
-import Image from "next/image";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import "@/lib/styles/tailwind.css";
 import "@/styles/tokens.css";
 import "@/styles/foundations.css";
 import "./layout.css";
-import siteLogo from "./assets/site-logo.png";
+import { BrandLogo } from "./BrandLogo";
 
 export interface NavigationItem { href: string; label: string; active?: boolean }
 
@@ -97,9 +96,7 @@ export function AppShell({
       <header className="app-shell__header">
         <div className="app-shell__header-start">
           <a href="/" className="app-shell__brand" aria-label={`${title} — الصفحة الرئيسية`}>
-            <span className="app-shell__brand-mark" aria-hidden="true">
-              <Image src={siteLogo} alt="" priority sizes="40px" />
-            </span>
+            <BrandLogo priority showName={false} />
           </a>
           {search && <div className="app-shell__search" role="search">{search}</div>}
         </div>
