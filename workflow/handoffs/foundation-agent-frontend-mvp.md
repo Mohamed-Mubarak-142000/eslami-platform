@@ -59,3 +59,29 @@
 
 The agent stops after creating this handoff. Only the orchestrator may accept it and activate
 the successor.
+
+## Maintenance — FOUND-MAINT-001/002
+
+- Reactivated base: `d953f666286cda52b3ab0c2ee245879753e0f084`
+- Status: `review`
+- `next.config.ts`: moved `typedRoutes` from the deprecated experimental namespace to the
+  supported Next.js 16 root option.
+- `tsconfig.json`: accepted both `.next/types/**/*.ts` and `.next/dev/types/**/*.ts`, so Next
+  no longer rewrites the tracked configuration.
+- `.github/git-excludes`: added generated root `next-env.d.ts`; the file exists locally for
+  Next/TypeScript but is excluded from source status through the repository-configured owned
+  exclusion file.
+
+### Maintenance evidence
+
+| Criterion | Evidence | Result |
+|---|---|---|
+| Static quality gates | `npm run typecheck`; `npm run lint`; `npm test` | pass — 24/24 tests |
+| Production build | `npm run build` with Next.js 16.3.2 | pass — 8 static outputs and all dynamic routes compiled |
+| Supported typed routes | captured build output checked for `experimental.typedRoutes` / moved-option warning | pass — warning absent |
+| Build does not mutate tracked files | SHA-1 of `git diff --binary <base>` before and after build | pass — identical |
+| Generated types stay local | `git status --short -- next-env.d.ts .next tsconfig.tsbuildinfo`; `git check-ignore -v next-env.d.ts` | pass — status empty; owned exclusion line 8 matched |
+| Maintenance ownership | `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId foundation-agent -BaseRef d953f666286cda52b3ab0c2ee245879753e0f084` | pass — 4 owned files including this handoff |
+
+No integration/app file or generated `next-env.d.ts` was edited. No commit, push, workflow
+state change, or QA activation was performed.
