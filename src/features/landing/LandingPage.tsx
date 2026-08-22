@@ -6,8 +6,10 @@ import {
   ArrowLeft, BookOpenCheck, Bookmark, CircleUserRound, Headphones,
   HeartHandshake, LibraryBig, Menu, MessageCircleQuestion, Pause,
   Play, Radio, SearchCheck, ShieldCheck, Sparkles, UsersRound, Volume2,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { BrandLogo } from "@/components/layout";
 import "./landing.css";
 
 const categories = [
@@ -32,13 +34,23 @@ export interface QuranRadioStation {
 
 function QuranRadio({ station }: { station: QuranRadioStation }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [sectionVisible, setSectionVisible] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [volume, setVolume] = useState(70);
 
   useEffect(() => () => {
     audioRef.current?.pause();
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(([entry]) => setSectionVisible(entry?.isIntersecting ?? false), { threshold: 0.12 });
+    observer.observe(section);
+    return () => observer.disconnect();
   }, []);
 
   async function togglePlayback() {
@@ -68,7 +80,7 @@ function QuranRadio({ station }: { station: QuranRadioStation }) {
   }
 
   return (
-    <section className="landing-radio" id="radio" aria-labelledby="radio-title">
+    <section className="landing-radio" id="radio" aria-labelledby="radio-title" ref={sectionRef}>
       <div className="landing-radio__copy">
         <span className="landing-kicker"><Radio size={17} aria-hidden /> بث مباشر</span>
         <h2 id="radio-title">إذاعة القرآن الكريم</h2>
@@ -95,6 +107,17 @@ function QuranRadio({ station }: { station: QuranRadioStation }) {
           onError={() => { setPlaying(false); setLoading(false); setError("البث غير متاح مؤقتًا. حاول مرة أخرى لاحقًا."); }} />
         <p className="radio-player__status" role="status" aria-live="polite">{error}</p>
       </div>
+      {playing && !sectionVisible && (
+        <div className="radio-dock" role="region" aria-label="مشغل إذاعة القرآن الكريم المصغر">
+          <div className="radio-dock__inner">
+            <span className="radio-dock__live"><Radio aria-hidden /> مباشر</span>
+            <div className="radio-dock__station"><strong>{station.name}</strong><small>إذاعة القرآن الكريم المصرية</small></div>
+            <button type="button" className="radio-dock__control" onClick={togglePlayback} aria-label="إيقاف إذاعة القرآن مؤقتًا"><Pause fill="currentColor" /></button>
+            <label className="radio-dock__volume"><Volume2 aria-hidden /><span className="sr-only">مستوى صوت الإذاعة</span><input type="range" min="0" max="100" value={volume} onChange={(event) => updateVolume(Number(event.currentTarget.value))} /></label>
+            <button type="button" className="radio-dock__close" onClick={() => { audioRef.current?.pause(); setPlaying(false); }} aria-label="إغلاق مشغل الإذاعة"><X aria-hidden /></button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -107,8 +130,7 @@ export function LandingPage({ station, isAuthenticated = false }: { station: Qur
       <a className="landing-skip" href="#landing-main">انتقل إلى المحتوى</a>
       <header className="landing-header">
         <Link className="landing-brand" href="/" aria-label="بصيرة — الرئيسية">
-          <span className="landing-brand__mark" aria-hidden>ب</span>
-          <span>بصيرة</span>
+          <BrandLogo priority />
         </Link>
         <button className="landing-menu" type="button" aria-expanded={menuOpen} aria-controls="landing-nav" onClick={() => setMenuOpen(!menuOpen)}>
           <Menu aria-hidden /> <span className="sr-only">فتح القائمة</span>
@@ -169,7 +191,7 @@ export function LandingPage({ station, isAuthenticated = false }: { station: Qur
 
         <section className="landing-final"><Sparkles aria-hidden /><h2>مكان واحد لمعرفة أعمق<br />وصحبة أفضل.</h2><p>انضم إلى بصيرة وابدأ تجربة معرفية تحفظ وقتك وعقلك.</p><Link className="landing-button landing-button--light landing-button--large" href={primaryHref}>{isAuthenticated ? "دخول المجتمع" : "إنشاء حساب مجاني"}<ArrowLeft aria-hidden /></Link></section>
       </main>
-      <footer className="landing-footer"><Link className="landing-brand" href="/"><span className="landing-brand__mark" aria-hidden>ب</span><span>بصيرة</span></Link><p>معرفة موثوقة، بهوية واضحة.</p><nav aria-label="روابط التذييل"><Link href="/about">من نحن</Link><Link href="/contact">اتصل بنا</Link><Link href="/categories">جميع الأقسام</Link></nav><small>© 2026 بصيرة</small></footer>
+      <footer className="landing-footer"><Link className="landing-brand" href="/" aria-label="بصيرة — الرئيسية"><BrandLogo /></Link><p>معرفة موثوقة، بهوية واضحة.</p><nav aria-label="روابط التذييل"><Link href="/about">من نحن</Link><Link href="/contact">اتصل بنا</Link><Link href="/categories">جميع الأقسام</Link></nav><small>© 2026 بصيرة</small></footer>
     </div>
   );
 }
