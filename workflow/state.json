@@ -1,24 +1,24 @@
 {
   "workflow_version": 1,
-  "milestone": "public-landing-community-radio-v1",
-  "status": "complete",
-  "active_agent": "orchestrator-agent",
-  "base_ref": "50537e1",
-  "active_task_ids": [],
+  "milestone": "unified-brand-egypt-radio-v1",
+  "status": "active",
+  "active_agent": "product-agent",
+  "base_ref": "6b6b82b",
+  "active_task_ids": ["BRAND-01", "RADIO-02", "THEME-01"],
   "acceptance_criteria": [
-    "Define public landing scope and conversion actions",
-    "Define authenticated-only community access behavior",
-    "Define Quran radio playback, attribution, and failure behavior",
-    "Preserve Arabic-first responsive accessibility and existing community experience"
+    "Use the supplied Basira logo on the public home and shared application chrome",
+    "Use the official Egyptian Quran Radio stream with clear attribution",
+    "Keep active radio playback available in a full-width fixed bottom player after scrolling",
+    "Apply the landing green, gold, and warm-neutral identity across the whole application"
   ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "accepted" },
-    { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
+    { "order": 1, "agent": "product-agent", "status": "active" },
+    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
