@@ -1,15 +1,15 @@
 {
   "workflow_version": 1,
-  "milestone": "secondary-pages-social-ui-v1",
-  "status": "complete",
-  "active_agent": "orchestrator-agent",
-  "base_ref": "6c7eb09",
-  "active_task_ids": [],
+  "milestone": "header-account-dropdown-v1",
+  "status": "active",
+  "active_agent": "integration-agent",
+  "base_ref": "7d23d3d",
+  "active_task_ids": ["INTEGRATION-ACCOUNT-DROPDOWN-001"],
   "acceptance_criteria": [
-    "Review four-route acceptance and QA evidence",
-    "Review accessibility, RTL, privacy, and regression risk",
-    "Issue explicit release recommendation and rollback trigger",
-    "Run release-review boundary guard"
+    "Move language, settings, and account actions into one header dropdown",
+    "Keep notifications and theme controls independent",
+    "Support keyboard, RTL, focus, and responsive header behavior",
+    "Run integration checks and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
+    { "order": 6, "agent": "integration-agent", "status": "active" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
