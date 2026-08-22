@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "dark-header-tabless-feed-v1",
   "status": "active",
-  "active_agent": "integration-agent",
-  "base_ref": "862b58b",
-  "active_task_ids": ["INT-REFERENCE-HEADER-002"],
+  "active_agent": "qa-agent",
+  "base_ref": "ec9a901",
+  "active_task_ids": ["QA-DARK-TABLESS-001"],
   "acceptance_criteria": [
-    "Match the reference icon order, sizes, search prompt, and compact spacing",
-    "Keep avatar at the RTL start and media icons at the opposite edge",
-    "Preserve search keyboard behavior and accessible labels",
-    "Run integration checks and boundary guard"
+    "Verify clean sessions start dark",
+    "Verify no visible feed tabs remain",
+    "Verify reference header prompt, three actions, RTL layout, and responsive overflow",
+    "Run focused cross-browser QA and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -17,8 +17,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
