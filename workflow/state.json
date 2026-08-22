@@ -13,7 +13,7 @@
     "FOUND-006"
   ],
   "acceptance_criteria": [
-    "Next.js and strict TypeScript scaffold installs and builds reproducibly",
+    "Next.js and strict TypeScript foundation installs reproducibly; typecheck/test/Storybook build pass, with application build deferred to route owner",
     "Lint, typecheck, unit test, Storybook, and CI commands are wired",
     "Domain, API, auth, permission, error, query, analytics, and mock contracts are stable",
     "Design-system CSS, fonts, layouts, and stories are wired without changing owner files",
