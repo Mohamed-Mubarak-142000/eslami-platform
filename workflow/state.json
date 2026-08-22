@@ -1,10 +1,10 @@
 {
   "workflow_version": 1,
   "milestone": "public-navigation-refresh-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "6b5c383",
-  "active_task_ids": ["RELEASE-PUBLIC-NAV-THEME-001"],
+  "status": "complete",
+  "active_agent": "orchestrator-agent",
+  "base_ref": "f441bc2",
+  "active_task_ids": [],
   "acceptance_criteria": [
     "Review public navigation and dropdown theme acceptance",
     "Review accessibility, privacy, SEO, removed-route, and regression risk",
@@ -19,6 +19,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
