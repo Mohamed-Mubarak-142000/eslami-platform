@@ -2,21 +2,21 @@
   "workflow_version": 1,
   "milestone": "dark-header-tabless-feed-v1",
   "status": "active",
-  "active_agent": "foundation-agent",
-  "base_ref": "4d09bf3",
-  "active_task_ids": ["FOUND-DARK-HEADER-001"],
+  "active_agent": "feature-ui-agent",
+  "base_ref": "8d96f54",
+  "active_task_ids": ["FEATURE-TABLESS-FEED-001"],
   "acceptance_criteria": [
-    "Make the reference dark palette the deterministic default",
-    "Preserve saved user theme choice",
-    "Keep server/client theme hydration stable",
-    "Run foundation checks and boundary guard"
+    "Remove the visible For You/Following/Latest tab row",
+    "Keep composer, stories, and feed in that order",
+    "Remove obsolete tab state without changing feed content",
+    "Run feature checks and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
