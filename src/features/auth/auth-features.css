@@ -10,7 +10,7 @@
 .auth-brand h2 { max-inline-size: 17ch; margin: 1rem 0 2rem; font-family: var(--ds-font-heading); font-size: clamp(2.4rem, 4.4vw, 4.5rem); line-height: 1.18; }
 .auth-brand ul { display: grid; gap: 1rem; padding: 0; list-style: none; font-size: 1.05rem; }
 .auth-brand li { display: flex; align-items: center; gap: .7rem; }
-.auth-brand li span { inline-size: 1.55rem; block-size: 1.55rem; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--ds-color-accent-container) 18%, transparent); color: var(--ds-color-accent-container); }
+.auth-brand__feature-icon { inline-size: 1.55rem; block-size: 1.55rem; display: grid; flex: 0 0 auto; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--ds-color-accent-container) 18%, transparent); color: var(--ds-color-accent-container); }
 .auth-brand__note { position: relative; z-index: 1; align-self: end; opacity: .78; font-size: .82rem; }
 .auth-main { inline-size: min(100%, 39rem); min-block-size: 100dvh; display: grid; grid-template-rows: auto 1fr auto; align-items: center; margin: auto; padding: 1.25rem; }
 .auth-main__top { text-align: end; }
@@ -26,8 +26,9 @@
 .auth-form__options .ds-checkbox { min-block-size: 2.75rem; }
 .auth-form__submit { inline-size: 100%; min-block-size: 3.25rem; margin-block-start: .2rem; }
 .auth-password { position: relative; }
-.auth-password__toggle { position: absolute; inset-inline-end: .75rem; inset-block-start: 2rem; min-inline-size: 3.2rem; min-block-size: 2.5rem; border: 0; background: transparent; color: var(--primary); font-weight: 750; cursor: pointer; }
-.auth-password .ds-field__control { padding-inline-end: 4.4rem; }
+.auth-password__toggle { position: absolute; inset-inline-end: .5rem; inset-block-start: 2.1rem; display: inline-grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border: 0; border-radius: 50%; background: transparent; color: var(--muted-foreground); cursor: pointer; }
+.auth-password__toggle:hover { background: var(--muted); color: var(--primary); }
+.auth-password .ds-field__control { padding-inline-end: 3rem; }
 .auth-strength { position: relative; block-size: .35rem; margin-block-start: -.6rem; overflow: visible; border-radius: 999px; background: var(--muted); }
 .auth-strength span { display: block; block-size: 100%; border-radius: inherit; background: var(--primary); transition: inline-size 180ms ease; }
 .auth-strength small { position: absolute; inset-block-start: .45rem; inset-inline-end: 0; color: var(--muted-foreground); }

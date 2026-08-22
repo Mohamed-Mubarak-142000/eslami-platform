@@ -26,9 +26,25 @@ a { color: var(--ds-color-primary); text-decoration-thickness: .06em; text-under
   border-radius: var(--ds-radius-md); color: var(--ds-color-text-muted); font-weight: 600;
   text-decoration: none; transition: color var(--ds-duration-normal), background-color var(--ds-duration-normal);
 }
-.app-shell__nav a:hover, .app-shell__nav a:focus-visible {
+.app-shell__nav a:hover, .app-shell__nav a:focus-visible, .app-shell__nav a[data-active] {
   color: var(--ds-color-on-accent-container); background: var(--ds-color-accent-container);
 }
+
+.shell-control {
+  transition: background-color var(--ds-duration-normal) var(--ds-ease-standard), border-color var(--ds-duration-normal) var(--ds-ease-standard);
+}
+.shell-control--language {
+  min-block-size: var(--ds-touch-target);
+  padding-inline: var(--ds-space-3);
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-color-surface-raised);
+  color: var(--ds-color-primary);
+  font-weight: 700;
+  font-size: var(--ds-font-size-sm);
+  cursor: pointer;
+}
+.shell-control--language:hover { background: var(--ds-color-accent-container); border-color: var(--ds-color-accent-muted); }
 
 .app-shell__main { padding: clamp(1.25rem, 3.5vw, 3rem); }
 .app-shell__main > section, .app-shell__main > article, .app-shell__main > form,
@@ -90,11 +106,6 @@ a { color: var(--ds-color-primary); text-decoration-thickness: .06em; text-under
 .app-shell__main th { background: var(--ds-color-surface-subtle); color: var(--ds-color-primary); }
 
 @media (min-width: 64rem) {
-  .app-shell__nav {
-    min-block-size: calc(100dvh - 4rem); padding: var(--ds-space-6) var(--ds-space-4);
-    border-block-start: 0; border-inline-end: 1px solid var(--ds-color-border);
-  }
-  .app-shell__nav a { justify-content: flex-start; padding-inline: var(--ds-space-4); }
   .app-shell__main { padding-inline: clamp(2rem, 5vw, 4rem); }
 }
 @media (max-width: 39.99rem) {

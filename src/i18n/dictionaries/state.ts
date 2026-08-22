@@ -1,0 +1,26 @@
+export const stateDictionary = {
+  ar: {
+    retry: "إعادة المحاولة",
+    loading: { title: "جارٍ التحميل", message: "جارٍ تحميل المحتوى…" },
+    empty: { title: "لا توجد نتائج", message: "لا يوجد محتوى هنا بعد." },
+    error: { title: "تعذر التحميل", message: "تعذر تحميل هذه الصفحة. حاول مرة أخرى." },
+    offline: { title: "أنت غير متصل", message: "لا يوجد اتصال بالإنترنت. تحقق من الشبكة ثم أعد المحاولة." },
+    permission: { title: "الوصول غير متاح", message: "لا تملك صلاحية الوصول إلى هذه الصفحة." },
+    privacy: { title: "الصفحة غير متاحة", message: "تعذر العثور على الصفحة أو لا يمكنك الوصول إليها." },
+    conflict: { title: "تغيّرت الحالة", message: "حفظنا مسودتك؛ راجع التحديث ثم أعد الإرسال." },
+    offlineNotice: "تعرض نسخة محفوظة وقد لا تشمل أحدث التغييرات.",
+    lastVersion: "آخر نسخة:",
+  },
+  en: {
+    retry: "Try again",
+    loading: { title: "Loading", message: "Loading content…" },
+    empty: { title: "No results", message: "There's no content here yet." },
+    error: { title: "Couldn't load", message: "This page failed to load. Try again." },
+    offline: { title: "You're offline", message: "No internet connection. Check your network then retry." },
+    permission: { title: "Access unavailable", message: "You don't have permission to access this page." },
+    privacy: { title: "Page unavailable", message: "This page couldn't be found or you can't access it." },
+    conflict: { title: "Status changed", message: "We saved your draft; review the update then resend." },
+    offlineNotice: "Showing a cached version that may not include the latest changes.",
+    lastVersion: "Last version:",
+  },
+} as const;

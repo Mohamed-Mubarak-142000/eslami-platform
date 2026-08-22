@@ -1,46 +1,262 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { BadgeCheck, BookOpen, Bookmark, Info, MessageCircle, MoreHorizontal, Share2, ThumbsUp } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type { KnowledgeContent, ScholarProfile } from "@/domain";
+import { useTranslations } from "@/i18n/LocaleProvider";
 import { Alert, Button, Textarea } from "@/components/ui";
 import { ScholarIdentity, SourceCitation, TopicHighlights } from "@/components/patterns";
 import { useSocialMotionPreset } from "@/lib/motion";
 import { FeatureState, type FeatureStatus } from "../shared/FeatureState";
 import "./content-features.css";
 
-const highlights = [
-  { id: "all", label: "لك", meta: "مختارات اليوم" },
-  { id: "worship", label: "العبادات", meta: "فقه عملي" },
-  { id: "quran", label: "علوم القرآن", meta: "تدبر ومعرفة" },
-  { id: "hadith", label: "الحديث", meta: "مصادر وشروح" },
-  { id: "family", label: "الأسرة", meta: "حياة متوازنة" },
-] as const;
-
-function MiniIdentity({ name = "باحث بصيرة", verified = true }: { name?: string; verified?: boolean }) {
-  return <div className="feed-identity"><span className="feed-avatar" aria-hidden="true">{name.slice(0, 1)}</span><span><strong>{name} {verified && <span className="feed-verified" title="هوية معتمدة" aria-label="هوية معتمدة">✓</span>}</strong><small>باحث في الفقه وأصوله</small></span></div>;
+function MiniIdentity({ name, role, verified = true }: { name: string; role: string; verified?: boolean }) {
+  const t = useTranslations("feed");
+  return (
+    <div className="feed-identity">
+      <span className="feed-avatar" aria-hidden="true">{name.slice(0, 1)}</span>
+      <span>
+        <strong>
+          {name} {verified && <BadgeCheck className="feed-verified" size={15} aria-label={t.verifiedIdentity} />}
+        </strong>
+        <small>{role}</small>
+      </span>
+    </div>
+  );
 }
 
 export function FeedComposer({ onSubmit }: { onSubmit?: (text: string) => void | Promise<void> }) {
-  const [text, setText] = useState(""); const [expanded, setExpanded] = useState(false); const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
-  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const value = text.trim(); if (value.length < 8) return setMessage("اكتب فكرة واضحة من 8 أحرف على الأقل."); setMessage(""); setBusy(true); try { await onSubmit?.(value); setText(""); setExpanded(false); } finally { setBusy(false); } }
-  return <section className="feed-composer" aria-label="مشاركة معرفة"><form onSubmit={submit}><div className="feed-composer__row"><span className="feed-avatar" aria-hidden="true">م</span><label className="feed-sr-only" htmlFor="feed-composer-input">شارك فكرة أو سؤالًا معرفيًا</label><Textarea id="feed-composer-input" value={text} onFocus={() => setExpanded(true)} onChange={(event) => setText(event.currentTarget.value)} placeholder="ما المعرفة التي تريد مشاركتها اليوم؟" aria-invalid={Boolean(message)} aria-describedby={message ? "composer-error" : undefined} /></div>{message && <p id="composer-error" role="alert" className="feed-error">{message}</p>}{expanded && <div className="feed-composer__expanded"><p><span aria-hidden="true">ⓘ</span> ستظهر كمساهمة تجريبية، وليست فتوى أو إجابة موثقة.</p><div><button type="button">إضافة مصدر</button><button type="button">اختيار موضوع</button><Button type="submit" loading={busy}>نشر</Button></div></div>}</form></section>;
+  const t = useTranslations("feed");
+  const [text, setText] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const value = text.trim();
+    if (value.length < 8) return setMessage(t.composerValidation);
+    setMessage("");
+    setBusy(true);
+    try {
+      await onSubmit?.(value);
+      setText("");
+      setExpanded(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="feed-composer" aria-label={t.composerAria}>
+      <form onSubmit={submit}>
+        <div className="feed-composer__row">
+          <span className="feed-avatar" aria-hidden="true">م</span>
+          <label className="feed-sr-only" htmlFor="feed-composer-input">{t.composerSrLabel}</label>
+          <Textarea
+            id="feed-composer-input"
+            value={text}
+            onFocus={() => setExpanded(true)}
+            onChange={(event) => setText(event.currentTarget.value)}
+            placeholder={t.composerPlaceholder}
+            aria-invalid={Boolean(message)}
+            aria-describedby={message ? "composer-error" : undefined}
+          />
+        </div>
+        {message && <p id="composer-error" role="alert" className="feed-error">{message}</p>}
+        {expanded && (
+          <div className="feed-composer__expanded">
+            <p><Info size={14} aria-hidden="true" /> {t.composerNote}</p>
+            <div>
+              <button type="button">{t.addSource}</button>
+              <button type="button">{t.chooseTopic}</button>
+              <Button type="submit" loading={busy}>{t.publish}</Button>
+            </div>
+          </div>
+        )}
+      </form>
+    </section>
+  );
 }
 
 export function ContentCard({ content, saved = false, onSave, onHelpful, onComment, onShare }: { content: KnowledgeContent; saved?: boolean; onSave?: (id: string) => void; onHelpful?: (id: string, value: boolean) => void; onComment?: (id: string, text: string) => void; onShare?: (id: string) => void }) {
-  const [isSaved, setIsSaved] = useState(saved); const [helpful, setHelpful] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [comment, setComment] = useState(""); const [status, setStatus] = useState(""); const preset = useSocialMotionPreset("toggle");
-  const kind = content.kind === "article" ? "مقال معرفي" : content.kind === "answer" ? "إجابة موثقة" : "مساهمة";
-  function toggleHelpful() { const value = !helpful; setHelpful(value); setStatus(value ? "تم تسجيل أن المحتوى مفيد." : "تم إلغاء التفاعل."); onHelpful?.(content.id, value); }
-  function toggleSave() { const value = !isSaved; setIsSaved(value); setStatus(value ? "تم الحفظ في مجموعتك الخاصة." : "تمت الإزالة من المحفوظات."); onSave?.(content.id); }
-  function submitComment(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const value = comment.trim(); if (!value) return; onComment?.(content.id, value); setComment(""); setStatus("تم إرسال التعقيب للمراجعة في النسخة التجريبية."); }
-  return <article className="feed-post" aria-labelledby={`${content.id}-title`}><header className="feed-post__header"><MiniIdentity /><button className="feed-more" type="button" aria-label="المزيد من خيارات المحتوى">•••</button></header><div className="feed-post__trust"><span>{kind}</span><span aria-hidden="true">•</span><time dateTime={content.publishedAt}>اليوم، ١٠:٠٠ ص</time><span aria-hidden="true">•</span><span>مراجَع تحريريًا</span></div><div className="feed-post__body"><h2 id={`${content.id}-title`}>{content.title}</h2><p>{content.summary}</p><button type="button" className="feed-post__continue">متابعة القراءة</button></div>{content.sources.length > 0 && <aside className="feed-source" aria-label="المصدر"><span aria-hidden="true">▣</span><span><strong>المصدر</strong><small>{content.sources[0]?.title}{content.sources[0]?.locator ? ` — ${content.sources[0].locator}` : ""}</small></span><span className="feed-source__badge">موثّق</span></aside>}<div className="feed-post__stats"><span>{helpful ? "١٢٥" : "١٢٤"} وجدوه مفيدًا</span><button type="button" onClick={() => setCommentsOpen(true)}>٨ تعقيبات</button></div><footer className="feed-actions" aria-label="إجراءات المحتوى"><motion.button {...preset} type="button" aria-pressed={helpful} onClick={toggleHelpful}><span aria-hidden="true">◇</span> مفيد</motion.button><button type="button" aria-expanded={commentsOpen} onClick={() => setCommentsOpen((value) => !value)}><span aria-hidden="true">◌</span> تعقيب</button><motion.button {...preset} type="button" aria-pressed={isSaved} onClick={toggleSave}><span aria-hidden="true">▱</span> {isSaved ? "محفوظ" : "حفظ"}</motion.button><button type="button" onClick={() => onShare?.(content.id)}><span aria-hidden="true">↗</span> مشاركة</button></footer>{status && <p className="feed-live" role="status">{status}</p>}{commentsOpen && <section className="feed-comments" aria-label="التعقيبات"><div className="feed-comment"><span className="feed-avatar" aria-hidden="true">س</span><p><strong>سارة محمود</strong><span>شكرًا على توضيح المصدر. هل توجد قراءة تمهيدية؟</span></p></div><form onSubmit={submitComment}><label className="feed-sr-only" htmlFor={`${content.id}-comment`}>اكتب تعقيبًا</label><input id={`${content.id}-comment`} value={comment} onChange={(event) => setComment(event.currentTarget.value)} placeholder="اكتب تعقيبًا محترمًا…" /><Button type="submit" variant="ghost" disabled={!comment.trim()}>إرسال</Button></form><small>التعقيبات للنقاش المعرفي ولا تستقبل طلبات الفتوى.</small></section>}</article>;
+  const t = useTranslations("feed");
+  const [isSaved, setIsSaved] = useState(saved);
+  const [helpful, setHelpful] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [status, setStatus] = useState("");
+  const preset = useSocialMotionPreset("toggle");
+  const kind = content.kind === "article" ? t.kindArticle : content.kind === "answer" ? t.kindAnswer : t.kindPost;
+
+  function toggleHelpful() {
+    const value = !helpful;
+    setHelpful(value);
+    setStatus(value ? t.helpfulOn : t.helpfulOff);
+    onHelpful?.(content.id, value);
+  }
+  function toggleSave() {
+    const value = !isSaved;
+    setIsSaved(value);
+    setStatus(value ? t.saveOn : t.saveOff);
+    onSave?.(content.id);
+  }
+  function submitComment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const value = comment.trim();
+    if (!value) return;
+    onComment?.(content.id, value);
+    setComment("");
+    setStatus(t.commentSubmitted);
+  }
+
+  return (
+    <article className="feed-post" aria-labelledby={`${content.id}-title`}>
+      <header className="feed-post__header">
+        <MiniIdentity name={t.defaultAuthorName} role={t.defaultAuthorRole} />
+        <button className="feed-more" type="button" aria-label={t.moreOptionsAria}><MoreHorizontal size={18} /></button>
+      </header>
+      <div className="feed-post__trust">
+        <span>{kind}</span>
+        <span aria-hidden="true">•</span>
+        <time dateTime={content.publishedAt}>{t.publishedToday}</time>
+        <span aria-hidden="true">•</span>
+        <span>{t.editoriallyReviewed}</span>
+      </div>
+      <div className="feed-post__body">
+        <h2 id={`${content.id}-title`}>{content.title}</h2>
+        <p>{content.summary}</p>
+        <button type="button" className="feed-post__continue">{t.continueReading}</button>
+      </div>
+      {content.sources.length > 0 && (
+        <aside className="feed-source" aria-label={t.sourceAria}>
+          <BookOpen size={18} aria-hidden="true" />
+          <span>
+            <strong>{t.source}</strong>
+            <small>{content.sources[0]?.title}{content.sources[0]?.locator ? ` — ${content.sources[0].locator}` : ""}</small>
+          </span>
+          <span className="feed-source__badge">{t.sourceBadge}</span>
+        </aside>
+      )}
+      <div className="feed-post__stats">
+        <span>{t.helpfulCount(helpful)}</span>
+        <button type="button" onClick={() => setCommentsOpen(true)}>{t.commentsCount}</button>
+      </div>
+      <footer className="feed-actions" aria-label={t.contentActionsAria}>
+        <motion.button {...preset} type="button" aria-pressed={helpful} onClick={toggleHelpful}>
+          <ThumbsUp size={17} fill={helpful ? "currentColor" : "none"} aria-hidden="true" /> {t.helpful}
+        </motion.button>
+        <button type="button" aria-expanded={commentsOpen} onClick={() => setCommentsOpen((value) => !value)}>
+          <MessageCircle size={17} aria-hidden="true" /> {t.comment}
+        </button>
+        <motion.button {...preset} type="button" aria-pressed={isSaved} onClick={toggleSave}>
+          <Bookmark size={17} fill={isSaved ? "currentColor" : "none"} aria-hidden="true" /> {isSaved ? t.saved : t.save}
+        </motion.button>
+        <button type="button" onClick={() => onShare?.(content.id)}>
+          <Share2 size={17} aria-hidden="true" /> {t.share}
+        </button>
+      </footer>
+      {status && <p className="feed-live" role="status">{status}</p>}
+      <AnimatePresence initial={false}>
+        {commentsOpen && (
+          <motion.section
+            className="feed-comments"
+            aria-label={t.commentsAria}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
+          >
+            <div className="feed-comment">
+              <span className="feed-avatar" aria-hidden="true">س</span>
+              <p><strong>{t.seedCommentAuthor}</strong><span>{t.seedCommentText}</span></p>
+            </div>
+            <form onSubmit={submitComment}>
+              <label className="feed-sr-only" htmlFor={`${content.id}-comment`}>{t.commentSrLabel}</label>
+              <input id={`${content.id}-comment`} value={comment} onChange={(event) => setComment(event.currentTarget.value)} placeholder={t.commentPlaceholder} />
+              <Button type="submit" variant="ghost" disabled={!comment.trim()}>{t.commentSubmit}</Button>
+            </form>
+            <small>{t.commentsNote}</small>
+          </motion.section>
+        )}
+      </AnimatePresence>
+    </article>
+  );
 }
 
 export function Feed({ items, status = "ready", onRetry }: { items: readonly KnowledgeContent[]; status?: FeatureStatus; onRetry?: () => void }) {
-  const [activeTopic, setActiveTopic] = useState("all"); const [tab, setTab] = useState<"for-you" | "following" | "latest">("for-you"); const actual = status === "ready" && items.length === 0 ? "empty" : status;
-  return <FeatureState status={actual} {...(onRetry ? { onRetry } : {})}><div className="social-feed"><header className="social-feed__intro"><div><p>مساحتك المعرفية</p><h1>الرئيسية</h1></div><span>ترتيب تحريري وزمني تجريبي</span></header><TopicHighlights items={highlights} activeId={activeTopic} onSelect={setActiveTopic} label="موضوعات معرفية مختارة" /><FeedComposer /><nav className="feed-tabs" aria-label="ترتيب المحتوى"><button type="button" aria-current={tab === "for-you" ? "page" : undefined} onClick={() => setTab("for-you")}>لك</button><button type="button" aria-current={tab === "following" ? "page" : undefined} onClick={() => setTab("following")}>تتابعهم</button><button type="button" aria-current={tab === "latest" ? "page" : undefined} onClick={() => setTab("latest")}>الأحدث</button></nav><section className="feed-list" aria-labelledby="feed-title"><h2 id="feed-title" className="feed-sr-only">معرفة موثوقة لك</h2>{items.map((item) => <ContentCard key={item.id} content={item} />)}</section></div></FeatureState>;
+  const t = useTranslations("feed");
+  const [activeTopic, setActiveTopic] = useState("all");
+  const [tab, setTab] = useState<"for-you" | "following" | "latest">("for-you");
+  const actual = status === "ready" && items.length === 0 ? "empty" : status;
+
+  return (
+    <FeatureState status={actual} {...(onRetry ? { onRetry } : {})}>
+      <div className="social-feed">
+        <header className="social-feed__intro">
+          <div><p>{t.homeEyebrow}</p><h1>{t.homeTitle}</h1></div>
+          <span>{t.homeNote}</span>
+        </header>
+        <TopicHighlights items={t.highlights} activeId={activeTopic} onSelect={setActiveTopic} label={t.highlightsAria} />
+        <FeedComposer />
+        <nav className="feed-tabs" aria-label={t.tabsAria}>
+          <button type="button" aria-current={tab === "for-you" ? "page" : undefined} onClick={() => setTab("for-you")}>{t.tabForYou}</button>
+          <button type="button" aria-current={tab === "following" ? "page" : undefined} onClick={() => setTab("following")}>{t.tabFollowing}</button>
+          <button type="button" aria-current={tab === "latest" ? "page" : undefined} onClick={() => setTab("latest")}>{t.tabLatest}</button>
+        </nav>
+        <motion.section
+          className="feed-list"
+          aria-labelledby="feed-title"
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+        >
+          <h2 id="feed-title" className="feed-sr-only">{t.feedListSrHeading}</h2>
+          {items.map((item) => (
+            <motion.div key={item.id} variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}>
+              <ContentCard content={item} />
+            </motion.div>
+          ))}
+        </motion.section>
+      </div>
+    </FeatureState>
+  );
 }
 
-export function ContentDetail({ content, author }: { content: KnowledgeContent; author: ScholarProfile }) { return <article className="content-detail" aria-labelledby="content-title"><p>{content.kind}</p><h1 id="content-title">{content.title}</h1><ScholarIdentity name={author.displayName} specialty="باحث متخصص" initials={author.displayName.slice(0, 2)} status={author.verificationStatus === "approved" ? "approved" : "unverified"} /><p>{content.body}</p><section aria-labelledby="sources-title"><h2 id="sources-title">المصادر</h2>{content.sources.map((source, index) => <SourceCitation key={source.id} index={index + 1} type={source.type} title={source.title} {...(source.authorOrOrganization ? { authorOrOrg: source.authorOrOrganization } : {})} {...(source.locator ? { locator: source.locator } : {})} {...(source.url ? { url: source.url } : {})} />)}</section></article>; }
+export function ContentDetail({ content, author }: { content: KnowledgeContent; author: ScholarProfile }) {
+  const t = useTranslations("feed");
+  return (
+    <article className="content-detail" aria-labelledby="content-title">
+      <p>{content.kind}</p>
+      <h1 id="content-title">{content.title}</h1>
+      <ScholarIdentity name={author.displayName} specialty="باحث متخصص" initials={author.displayName.slice(0, 2)} status={author.verificationStatus === "approved" ? "approved" : "unverified"} />
+      <p>{content.body}</p>
+      <section aria-labelledby="sources-title">
+        <h2 id="sources-title">{t.sourcesHeading}</h2>
+        {content.sources.map((source, index) => (
+          <SourceCitation
+            key={source.id}
+            index={index + 1}
+            type={source.type}
+            title={source.title}
+            {...(source.authorOrOrganization ? { authorOrOrg: source.authorOrOrganization } : {})}
+            {...(source.locator ? { locator: source.locator } : {})}
+            {...(source.url ? { url: source.url } : {})}
+          />
+        ))}
+      </section>
+    </article>
+  );
+}
 
-export function SavedCollections({ items, unavailable = false }: { items: readonly KnowledgeContent[]; unavailable?: boolean }) { return <section className="saved-collections" aria-labelledby="saved-title"><h1 id="saved-title">المحفوظات</h1>{unavailable && <Alert tone="warning">لم يعد هذا العنصر متاحًا. يمكنك إزالته من المجموعة.</Alert>}{items.length ? items.map((item) => <ContentCard key={item.id} content={item} saved />) : <p>لا يوجد محتوى هنا بعد.</p>}</section>; }
+export function SavedCollections({ items, unavailable = false }: { items: readonly KnowledgeContent[]; unavailable?: boolean }) {
+  const t = useTranslations("feed");
+  return (
+    <section className="saved-collections" aria-labelledby="saved-title">
+      <h1 id="saved-title">{t.savedTitle}</h1>
+      {unavailable && <Alert tone="warning">{t.savedUnavailable}</Alert>}
+      {items.length ? items.map((item) => <ContentCard key={item.id} content={item} saved />) : <p>{t.savedEmpty}</p>}
+    </section>
+  );
+}

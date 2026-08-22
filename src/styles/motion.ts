@@ -9,5 +9,14 @@ export const socialMotion = {
 
 export type SocialMotionKey = keyof typeof socialMotion;
 
-/** GSAP is deliberately unavailable in P0. Approval requires a branded sequence, owner, and budget. */
-export const gsapPolicy = { enabledInP0: false, maximumMainThreadMs: 50, requiresCleanup: true, requiresReducedMotionBranch: true } as const;
+/**
+ * GSAP is approved for one branded sequence: the auth brand-panel reveal (`useAuthBrandTimeline`).
+ * Any additional sequence needs its own owner/budget sign-off before use; the rest of the
+ * interaction surface stays on Framer Motion via `useSocialMotionPreset`.
+ */
+export const gsapPolicy = {
+  approvedSequences: ["auth-brand-reveal"],
+  maximumMainThreadMs: 50,
+  requiresCleanup: true,
+  requiresReducedMotionBranch: true,
+} as const;

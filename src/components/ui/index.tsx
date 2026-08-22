@@ -1,10 +1,29 @@
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 export { Alert, Card, Checkbox, IconButton, Skeleton, Textarea } from "./social-primitives";
 import "./primitives.css";
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "danger" | "ghost"; loading?: boolean; loadingLabel?: string };
+type MotionConflictingProps = "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "style";
+export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, MotionConflictingProps> & { variant?: "primary" | "secondary" | "danger" | "ghost"; loading?: boolean; loadingLabel?: string };
 export function Button({ variant = "primary", loading = false, loadingLabel = "جارٍ التنفيذ…", disabled, children, className, ...props }: ButtonProps) {
-  return <button data-slot="button" className={[`ds-button ds-button--${variant}`, className].filter(Boolean).join(" ")} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>{loading && <span className="ds-spinner" aria-hidden="true" />}<span>{loading ? loadingLabel : children}</span></button>;
+  const prefersReducedMotion = useReducedMotion();
+  const interactive = !disabled && !loading && !prefersReducedMotion;
+  return (
+    <motion.button
+      data-slot="button"
+      className={[`ds-button ds-button--${variant}`, className].filter(Boolean).join(" ")}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      transition={{ duration: 0.12, ease: [0.2, 0, 0, 1] }}
+      {...(interactive ? { whileTap: { scale: 0.96 }, whileHover: { scale: 1.015 } } : {})}
+      {...props}
+    >
+      {loading && <span className="ds-spinner" aria-hidden="true" />}
+      <span>{loading ? loadingLabel : children}</span>
+    </motion.button>
+  );
 }
 
 export type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & { id: string; label: string; hint?: string; error?: string };

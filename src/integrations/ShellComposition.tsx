@@ -1,11 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import type { ScholarProfile, Topic } from "@/domain";
+import { useTranslations } from "@/i18n/LocaleProvider";
 
 export function ShellSearch() {
+  const t = useTranslations("shell");
   return (
     <form className="shell-search" action="/search" method="get">
       <label className="ds-visually-hidden" htmlFor="shell-search-query">
-        ابحث في المحتوى الموثق
+        {t.searchLabel}
       </label>
       <input
         id="shell-search-query"
@@ -13,21 +17,22 @@ export function ShellSearch() {
         type="search"
         inputMode="search"
         autoComplete="off"
-        placeholder="ابحث في المحتوى والعلماء والموضوعات"
+        placeholder={t.searchPlaceholder}
       />
-      <button type="submit">بحث</button>
+      <button type="submit">{t.searchSubmit}</button>
     </form>
   );
 }
 
 export function ShellActions() {
+  const t = useTranslations("shell");
   return (
-    <div className="shell-actions" aria-label="إجراءات الحساب">
-      <Link href="/settings/privacy" aria-label="الإعدادات">
-        الإعدادات
+    <div className="shell-actions" aria-label={t.accountActions}>
+      <Link href="/settings/privacy" aria-label={t.settings}>
+        {t.settings}
       </Link>
-      <Link href="/me/questions" aria-label="الملف الشخصي وأسئلتي">
-        حسابي
+      <Link href="/me/questions" aria-label={t.account}>
+        {t.account}
       </Link>
     </div>
   );
@@ -40,15 +45,16 @@ export function DiscoveryRail({
   topics: readonly Topic[];
   scholars: readonly ScholarProfile[];
 }) {
+  const t = useTranslations("shell");
   return (
     <div className="discovery-rail">
       <header>
-        <p>مكتبة منير</p>
-        <h2>اكتشف المزيد</h2>
+        <p>{t.library}</p>
+        <h2>{t.discoverMore}</h2>
       </header>
 
       <section aria-labelledby="discovery-topics-title">
-        <h3 id="discovery-topics-title">موضوعات مقترحة</h3>
+        <h3 id="discovery-topics-title">{t.suggestedTopics}</h3>
         <ul>
           {topics.map((topic) => (
             <li key={topic.id}>
@@ -57,12 +63,12 @@ export function DiscoveryRail({
           ))}
         </ul>
         <Link className="discovery-rail__more" href="/explore">
-          تصفح كل الموضوعات
+          {t.browseAllTopics}
         </Link>
       </section>
 
       <section aria-labelledby="discovery-scholars-title">
-        <h3 id="discovery-scholars-title">علماء وباحثون</h3>
+        <h3 id="discovery-scholars-title">{t.scholarsAndResearchers}</h3>
         <ul>
           {scholars.map((scholar) => (
             <li key={scholar.id}>
@@ -70,7 +76,7 @@ export function DiscoveryRail({
                 <span aria-hidden="true">{scholar.displayName.slice(0, 2)}</span>
                 <span>
                   <strong>{scholar.displayName}</strong>
-                  <small>ملف موثق تجريبي</small>
+                  <small>{t.trialVerifiedProfile}</small>
                 </span>
               </Link>
             </li>

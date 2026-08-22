@@ -4,7 +4,9 @@
 .social-feed__intro p, .social-feed__intro h1 { margin: 0; }
 .social-feed__intro p, .social-feed__intro > span { color: var(--muted-foreground); font-size: .78rem; }
 .social-feed__intro h1 { color: var(--primary); font-family: var(--ds-font-heading); font-size: 1.65rem; }
-.feed-composer, .feed-post, .feed-tabs { border: 1px solid var(--border); border-radius: calc(var(--radius) * 2.4); background: var(--card); box-shadow: 0 .35rem 1.3rem color-mix(in srgb, var(--primary) 6%, transparent); }
+.feed-composer, .feed-post, .feed-tabs { border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.5); background: var(--card); box-shadow: var(--ds-shadow-raised); transition: box-shadow var(--ds-duration-normal) var(--ds-ease-standard); }
+.feed-post:hover { box-shadow: 0 2px 4px rgb(0 0 0 / 14%), 0 1px 3px rgb(0 0 0 / 10%); }
+@media (prefers-reduced-motion: reduce) { .feed-post:hover { box-shadow: var(--ds-shadow-raised); } }
 .feed-composer { padding: 1rem; }
 .feed-composer__row { display: flex; align-items: flex-start; gap: .75rem; }
 .feed-avatar { flex: 0 0 auto; inline-size: 2.75rem; block-size: 2.75rem; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: var(--primary-foreground); font-weight: 850; }

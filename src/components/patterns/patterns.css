@@ -4,6 +4,7 @@
 .ds-scholar__avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 .ds-scholar__name { margin: 0; font-size: var(--ds-font-size-md); overflow-wrap: anywhere; }
 .ds-scholar__meta { color: var(--ds-color-text-muted); font-size: var(--ds-font-size-sm); }
+.ds-scholar__status { display: inline-flex; align-items: center; gap: .3rem; margin-block-start: .25rem; padding: 0; border: 0; background: transparent; color: var(--ds-color-primary); font-size: var(--ds-font-size-sm); font-weight: 650; cursor: pointer; }
 .ds-trust { border: 1px solid var(--ds-color-border); border-inline-start: .25rem solid var(--ds-color-primary); border-radius: var(--ds-radius-md); background: var(--ds-color-surface-subtle); padding: var(--ds-space-3) var(--ds-space-4); }
 .ds-trust[data-status="inactive"] { border-inline-start-color: var(--ds-color-warning); }
 .ds-trust summary { cursor: pointer; font-weight: 700; }

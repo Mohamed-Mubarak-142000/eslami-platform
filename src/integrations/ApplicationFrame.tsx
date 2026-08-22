@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
-import { AppShell, type NavigationItem } from "@/components/layout";
+import { useTranslations } from "@/i18n/LocaleProvider";
+import { AppShell, LanguageSwitcher, ThemeToggle, type NavigationItem } from "@/components/layout";
 import { DiscoveryRail, ShellActions, ShellSearch } from "./ShellComposition";
 
 const focusedAuthRoutes = new Set([
@@ -15,6 +16,10 @@ const focusedAuthRoutes = new Set([
 
 function isFocusedAuthRoute(pathname: string): boolean {
   return pathname.startsWith("/auth/") || focusedAuthRoutes.has(pathname);
+}
+
+function isActiveHref(pathname: string, href: string): boolean {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function ApplicationFrame({
@@ -31,16 +36,26 @@ export function ApplicationFrame({
   unreadNotifications?: number;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("shell");
 
   if (isFocusedAuthRoute(pathname)) return children;
 
+  const activeNavigation = navigation.map((item) => ({ ...item, active: isActiveHref(pathname, item.href) }));
+
   return (
     <AppShell
-      navigation={navigation}
+      title={t.brand}
+      navigation={activeNavigation}
       search={<ShellSearch />}
       actions={<ShellActions />}
       contextualRail={<DiscoveryRail topics={topics} scholars={scholars} />}
       unreadNotifications={unreadNotifications}
+      skipToContentLabel={t.skipToContent}
+      notificationsLabel={t.notifications}
+      unreadNotificationsLabel={t.unreadNotifications}
+      navigationLabel={t.primaryNavigation}
+      railLabel={t.discoverMore}
+      controls={<><LanguageSwitcher /><ThemeToggle /></>}
     >
       {children}
     </AppShell>

@@ -1,0 +1,28 @@
+export const verificationDictionary = {
+  ar: {
+    applyTitle: "طلب التوثيق",
+    specialtyLabel: "التخصص",
+    credentialLabel: "المؤهل العلمي",
+    consent: "أوافق على استخدام الوثائق للتحقق",
+    submit: "إرسال الطلب للمراجعة",
+    statusTitle: "حالة طلب التوثيق",
+    pending: "طلبك قيد المراجعة. سنعرض هنا أي خطوة مطلوبة.",
+    needsInfo: (reason: string) => `نحتاج معلومات إضافية لإكمال المراجعة: ${reason}.`,
+    approved: "تم التحقق من الهوية والمسار العلمي والتخصص وقت الاعتماد.",
+    fallback: "سنظهر هنا الخطوة المطلوبة.",
+    reviewFallback: "راجع الطلب",
+  },
+  en: {
+    applyTitle: "Verification request",
+    specialtyLabel: "Specialty",
+    credentialLabel: "Academic credential",
+    consent: "I agree to the use of these documents for verification",
+    submit: "Submit request for review",
+    statusTitle: "Verification request status",
+    pending: "Your request is under review. We'll show any required step here.",
+    needsInfo: (reason: string) => `We need more information to complete the review: ${reason}.`,
+    approved: "Identity, scholarly path, and specialty were confirmed at approval time.",
+    fallback: "We'll show the required step here.",
+    reviewFallback: "Review the request",
+  },
+} as const;
