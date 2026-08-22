@@ -74,6 +74,12 @@
 .app-shell[data-compact-header] .shell-search button { display: none; }
 
 .discovery-rail { display: grid; gap: var(--ds-space-8); }
+.discovery-rail__library-banner { position: relative; display: block; min-block-size: 8.5rem; overflow: hidden; border: 1px solid var(--ds-color-border); border-radius: var(--ds-radius-lg); background: var(--ds-color-surface-raised); color: white; text-decoration: none; box-shadow: var(--ds-shadow-sm); }
+.discovery-rail__library-banner img { inline-size: 100%; block-size: 8.5rem; display: block; object-fit: cover; transition: transform var(--ds-duration-normal); }
+.discovery-rail__library-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgb(0 0 0 / .78), transparent 62%); pointer-events: none; }
+.discovery-rail__library-banner span { position: absolute; z-index: 1; inset-inline: var(--ds-space-3); inset-block-end: var(--ds-space-3); font-weight: 800; }
+.discovery-rail__library-banner:hover img { transform: scale(1.035); }
+.discovery-rail__library-banner:focus-visible { outline: 3px solid var(--ds-color-focus); outline-offset: 3px; }
 .shortcuts-rail { display: grid; gap: var(--ds-space-5); }
 .shortcuts-rail a { color: var(--ds-color-text); text-decoration: none; }
 .shortcuts-rail__profile,

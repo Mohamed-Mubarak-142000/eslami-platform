@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Bookmark, BookOpen, Clapperboard, Compass, Home, ImageIcon, Landmark, Library, MessageCircleQuestion, Search, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
 import type { ScholarProfile, Topic } from "@/domain";
 import type { NavigationItem } from "@/components/layout";
 import { useTranslations } from "@/i18n/LocaleProvider";
+import shamelaLibraryBanner from "./assets/shamela-library-banner.png";
 
 export function ShortcutsRail({ navigation, topics }: { navigation: readonly NavigationItem[]; topics: readonly Topic[] }) {
   const t = useTranslations("shell");
@@ -109,10 +111,20 @@ export function DiscoveryRail({
   ] as const;
   return (
     <div className="discovery-rail">
-      <header>
-        <p>{t.library}</p>
-        <h2>{t.discoverMore}</h2>
-      </header>
+      <a
+        className="discovery-rail__library-banner"
+        href="https://shamela.ws/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="زيارة الموقع الرسمي للمكتبة الشاملة"
+      >
+        <Image
+          src={shamelaLibraryBanner}
+          alt="مكتبة إسلامية تضم مخطوطًا مفتوحًا ورفوفًا من الكتب"
+          sizes="(min-width: 1024px) 255px, 0px"
+        />
+        <span>المكتبة الشاملة</span>
+      </a>
 
       <section className="discovery-rail__topics" aria-labelledby="discovery-topics-title">
         <h3 id="discovery-topics-title">{t.suggestedTopics}</h3>
