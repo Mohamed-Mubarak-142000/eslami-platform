@@ -2,19 +2,19 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "ux-agent",
-  "base_ref": "2cd182c",
-  "active_task_ids": ["UX-FB-LAYOUT-001"],
+  "active_agent": "design-system-agent",
+  "base_ref": "97e3e9b",
+  "active_task_ids": ["DS-FB-LAYOUT-001"],
   "acceptance_criteria": [
-    "Map the accepted requirements to a responsive Arabic-first page structure",
-    "Specify stories, composer, feed, shortcuts, and contacts interactions and states",
-    "Specify desktop, tablet, and mobile reflow without overflow",
-    "Define keyboard, landmark, focus, and reduced-motion behavior"
+    "Map accepted UX to existing semantic tokens and primitives",
+    "Define story, social-card, and side-section visual contracts",
+    "Preserve light/dark contrast, RTL, focus, and reduced motion",
+    "Avoid feature logic and routing changes"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "active" },
-    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 2, "agent": "ux-agent", "status": "accepted" },
+    { "order": 3, "agent": "design-system-agent", "status": "active" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
