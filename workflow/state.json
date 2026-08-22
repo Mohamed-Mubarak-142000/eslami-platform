@@ -2,13 +2,14 @@
   "workflow_version": 1,
   "milestone": "frontend-mvp",
   "status": "active",
-  "active_agent": "foundation-agent",
+  "active_agent": "integration-agent",
   "base_ref": "HEAD",
-  "active_task_ids": ["FOUND-STITCH-SHELL-001"],
+  "active_task_ids": ["INT-STITCH-COMPOSE-001"],
   "acceptance_criteria": [
-    "Adapt AppShell structure to the accepted Mounir Stitch composition without changing feature or route ownership",
-    "Preserve nested shell semantics, keyboard accessibility, RTL, and responsive navigation",
-    "Run foundation contract checks and the ownership boundary guard",
+    "Import the accepted application stylesheet once in the root layout",
+    "Compose approved search, header actions, and discovery rail slots without changing feature or foundation ownership",
+    "Preserve metadata, privacy, route behavior, RTL, responsive behavior, and accessibility",
+    "Run integration checks, route smoke tests, and the ownership boundary guard",
     "Create exactly one iteration handoff for orchestrator review"
   ],
   "release_decision": "CONDITIONAL_GO",
@@ -19,9 +20,9 @@
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 6, "agent": "integration-agent", "status": "active" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
     { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
