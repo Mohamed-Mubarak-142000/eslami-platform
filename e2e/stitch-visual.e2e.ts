@@ -45,6 +45,12 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(page.locator(".feed-tabs")).toHaveCount(0);
     await expect(navigation).toBeVisible();
     await expect(rail).toBeVisible();
+    const libraryBanner = rail.getByRole("link", { name: "زيارة الموقع الرسمي للمكتبة الشاملة" });
+    await expect(libraryBanner).toBeVisible();
+    await expect(libraryBanner).toHaveAttribute("href", "https://shamela.ws/");
+    await expect(libraryBanner).toHaveAttribute("target", "_blank");
+    await expect(libraryBanner.locator("img")).toBeVisible();
+    await expect(rail.locator("header")).toHaveCount(0);
     await expect(navigation.locator(".shortcuts-rail nav a > span svg")).toHaveCount(5);
     await expect(navigation.locator(".shortcuts-rail__profile > span svg")).toHaveCount(1);
     await expect(navigation.locator(".shortcuts-rail__tile svg")).toHaveCount(1);
