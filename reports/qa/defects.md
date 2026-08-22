@@ -32,8 +32,10 @@ pages instantiate `ReviewDecision` without evaluating the current session permis
 
 ### Release impact
 
-Unresolved. This is a release blocker because authorization is absent at the integrated route
-boundary. QA did not modify production code.
+Resolved by `c93b623`. Retested from activation base
+`4e68e2e21566a6a4c494fe00299636b65d90256c` on 2026-08-22. Both permission-boundary tests pass
+in Chromium, Firefox, and WebKit: member sessions receive a neutral permission state with zero
+decision textareas. The full 54-test E2E suite showed no regression.
 
 ## QA-DEF-002 — Admin pages expose nested main landmarks
 
@@ -63,5 +65,6 @@ Two nested `main` elements are rendered: the root `AppShell` main and the `Admin
 
 ### Release impact
 
-Unresolved. The duplicate primary landmark can make document navigation ambiguous for assistive
-technology. QA did not modify the shared layout.
+Resolved by `5fd4304`. Retested from activation base
+`4e68e2e21566a6a4c494fe00299636b65d90256c` on 2026-08-22. The admin landmark assertion receives
+exactly one `main` in Chromium, Firefox, and WebKit. The full 54-test E2E suite showed no regression.
