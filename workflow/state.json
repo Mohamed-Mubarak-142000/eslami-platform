@@ -1,0 +1,17 @@
+{
+  "workflow_version": 1,
+  "milestone": "frontend-mvp",
+  "status": "not_started",
+  "active_agent": null,
+  "base_ref": null,
+  "stages": [
+    { "order": 1, "agent": "product-agent", "status": "pending" },
+    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+  ]
+}

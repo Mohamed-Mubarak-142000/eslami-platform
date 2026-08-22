@@ -1,0 +1,61 @@
+{
+  "orchestrator-agent": [
+    "workflow/state.json",
+    "workflow/requests/**"
+  ],
+  "product-agent": [
+    "docs/product/**",
+    "workflow/handoffs/product-agent-*.md"
+  ],
+  "ux-agent": [
+    "docs/ux/**",
+    "workflow/handoffs/ux-agent-*.md"
+  ],
+  "design-system-agent": [
+    "src/styles/**",
+    "src/components/ui/**",
+    "src/components/patterns/**",
+    "stories/design-system/**",
+    "docs/design-system/**",
+    "workflow/handoffs/design-system-agent-*.md"
+  ],
+  "foundation-agent": [
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "next.config.*",
+    "tsconfig.json",
+    "eslint.config.*",
+    "postcss.config.*",
+    "tailwind.config.*",
+    "vitest.config.*",
+    "playwright.config.*",
+    ".storybook/**",
+    ".github/**",
+    "src/lib/**",
+    "src/domain/**",
+    "src/mocks/**",
+    "src/components/layout/**",
+    "workflow/handoffs/foundation-agent-*.md"
+  ],
+  "feature-ui-agent": [
+    "src/features/**",
+    "workflow/handoffs/feature-ui-agent-*.md"
+  ],
+  "integration-agent": [
+    "src/app/**",
+    "src/integrations/**",
+    "workflow/handoffs/integration-agent-*.md"
+  ],
+  "qa-agent": [
+    "tests/**",
+    "e2e/**",
+    "reports/qa/**",
+    "workflow/handoffs/qa-agent-*.md"
+  ],
+  "release-review-agent": [
+    "reports/release/**",
+    "workflow/handoffs/release-review-agent-*.md"
+  ]
+}
