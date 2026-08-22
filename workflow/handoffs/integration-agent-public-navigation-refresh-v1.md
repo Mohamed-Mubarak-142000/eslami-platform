@@ -14,6 +14,7 @@
 | `src/app/contact/page.tsx` | Contact channels page and metadata |
 | `src/app/categories/page.tsx` | All-categories page backed by approved topic data |
 | `src/app/sitemap.ts` | New public route sitemap |
+| `src/app/routes.test.ts` | Route smoke contract updated for the new public navigation |
 | `src/integrations/ApplicationFrame.tsx` | Removes header search composition |
 | `src/integrations/ShellComposition.tsx` | New navigation icon mapping; obsolete search UI removed |
 | `src/integrations/public-pages.css` | Responsive dark RTL public-page styling |
