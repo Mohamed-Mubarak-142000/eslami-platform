@@ -1,9 +1,9 @@
 # Handoff: qa-agent / public-navigation-refresh-v1
 
 - Status: `review`
-- Base ref: `2b9f860`
+- Base ref: `8823474`
 - Result ref: `committed handoff; see repository HEAD`
-- Tasks completed: `QA-PUBLIC-NAV-ROUTES-001`
+- Tasks completed: `QA-PUBLIC-NAV-ROUTES-001`, `QA-DROPDOWN-THEME-001`
 
 ## Delivered outputs
 
@@ -22,6 +22,7 @@
 | New pages/navigation | Public page and four-link shell assertions | pass |
 | RTL/responsive | Desktop/mobile contract across three browsers | pass — 12/12 |
 | P0 and quality | Chromium route/privacy/accessibility suite | pass — 18/18 |
+| Dropdown theme | Four actions, bidirectional toggle, menu close, no standalone control | pass |
 
 ## Decisions and assumptions
 
@@ -37,7 +38,7 @@
 
 ## Boundary check
 
-- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId qa-agent -BaseRef 2b9f860`
+- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId qa-agent -BaseRef 8823474`
 - Result: `pass`
 
 The agent stops after creating this handoff. Only the orchestrator may accept it and activate
