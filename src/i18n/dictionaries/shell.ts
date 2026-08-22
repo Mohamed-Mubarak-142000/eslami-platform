@@ -1,6 +1,6 @@
 export const shellDictionary = {
   ar: {
-    brand: "بصيرة",
+    brand: "المنارة",
     homeAriaLabel: (title: string) => `${title} — الصفحة الرئيسية`,
     skipToContent: "تجاوز إلى المحتوى",
     notifications: "الإشعارات",
@@ -32,7 +32,7 @@ export const shellDictionary = {
     switchLanguage: "تبديل لغة الواجهة",
   },
   en: {
-    brand: "Basira",
+    brand: "Al-Manara",
     homeAriaLabel: (title: string) => `${title} — Home`,
     skipToContent: "Skip to content",
     notifications: "Notifications",

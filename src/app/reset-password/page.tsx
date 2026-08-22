@@ -4,7 +4,7 @@ import { readResetTokenState } from "@/integrations";
 
 export const metadata: Metadata = {
   title: "تعيين كلمة مرور جديدة",
-  description: "تعيين كلمة مرور جديدة في بيئة بصيرة التجريبية.",
+  description: "تعيين كلمة مرور جديدة في بيئة المنارة التجريبية.",
   robots: { index: false, follow: false, noarchive: true },
 };
 

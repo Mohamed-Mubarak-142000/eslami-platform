@@ -3,7 +3,7 @@ import { LandingPage } from "@/features";
 import { isAuthenticatedSession, services } from "@/integrations";
 
 export const metadata: Metadata = {
-  title: "بصيرة — معرفة إسلامية موثوقة ومجتمع واعٍ",
+  title: "المنارة — معرفة إسلامية موثوقة ومجتمع واعٍ",
   description: "منصة عربية للمحتوى الإسلامي الموثق، والمصادر الواضحة، والتواصل مع أهل الاختصاص.",
   alternates: { canonical: "/" },
 };

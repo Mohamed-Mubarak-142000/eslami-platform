@@ -36,6 +36,15 @@
 .auth-card__footer p { margin: 0; }
 .auth-demo-note { margin: 1rem 0 0; color: var(--muted-foreground); text-align: center; font-size: .78rem; }
 .auth-inline-error { margin: -.7rem 0 0; color: var(--destructive); font-size: .85rem; }
+.auth-account-type { display: grid; gap: .75rem; margin: 0; padding: 0; border: 0; }
+.auth-account-type legend { padding: 0 0 .4rem; font-weight: 750; }
+.auth-account-type__option { display: flex; align-items: flex-start; gap: .75rem; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
+.auth-account-type__option:has(input:checked) { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.auth-account-type__option input { margin-block-start: .3rem; accent-color: var(--primary); }
+.auth-account-type__option strong { display: block; }
+.auth-account-type__option small { color: var(--muted-foreground); }
+.auth-account-type__hint { margin: -.5rem 0 0; color: var(--muted-foreground); font-size: .85rem; }
+@media (min-width: 30rem) { .auth-account-type { grid-template-columns: 1fr 1fr; } }
 .onboarding-card { max-inline-size: 48rem; display: grid; gap: 1rem; margin: 2rem auto; padding: 2rem; border: 1px solid var(--border); border-radius: calc(var(--radius) * 2); background: var(--card); }
 .onboarding-card fieldset { display: grid; gap: .5rem; }
 .onboarding-card > div { display: flex; gap: .75rem; }

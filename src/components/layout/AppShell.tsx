@@ -64,7 +64,7 @@ export interface AppShellProps {
 export function AppShell({
   children,
   navigation,
-  title = "بصيرة",
+  title = "المنارة",
   navigationRail,
   contextualRail,
   unreadNotifications = 0,

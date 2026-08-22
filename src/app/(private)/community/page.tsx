@@ -4,7 +4,7 @@ import { Feed } from "@/features";
 import { isAuthenticatedSession, services } from "@/integrations";
 
 export const metadata: Metadata = {
-  title: "مجتمع بصيرة",
+  title: "مجتمع المنارة",
   description: "مساحة الأعضاء لمتابعة المعرفة الموثقة وأهل الاختصاص.",
   robots: { index: false, follow: false },
 };

@@ -3,7 +3,7 @@ import { RegisterForm } from "@/features";
 
 export const metadata: Metadata = {
   title: "إنشاء حساب عضو",
-  description: "إنشاء حساب عضو تجريبي في بصيرة.",
+  description: "إنشاء حساب عضو تجريبي في المنارة.",
   robots: { index: false, follow: false, noarchive: true },
 };
 

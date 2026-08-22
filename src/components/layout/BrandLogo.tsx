@@ -6,7 +6,7 @@ export function BrandLogo({ className, priority = false, showName = true }: { cl
   return (
     <span className={cn("brand-logo", className)}>
       <span className="brand-logo__image"><Image src={siteLogo} alt="" priority={priority} sizes="(max-width: 640px) 40px, 48px" /></span>
-      {showName && <span className="brand-logo__name">بصيرة</span>}
+      {showName && <span className="brand-logo__name">المنارة</span>}
     </span>
   );
 }

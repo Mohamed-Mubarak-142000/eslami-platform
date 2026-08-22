@@ -11,9 +11,10 @@ import { FeatureState, type FeatureStatus } from "../shared/FeatureState";
 import "./auth-features.css";
 
 type AsyncState = "idle" | "loading" | "success" | "error" | "offline" | "rate-limited";
-type FieldErrors = Record<"email" | "password" | "name" | "confirm" | "terms", string>;
+type AccountType = "member" | "scholar";
+type FieldErrors = Record<"email" | "password" | "name" | "confirm" | "terms" | "specialty" | "credential", string>;
 const emptyErrors = (): FieldErrors => {
-  const values: FieldErrors = { email: "", password: "", name: "", confirm: "", terms: "" };
+  const values: FieldErrors = { email: "", password: "", name: "", confirm: "", terms: "", specialty: "", credential: "" };
   return new Proxy(values, { ownKeys: (target) => Reflect.ownKeys(target).filter((key) => typeof key !== "string" || Boolean(target[key as keyof FieldErrors])) });
 };
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,7 +26,7 @@ function AuthBrandPanel() {
   return (
     <aside ref={panelRef} className="auth-brand bg-primary text-primary-foreground" aria-label={t.brandAria}>
       <a className="auth-brand__logo" href="/" aria-label={t.logoHomeAria} data-auth-brand-reveal>
-        <span aria-hidden="true">ب</span> {t.brand}
+        <span aria-hidden="true">م</span> {t.brand}
       </a>
       <div className="auth-brand__message">
         <p className="auth-brand__eyebrow" data-auth-brand-reveal>{t.brandEyebrow}</p>
@@ -50,7 +51,7 @@ function AuthSurface({ title, intro, children, footer, busy = false }: { title: 
         <div className="auth-main__top"><a href="/">{t.backHome}</a></div>
         <section className="auth-card" aria-labelledby="auth-title" aria-busy={busy || undefined}>
           <header className="auth-card__header">
-            <span className="auth-card__mark" aria-hidden="true">ب</span>
+            <span className="auth-card__mark" aria-hidden="true">م</span>
             <h1 id="auth-title">{title}</h1>
             <p>{intro}</p>
           </header>
@@ -128,10 +129,11 @@ export function LoginForm({ status = "ready", requestState = "idle", onSubmit }:
   );
 }
 
-export interface RegisterFormProps { requestState?: AsyncState; onSubmit?: (value: { displayName: string; email: string }) => void | Promise<void> }
+export interface RegisterFormProps { requestState?: AsyncState; onSubmit?: (value: { displayName: string; email: string; accountType: AccountType; specialty?: string; credential?: string }) => void | Promise<void> }
 export function RegisterForm({ requestState = "idle", onSubmit }: RegisterFormProps) {
   const t = useTranslations("auth");
-  const [values, setValues] = useState({ displayName: "", email: "", password: "", confirm: "", terms: false });
+  const [accountType, setAccountType] = useState<AccountType>("member");
+  const [values, setValues] = useState({ displayName: "", email: "", password: "", confirm: "", terms: false, specialty: "", credential: "" });
   const [errors, setErrors] = useState<FieldErrors>(emptyErrors);
   const [submitting, setSubmitting] = useState(false);
   const busy = submitting || requestState === "loading";
@@ -145,11 +147,20 @@ export function RegisterForm({ requestState = "idle", onSubmit }: RegisterFormPr
     if (values.password.length < 12) next.password = t.register.passwordTooShort;
     if (values.confirm !== values.password) next.confirm = t.register.passwordMismatch;
     if (!values.terms) next.terms = t.register.termsRequired;
+    if (accountType === "scholar") {
+      if (!values.specialty.trim()) next.specialty = t.register.specialtyInvalid;
+      if (!values.credential.trim()) next.credential = t.register.credentialInvalid;
+    }
     setErrors(next);
     if (Object.values(next).some(Boolean) || busy) return;
     setSubmitting(true);
     try {
-      await onSubmit?.({ displayName: values.displayName.trim(), email: values.email });
+      await onSubmit?.({
+        displayName: values.displayName.trim(),
+        email: values.email,
+        accountType,
+        ...(accountType === "scholar" ? { specialty: values.specialty.trim(), credential: values.credential.trim() } : {}),
+      });
     } finally {
       setSubmitting(false);
     }
@@ -160,11 +171,31 @@ export function RegisterForm({ requestState = "idle", onSubmit }: RegisterFormPr
       <form className="auth-form" onSubmit={submit} noValidate>
         <ErrorSummary items={Object.entries(errors).map(([id, label]) => ({ id: `register-${id}`, label }))} />
         <StatusMessage state={requestState} />
-        {requestState === "success" && <Alert tone="success" title={t.register.successTitle}>{t.register.successMessage}</Alert>}
+        {requestState === "success" && <Alert tone="success" title={t.register.successTitle}>{accountType === "scholar" ? t.register.successMessageScholar : t.register.successMessage}</Alert>}
+        <fieldset className="auth-account-type">
+          <legend>{t.register.accountTypeLegend}</legend>
+          <label className="auth-account-type__option" data-selected={accountType === "member" || undefined}>
+            <input type="radio" name="accountType" value="member" checked={accountType === "member"} onChange={() => setAccountType("member")} />
+            <span><strong>{t.register.accountTypeMemberLabel}</strong><small>{t.register.accountTypeMemberHint}</small></span>
+          </label>
+          <label className="auth-account-type__option" data-selected={accountType === "scholar" || undefined}>
+            <input type="radio" name="accountType" value="scholar" checked={accountType === "scholar"} onChange={() => setAccountType("scholar")} />
+            <span><strong>{t.register.accountTypeScholarLabel}</strong><small>{t.register.accountTypeScholarHint}</small></span>
+          </label>
+        </fieldset>
         <div className="auth-form__grid">
           <TextField id="register-name" name="displayName" label={t.register.nameLabel} autoComplete="name" value={values.displayName} onChange={(event) => setValues({ ...values, displayName: event.currentTarget.value })} error={errors.name} required />
           <TextField id="register-email" name="email" type="email" label={t.register.emailLabel} placeholder="name@example.com" autoComplete="email" inputMode="email" value={values.email} onChange={(event) => setValues({ ...values, email: event.currentTarget.value })} error={errors.email} required />
         </div>
+        {accountType === "scholar" && (
+          <>
+            <div className="auth-form__grid">
+              <TextField id="register-specialty" name="specialty" label={t.register.specialtyLabel} value={values.specialty} onChange={(event) => setValues({ ...values, specialty: event.currentTarget.value })} error={errors.specialty} required />
+              <TextField id="register-credential" name="credential" label={t.register.credentialLabel} value={values.credential} onChange={(event) => setValues({ ...values, credential: event.currentTarget.value })} error={errors.credential} required />
+            </div>
+            <p className="auth-account-type__hint">{t.register.accountTypeScholarNote}</p>
+          </>
+        )}
         <PasswordField id="register-password" name="password" label={t.register.passwordLabel} autoComplete="new-password" value={values.password} onChange={(password) => setValues({ ...values, password })} error={errors.password} hint={t.register.passwordHint} />
         <div className="auth-strength" aria-label={t.register.strengthAria(passwordScore)}>
           <span style={{ inlineSize: `${passwordScore * 25}%` }} />

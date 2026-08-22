@@ -1,0 +1,15 @@
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #176f62, #0c4d46);
+}
+.splash-screen__mark { display: grid; justify-items: center; gap: .9rem; }
+.splash-screen .brand-logo { flex-direction: column; gap: 1rem; color: #fff; }
+.splash-screen .brand-logo__image { inline-size: 4.5rem; block-size: 4.5rem; }
+.splash-screen .brand-logo__name { font-size: 1.7rem; }
+.splash-screen__tagline { margin: 0; color: #cfe8e1; font-size: .95rem; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .splash-screen { display: none; } }
+@media (forced-colors: active) { .splash-screen { background: Canvas; } .splash-screen .brand-logo, .splash-screen__tagline { color: CanvasText; } }
