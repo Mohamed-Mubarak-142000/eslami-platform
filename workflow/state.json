@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "brand-logo-seo-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "ca2f89b",
-  "active_task_ids": ["QA-BRAND-SEO-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "f0b450f",
+  "active_task_ids": ["RELEASE-BRAND-SEO-001"],
   "acceptance_criteria": [
-    "Verify the header logo renders and retains an accessible home link",
-    "Verify icon, Open Graph, robots, and sitemap endpoints",
-    "Verify public metadata and private noindex behavior",
-    "Run focused QA and boundary guard"
+    "Review brand and SEO acceptance traceability",
+    "Review accessibility, privacy, crawler behavior, and deployment risk",
+    "Issue an explicit recommendation with rollback trigger",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
