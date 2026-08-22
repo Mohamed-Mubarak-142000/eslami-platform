@@ -2,15 +2,15 @@
   "workflow_version": 1,
   "milestone": "social-ui-auth-v2",
   "status": "active",
-  "active_agent": "integration-agent",
+  "active_agent": "qa-agent",
   "base_ref": "HEAD",
-  "active_task_ids": ["INT-SOCIAL-AUTH-001"],
+  "active_task_ids": ["QA-SOCIAL-AUTH-001"],
   "acceptance_criteria": [
-    "Compose the accepted social feed feature into the home route and preserve existing route/service contracts",
-    "Compose professional login, registration, forgot, and reset surfaces into their public auth routes",
-    "Separate the public auth shell from the signed-in social shell without duplicate main landmarks",
-    "Preserve metadata, mock auth disclosure, privacy, redirects, RTL, responsive behavior, and reduced motion",
-    "Run route, build, integration, and ownership checks and create exactly one milestone handoff"
+    "Independently verify feed and auth acceptance criteria across desktop, tablet, and mobile",
+    "Test keyboard, landmarks, RTL, validation, loading/error/success, responsive overflow, and reduced motion",
+    "Verify Tailwind output, shadcn-style primitives, Framer Motion interactions, and GSAP isolation without private data leakage",
+    "Capture objective visual evidence and run full regression suites without production source edits",
+    "Run the QA ownership boundary guard and create exactly one milestone handoff"
   ],
   "release_decision": "CONDITIONAL_GO",
   "approved_target": "internal_access_restricted_frontend_mock_demo",
@@ -22,8 +22,8 @@
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "active" },
-    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "accepted" },
+    { "order": 7, "agent": "qa-agent", "status": "active" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
