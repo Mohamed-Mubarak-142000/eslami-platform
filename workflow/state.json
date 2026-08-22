@@ -1,24 +1,23 @@
 {
   "workflow_version": 1,
-  "milestone": "header-account-dropdown-v1",
-  "status": "complete",
-  "active_agent": "orchestrator-agent",
-  "base_ref": "5beb6e9",
-  "active_task_ids": [],
+  "milestone": "public-navigation-refresh-v1",
+  "status": "active",
+  "active_agent": "foundation-agent",
+  "base_ref": "addef2a",
+  "active_task_ids": ["FOUNDATION-PUBLIC-NAV-ICONS-001"],
   "acceptance_criteria": [
-    "Review dropdown acceptance and QA evidence",
-    "Review accessibility, RTL, privacy, and regression risk",
-    "Issue explicit release recommendation and rollback trigger",
-    "Run release-review boundary guard"
+    "Add meaningful shell icons for home, about, contact, and categories navigation",
+    "Preserve top and mobile navigation accessibility",
+    "Run foundation checks and boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 4, "agent": "foundation-agent", "status": "active" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
 }
