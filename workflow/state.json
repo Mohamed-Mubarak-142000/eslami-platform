@@ -2,22 +2,22 @@
   "workflow_version": 1,
   "milestone": "composer-header-restore-v1",
   "status": "active",
-  "active_agent": "feature-ui-agent",
-  "base_ref": "a24490a",
-  "active_task_ids": ["FEATURE-COMPOSER-BAR-001"],
+  "active_agent": "integration-agent",
+  "base_ref": "130528c",
+  "active_task_ids": ["INT-RESTORE-HEADER-001"],
   "acceptance_criteria": [
-    "Move the avatar, thought prompt, and three media actions into the feed composer",
-    "Replace the oversized nested textarea presentation with a compact social bar",
-    "Keep progressive expansion, validation, keyboard labels, and publishing behavior",
-    "Preserve composer, stories, feed order and tabless layout"
+    "Restore the original global search/navigation/account header composition",
+    "Remove compact social prompt/media actions from the global header",
+    "Restore notifications, language, and theme controls",
+    "Preserve focused-auth composition and responsive mobile navigation"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
-    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
+    { "order": 6, "agent": "integration-agent", "status": "active" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ]
