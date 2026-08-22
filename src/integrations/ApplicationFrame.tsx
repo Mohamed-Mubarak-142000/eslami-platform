@@ -4,8 +4,8 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
-import { AppShell, type NavigationItem } from "@/components/layout";
-import { DiscoveryRail, ShellSearch, ShortcutsRail, SocialMediaActions } from "./ShellComposition";
+import { AppShell, LanguageSwitcher, ThemeToggle, type NavigationItem } from "@/components/layout";
+import { DiscoveryRail, ShellActions, ShellSearch, ShortcutsRail } from "./ShellComposition";
 
 const focusedAuthRoutes = new Set([
   "/login",
@@ -27,6 +27,7 @@ export function ApplicationFrame({
   navigation,
   topics,
   scholars,
+  unreadNotifications = 0,
 }: {
   children: ReactNode;
   navigation: readonly NavigationItem[];
@@ -46,16 +47,17 @@ export function ApplicationFrame({
       title={t.brand}
       navigation={activeNavigation}
       search={<ShellSearch />}
-      actions={<SocialMediaActions />}
-      compactHeader
+      actions={<ShellActions />}
       navigationRail={<ShortcutsRail navigation={activeNavigation} topics={topics} />}
       contextualRail={<DiscoveryRail topics={topics} scholars={scholars} />}
+      unreadNotifications={unreadNotifications}
       skipToContentLabel={t.skipToContent}
       notificationsLabel={t.notifications}
       unreadNotificationsLabel={t.unreadNotifications}
       navigationLabel={t.primaryNavigation}
       navigationRailLabel={t.primaryNavigation}
       railLabel={t.discoverMore}
+      controls={<><LanguageSwitcher /><ThemeToggle /></>}
     >
       {children}
     </AppShell>

@@ -48,7 +48,7 @@ export function ShellSearch() {
         type="search"
         inputMode="search"
         autoComplete="off"
-        placeholder="بم تفكر يا Mohamed؟"
+        placeholder={t.searchPlaceholder}
       />
       <button type="submit">{t.searchSubmit}</button>
     </form>
