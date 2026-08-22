@@ -11,6 +11,7 @@
 | UX-004 | [states-and-microcopy.md](states-and-microcopy.md): الحالات والخصوصية والنصوص العربية |
 | UX-005 | [usability-test-plan.md](usability-test-plan.md): خطة اختبار قابلة للتنفيذ |
 | بوابة التسليم | [traceability.md](traceability.md): ربط CAP/US/AC بالشاشة والمسار والحالة |
+| UX-SOCIAL-UI-001 | [social-ui-auth-v2.md](social-ui-auth-v2.md): shell اجتماعي RTL وتفاعلات المحتوى وتدفقات الحساب mock |
 
 ## قواعد القراءة والتنفيذ
 
@@ -20,4 +21,3 @@
 - لا يدخل نص سؤال/إجابة أو اسم ملف أو سبب حر في URL أو analytics أو error logs.
 - «بصيرة» اسم تشغيلي مؤقت. لا يتغير معنى النصوص عند تغيير العلامة.
 - الأولوية عند التعارض: متطلبات المنتج المقبولة، ثم هذه الحزمة، ثم التوجيه البصري القديم.
-
