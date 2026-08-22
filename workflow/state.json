@@ -1,10 +1,10 @@
 {
   "workflow_version": 1,
   "milestone": "remove-discovery-topics-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "bf757f2",
-  "active_task_ids": ["RELEASE-REMOVE-DISCOVERY-TOPICS-001"],
+  "status": "complete",
+  "active_agent": "orchestrator-agent",
+  "base_ref": "bcc4739",
+  "active_task_ids": [],
   "acceptance_criteria": [
     "Review scope and QA evidence",
     "Review accessibility, RTL, and regression risk",
@@ -19,6 +19,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
