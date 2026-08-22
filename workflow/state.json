@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "facebook-inspired-social-layout-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "9d92eb1",
-  "active_task_ids": ["QA-FB-LAYOUT-ORDER-002"],
+  "active_agent": "release-review-agent",
+  "base_ref": "5124781",
+  "active_task_ids": ["RELEASE-FB-LAYOUT-001"],
   "acceptance_criteria": [
-    "Verify composer precedes stories and the redundant topic row is absent",
-    "Verify the compact home retains an accessible primary heading",
-    "Rerun responsive overflow and social visual contracts across browsers",
-    "Update QA evidence and boundary guard"
+    "Review acceptance traceability and final QA evidence",
+    "Review accessibility, RTL, privacy, security, performance, and rollback readiness",
+    "Issue explicit release recommendation without production edits",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
