@@ -9,6 +9,7 @@ import { Alert, Button, Textarea } from "@/components/ui";
 import { ScholarIdentity, SourceCitation } from "@/components/patterns";
 import { useSocialMotionPreset } from "@/lib/motion";
 import { FeatureState, type FeatureStatus } from "../shared/FeatureState";
+import "../shared/social-pages.css";
 import "./content-features.css";
 
 function MiniIdentity({ name, role, verified = true }: { name: string; role: string; verified?: boolean }) {
@@ -302,8 +303,8 @@ export function ContentDetail({ content, author }: { content: KnowledgeContent; 
 export function SavedCollections({ items, unavailable = false }: { items: readonly KnowledgeContent[]; unavailable?: boolean }) {
   const t = useTranslations("feed");
   return (
-    <section className="saved-collections" aria-labelledby="saved-title">
-      <h1 id="saved-title">{t.savedTitle}</h1>
+    <section className="saved-collections social-page" aria-labelledby="saved-title">
+      <header className="social-page__hero"><span><Bookmark aria-hidden="true" /></span><div><p>محتواك للرجوع إليه لاحقًا</p><h1 id="saved-title">{t.savedTitle}</h1></div></header>
       {unavailable && <Alert tone="warning">{t.savedUnavailable}</Alert>}
       {items.length ? items.map((item) => <ContentCard key={item.id} content={item} saved />) : <p>{t.savedEmpty}</p>}
     </section>
