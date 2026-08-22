@@ -54,10 +54,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const t = dictionaries[locale].shell;
   const navigation = [
     { href: "/", label: t.navHome },
-    { href: "/explore", label: t.navExplore },
-    { href: "/search", label: t.navSearch },
-    { href: "/ask/1", label: t.navAsk },
-    { href: "/saved", label: t.navSaved },
+    { href: "/about", label: locale === "ar" ? "من نحن" : "About" },
+    { href: "/contact", label: locale === "ar" ? "اتصل بنا" : "Contact" },
+    { href: "/categories", label: locale === "ar" ? "جميع الأقسام" : "All categories" },
   ];
 
   return (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Bookmark, BookOpen, ChevronDown, Clapperboard, Compass, Home, ImageIcon, Languages, Landmark, Library, MessageCircleQuestion, Search, Settings, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
+import { BookOpen, ChevronDown, Clapperboard, Grid3X3, Home, ImageIcon, Info, Languages, Landmark, Library, Mail, Settings, Sparkles, UserRound, UsersRound, Video, type LucideIcon } from "lucide-react";
 import { useRef } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
 import type { NavigationItem } from "@/components/layout";
@@ -13,10 +13,9 @@ export function ShortcutsRail({ navigation, topics }: { navigation: readonly Nav
   const t = useTranslations("shell");
   const navigationIcons: Record<string, LucideIcon> = {
     "/": Home,
-    "/explore": Compass,
-    "/search": Search,
-    "/ask": MessageCircleQuestion,
-    "/me/questions": Bookmark,
+    "/about": Info,
+    "/contact": Mail,
+    "/categories": Grid3X3,
   };
   const topicIcons = [BookOpen, Library, Landmark, Sparkles] as const;
   return (
@@ -49,26 +48,6 @@ export function ShortcutsRail({ navigation, topics }: { navigation: readonly Nav
         })}
       </section>
     </div>
-  );
-}
-
-export function ShellSearch() {
-  const t = useTranslations("shell");
-  return (
-    <form className="shell-search" action="/search" method="get">
-      <label className="ds-visually-hidden" htmlFor="shell-search-query">
-        {t.searchLabel}
-      </label>
-      <input
-        id="shell-search-query"
-        name="q"
-        type="search"
-        inputMode="search"
-        autoComplete="off"
-        placeholder={t.searchPlaceholder}
-      />
-      <button type="submit">{t.searchSubmit}</button>
-    </form>
   );
 }
 

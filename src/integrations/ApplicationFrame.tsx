@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import type { ScholarProfile, Topic } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
 import { AppShell, ThemeToggle, type NavigationItem } from "@/components/layout";
-import { DiscoveryRail, ShellActions, ShellSearch, ShortcutsRail } from "./ShellComposition";
+import { DiscoveryRail, ShellActions, ShortcutsRail } from "./ShellComposition";
 
 const focusedAuthRoutes = new Set([
   "/login",
@@ -46,7 +46,6 @@ export function ApplicationFrame({
     <AppShell
       title={t.brand}
       navigation={activeNavigation}
-      search={<ShellSearch />}
       actions={<ShellActions />}
       navigationRail={<ShortcutsRail navigation={activeNavigation} topics={topics} />}
       contextualRail={<DiscoveryRail scholars={scholars} />}
