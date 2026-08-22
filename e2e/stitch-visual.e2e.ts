@@ -4,6 +4,7 @@ test.describe("Mounir Stitch shell visual contract", () => {
   test("desktop RTL shell places navigation right, content center, and discovery rail left", async ({ page, browserName }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
     const shell = page.locator(".app-shell");
     const navigation = page.locator(".app-shell__leading-rail");
@@ -17,10 +18,15 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(actions).toBeVisible();
     await expect(page.locator(".app-shell__topnav")).toBeHidden();
     await expect(actions.locator(".social-media-actions a")).toHaveCount(3);
+    await expect(actions.locator(".social-media-actions a").nth(0)).toHaveClass(/social-media-actions__reel/);
+    await expect(actions.locator(".social-media-actions a").nth(1)).toHaveClass(/social-media-actions__photo/);
+    await expect(actions.locator(".social-media-actions a").nth(2)).toHaveClass(/social-media-actions__video/);
     await expect(actions.locator("a[aria-label='فيديو مباشر']")).toBeVisible();
     await expect(actions.locator("a[aria-label='إضافة صورة']")).toBeVisible();
     await expect(actions.locator("a[aria-label='إنشاء مقطع']")).toBeVisible();
     await expect(actions.locator(".shell-actions, .shell-control, .app-shell__notifications")).toHaveCount(0);
+    await expect(page.locator("#shell-search-query")).toHaveAttribute("placeholder", "بم تفكر يا Mohamed؟");
+    await expect(page.locator(".feed-tabs")).toHaveCount(0);
     await expect(navigation).toBeVisible();
     await expect(rail).toBeVisible();
     await expect(page.locator(".feed-stories")).toBeVisible();
