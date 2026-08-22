@@ -1,4 +1,4 @@
-import { Bell, Bookmark, Compass, Home, PenSquare, Search, type LucideIcon } from "lucide-react";
+import { Bell, Bookmark, Compass, Grid3X3, Home, Info, Mail, PenSquare, Search, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
@@ -15,6 +15,9 @@ const navIcons: Record<string, LucideIcon> = {
   "/explore": Compass,
   "/search": Search,
   "/saved": Bookmark,
+  "/about": Info,
+  "/contact": Mail,
+  "/categories": Grid3X3,
 };
 
 function iconFor(href: string): LucideIcon {
