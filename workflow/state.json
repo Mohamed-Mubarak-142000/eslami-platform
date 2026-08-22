@@ -2,8 +2,8 @@
   "workflow_version": 1,
   "milestone": "unified-brand-egypt-radio-v1",
   "status": "active",
-  "active_agent": "product-agent",
-  "base_ref": "6b6b82b",
+  "active_agent": "ux-agent",
+  "base_ref": "169c17d",
   "active_task_ids": ["BRAND-01", "RADIO-02", "THEME-01"],
   "acceptance_criteria": [
     "Use the supplied Basira logo on the public home and shared application chrome",
@@ -12,8 +12,8 @@
     "Apply the landing green, gold, and warm-neutral identity across the whole application"
   ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "active" },
-    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 1, "agent": "product-agent", "status": "accepted" },
+    { "order": 2, "agent": "ux-agent", "status": "active" },
     { "order": 3, "agent": "design-system-agent", "status": "pending" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
