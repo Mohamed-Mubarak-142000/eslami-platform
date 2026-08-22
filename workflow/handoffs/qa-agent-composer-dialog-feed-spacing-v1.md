@@ -1,9 +1,9 @@
 # Handoff: qa-agent / composer-dialog-feed-spacing-v1
 
 - Status: `review`
-- Base ref: `ee67a72`
+- Base ref: `e5fd497`
 - Result ref: `committed handoff; see repository HEAD`
-- Tasks completed: `QA-COMPOSER-DIALOG-001`
+- Tasks completed: `QA-COMPOSER-DIALOG-001`, `QA-SIDEBAR-ICONS-FOLLOWS-001`
 
 ## Delivered outputs
 
@@ -23,6 +23,7 @@
 | Hidden scrollbar with scrolling | Computed style and scroll dimensions | pass |
 | Reduced center padding/no overflow | Computed padding and responsive gates | pass |
 | Cross-browser | Localhost config focused run | pass — 18/18 |
+| Sidebar icons and ordering | SVG-count, follow-control, and DOM-order assertions in Chromium, Firefox, and WebKit | pass — 3/3 |
 
 ## Decisions and assumptions
 
@@ -38,7 +39,7 @@
 
 ## Boundary check
 
-- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId qa-agent -BaseRef ee67a72`
+- Command: `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId qa-agent -BaseRef e5fd497`
 - Result: `pass`
 
 The agent stops after creating this handoff. Only the orchestrator may accept it and activate

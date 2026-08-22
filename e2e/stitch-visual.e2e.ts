@@ -30,6 +30,20 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(page.locator(".feed-tabs")).toHaveCount(0);
     await expect(navigation).toBeVisible();
     await expect(rail).toBeVisible();
+    await expect(navigation.locator(".shortcuts-rail nav a > span svg")).toHaveCount(5);
+    await expect(navigation.locator(".shortcuts-rail__profile > span svg")).toHaveCount(1);
+    await expect(navigation.locator(".shortcuts-rail__tile svg")).toHaveCount(1);
+    const suggestions = rail.locator(".discovery-rail__suggestions");
+    const scholars = rail.locator(".discovery-rail__scholars");
+    await expect(suggestions).toBeVisible();
+    await expect(suggestions.getByRole("button", { name: /متابعة/ })).toHaveCount(3);
+    const suggestionOrder = await rail.locator("section").evaluateAll((sections) =>
+      sections.map((section) => section.className),
+    );
+    expect(suggestionOrder.indexOf("discovery-rail__suggestions")).toBeLessThan(
+      suggestionOrder.indexOf("discovery-rail__scholars"),
+    );
+    await expect(scholars).toBeVisible();
     await expect(page.locator(".feed-stories")).toBeVisible();
     const feedOrder = await page.locator(".social-feed").evaluate((element) =>
       [...element.children].map((child) => child.className),
