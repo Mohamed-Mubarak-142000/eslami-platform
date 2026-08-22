@@ -1,0 +1,1 @@
+export default function Page() { return <section><h1>الحساب والإعدادات</h1><nav aria-label="أقسام الإعدادات"><a href="/settings/privacy">الخصوصية</a> <a href="/settings/notifications">الإشعارات</a></nav><p>يمكنك إدارة تفضيلات الحساب والخصوصية من هنا.</p></section>; }

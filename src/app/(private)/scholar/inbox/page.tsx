@@ -1,0 +1,1 @@
+export default function Page() { return <section><h1>صندوق الأسئلة</h1><p>الأسئلة المكلف بها تظهر هنا دون مقتطفات حساسة.</p><a href="/scholar/questions/question-private-1/answer">فتح سؤال مكلّف</a></section>; }
