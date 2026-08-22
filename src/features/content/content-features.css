@@ -6,6 +6,8 @@
 .social-feed__intro h1 { color: var(--primary); font-family: var(--ds-font-heading); font-size: 1.65rem; }
 .feed-stories { min-inline-size: 0; }
 .feed-stories__track { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(7.2rem, 19vw, 8.4rem); gap: .55rem; overflow-x: auto; padding: .15rem .1rem .55rem; scroll-snap-type: inline mandatory; scrollbar-width: thin; }
+.feed-stories__track { scrollbar-width: none; -ms-overflow-style: none; }
+.feed-stories__track::-webkit-scrollbar { display: none; inline-size: 0; block-size: 0; }
 .feed-story { position: relative; min-block-size: 12.5rem; overflow: hidden; display: flex; align-items: flex-end; padding: .75rem; border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.7); background: hsl(218 24% 16%); color: white; box-shadow: var(--ds-shadow-raised); scroll-snap-align: start; cursor: pointer; isolation: isolate; }
 .feed-story::after { content: ""; position: absolute; inset: 38% 0 0; z-index: -1; background: linear-gradient(transparent, rgb(0 0 0 / 82%)); }
 .feed-story__visual { position: absolute; inset: 0; z-index: -2; background: radial-gradient(circle at 68% 20%, hsl(42 93% 72% / 85%) 0 11%, transparent 12%), linear-gradient(145deg, hsl(215 88% 54%), hsl(268 66% 38%) 48%, hsl(18 82% 55%)); transform: scale(1.02); transition: transform .25s ease; }
@@ -27,18 +29,31 @@
 .app-shell__main .feed-composer form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .5rem; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .feed-composer__row { display: flex; align-items: flex-start; gap: .75rem; }
 .feed-avatar { flex: 0 0 auto; inline-size: 2.75rem; block-size: 2.75rem; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: var(--primary-foreground); font-weight: 850; }
-.app-shell__main .feed-composer textarea { min-block-size: 2.9rem; block-size: 2.9rem; padding-block: .7rem; resize: none; border: 0; border-radius: 999px; background: var(--muted); }
+.feed-composer__prompt { min-inline-size: 0; min-block-size: 2.9rem; flex: 1; padding-inline: 1rem; border: 0; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font: inherit; text-align: start; cursor: pointer; }
+.feed-composer__prompt:hover { background: color-mix(in srgb, var(--muted) 82%, var(--foreground)); }
 .feed-composer__quick-actions { display: flex; align-items: center; gap: .1rem; margin: 0; padding: 0; border: 0; direction: ltr; }
 .feed-composer__quick-actions button { min-inline-size: 2.75rem; min-block-size: 2.75rem; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; border: 0; border-radius: 50%; background: transparent; color: #ff2f68; font-family: inherit; font-weight: 750; cursor: pointer; }
 .feed-composer__quick-actions button:nth-child(2) { color: #31b968; }
 .feed-composer__quick-actions button span { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .feed-composer__quick-actions button:hover { background: var(--muted); color: var(--primary); }
-.feed-composer__expanded { grid-column: 1 / -1; display: grid; gap: .75rem; margin-block-start: .25rem; padding-block-start: .75rem; border-block-start: 1px solid var(--border); }
-.feed-composer__expanded p { margin: 0; color: var(--muted-foreground); font-size: .8rem; }
-.feed-composer__expanded > div { display: flex; align-items: center; gap: .35rem; }
-.feed-composer__expanded button:not(.ds-button) { min-block-size: 2.75rem; padding-inline: .7rem; border: 0; background: transparent; color: var(--primary); cursor: pointer; }
-.feed-composer__expanded .ds-button { margin-inline-start: auto; }
 .feed-error { grid-column: 1 / -1; margin-block: .5rem 0; color: var(--destructive); font-size: .85rem; }
+.feed-composer__dialog-layer { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; }
+.feed-composer__dialog-backdrop { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border: 0; background: rgb(0 0 0 / 72%); cursor: default; }
+.feed-composer__dialog { position: relative; z-index: 1; inline-size: min(100%, 31rem); max-block-size: min(90dvh, 42rem); overflow-y: auto; display: grid; gap: .9rem; padding: 1rem; border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.7); background: var(--card); box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 55%); }
+.feed-composer__dialog > header { position: relative; display: grid; place-items: center; min-block-size: 2.75rem; border-block-end: 1px solid var(--border); }
+.feed-composer__dialog > header h2 { margin: 0 0 .75rem; color: var(--foreground); font-size: 1.25rem; }
+.feed-composer__dialog > header button { position: absolute; inset-inline-start: 0; inset-block-start: 0; inline-size: 2.5rem; block-size: 2.5rem; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--muted); color: var(--foreground); cursor: pointer; }
+.feed-composer__dialog-identity { display: flex; align-items: center; gap: .65rem; }
+.feed-composer__dialog-identity > span:last-child { display: grid; gap: .15rem; }
+.feed-composer__dialog-identity small { color: var(--muted-foreground); }
+.app-shell__main .feed-composer__dialog textarea { min-block-size: 9rem; padding: .5rem 0; border: 0; border-radius: 0; background: transparent; color: var(--foreground); font-size: 1.35rem; resize: vertical; }
+.feed-composer__dialog-note { display: flex; align-items: center; gap: .35rem; margin: 0; color: var(--muted-foreground); font-size: .76rem; }
+.feed-composer__dialog-additions { min-block-size: 3.6rem; display: flex; align-items: center; gap: .2rem; padding: .55rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.feed-composer__dialog-additions strong { margin-inline-end: auto; font-size: .85rem; }
+.feed-composer__dialog-additions button { inline-size: 2.5rem; block-size: 2.5rem; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--primary); cursor: pointer; }
+.feed-composer__dialog-additions button:hover { background: var(--muted); }
+.feed-composer__dialog > .ds-button { inline-size: 100%; }
+.app-shell__main:has(.social-feed) { padding-inline: clamp(.5rem, 1.5vw, 1rem); }
 .feed-list { display: grid; gap: 1rem; }
 .feed-post { overflow: hidden; }
 .feed-post__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem 1rem .25rem; }
@@ -74,6 +89,6 @@
 .feed-comments input { min-inline-size: 0; flex: 1; min-block-size: 2.75rem; padding-inline: 1rem; border: 1px solid var(--input); border-radius: 999px; background: var(--card); color: var(--foreground); }
 .feed-comments small { color: var(--muted-foreground); }
 .content-detail, .saved-collections { max-inline-size: 48rem; margin-inline: auto; padding: clamp(1rem, 4vw, 2rem); border: 1px solid var(--border); border-radius: calc(var(--radius) * 2); background: var(--card); }
-@media (max-width: 32rem) { .social-feed__intro > span { display: none; } .feed-stories__track { grid-auto-columns: 7.15rem; } .feed-story { min-block-size: 11.5rem; } .feed-actions { margin-inline: .5rem; } .feed-actions button { font-size: .72rem; gap: .2rem; } .feed-composer { padding: .65rem; } .app-shell__main .feed-composer form { grid-template-columns: minmax(0, 1fr); } .feed-composer__quick-actions { justify-content: space-around; border-block-start: 1px solid var(--border); padding-block-start: .5rem; } .feed-composer__expanded > div { flex-wrap: wrap; } }
+@media (max-width: 32rem) { .social-feed__intro > span { display: none; } .feed-stories__track { grid-auto-columns: 7.15rem; } .feed-story { min-block-size: 11.5rem; } .feed-actions { margin-inline: .5rem; } .feed-actions button { font-size: .72rem; gap: .2rem; } .feed-composer { padding: .65rem; } .app-shell__main .feed-composer form { grid-template-columns: minmax(0, 1fr); } .feed-composer__quick-actions { justify-content: space-around; border-block-start: 1px solid var(--border); padding-block-start: .5rem; } .feed-composer__dialog { padding: .75rem; } }
 @media (prefers-reduced-motion: reduce) { .feed-story__visual { transition: none; } .feed-story:hover .feed-story__visual { transform: none; } }
 @media (forced-colors: active) { .feed-post, .feed-composer { border: 2px solid CanvasText; } }

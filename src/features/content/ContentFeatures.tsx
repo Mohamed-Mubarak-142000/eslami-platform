@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { BadgeCheck, BookOpen, Bookmark, Clapperboard, ImageIcon, Info, MessageCircle, MoreHorizontal, Plus, Share2, ThumbsUp, Video } from "lucide-react";
+import { BadgeCheck, BookOpen, Bookmark, Clapperboard, ImageIcon, Info, MapPin, MessageCircle, MoreHorizontal, Plus, Share2, Smile, ThumbsUp, UserRoundPlus, Video, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type { KnowledgeContent, ScholarProfile } from "@/domain";
 import { useTranslations } from "@/i18n/LocaleProvider";
@@ -62,7 +62,7 @@ function StoryStrip() {
 export function FeedComposer({ onSubmit }: { onSubmit?: (text: string) => void | Promise<void> }) {
   const t = useTranslations("feed");
   const [text, setText] = useState("");
-  const [expanded, setExpanded] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -75,7 +75,7 @@ export function FeedComposer({ onSubmit }: { onSubmit?: (text: string) => void |
     try {
       await onSubmit?.(value);
       setText("");
-      setExpanded(false);
+      setComposerOpen(false);
     } finally {
       setBusy(false);
     }
@@ -86,31 +86,48 @@ export function FeedComposer({ onSubmit }: { onSubmit?: (text: string) => void |
       <form onSubmit={submit}>
         <div className="feed-composer__row">
           <span className="feed-avatar" aria-hidden="true">م</span>
-          <label className="feed-sr-only" htmlFor="feed-composer-input">{t.composerSrLabel}</label>
-          <Textarea
-            id="feed-composer-input"
-            value={text}
-            onFocus={() => setExpanded(true)}
-            onChange={(event) => setText(event.currentTarget.value)}
-            placeholder="بم تفكر يا Mohamed؟"
-            aria-invalid={Boolean(message)}
-            aria-describedby={message ? "composer-error" : undefined}
-          />
+          <button className="feed-composer__prompt" type="button" onClick={() => setComposerOpen(true)}>
+            بم تفكر يا Mohamed؟
+          </button>
         </div>
         <div className="feed-composer__quick-actions" aria-label={t.composerAria}>
           <button type="button" aria-label="إنشاء مقطع"><Clapperboard size={21} aria-hidden="true" /><span>{t.kindPost}</span></button>
           <button type="button" aria-label="إضافة صورة"><ImageIcon size={21} aria-hidden="true" /><span>{t.addSource}</span></button>
           <button type="button" aria-label="فيديو مباشر"><Video size={21} aria-hidden="true" /><span>{t.chooseTopic}</span></button>
         </div>
-        {message && <p id="composer-error" role="alert" className="feed-error">{message}</p>}
-        {expanded && (
-          <div className="feed-composer__expanded">
-            <p><Info size={14} aria-hidden="true" /> {t.composerNote}</p>
-            <div>
-              <button type="button">{t.addSource}</button>
-              <button type="button">{t.chooseTopic}</button>
-              <Button type="submit" loading={busy}>{t.publish}</Button>
-            </div>
+        {composerOpen && (
+          <div className="feed-composer__dialog-layer" onKeyDown={(event) => { if (event.key === "Escape") setComposerOpen(false); }}>
+            <button className="feed-composer__dialog-backdrop" type="button" aria-label="إغلاق نافذة إنشاء منشور" onClick={() => setComposerOpen(false)} />
+            <section className="feed-composer__dialog" role="dialog" aria-modal="true" aria-labelledby="composer-dialog-title">
+              <header>
+                <h2 id="composer-dialog-title">إنشاء منشور</h2>
+                <button type="button" aria-label="إغلاق" onClick={() => setComposerOpen(false)}><X aria-hidden="true" /></button>
+              </header>
+              <div className="feed-composer__dialog-identity">
+                <span className="feed-avatar" aria-hidden="true">م</span>
+                <span><strong>Mohamed Mubarak</strong><small>العامة · مساهمة معرفية</small></span>
+              </div>
+              <label className="feed-sr-only" htmlFor="feed-composer-input">{t.composerSrLabel}</label>
+              <Textarea
+                id="feed-composer-input"
+                value={text}
+                autoFocus
+                onChange={(event) => setText(event.currentTarget.value)}
+                placeholder="بم تفكر يا Mohamed؟"
+                aria-invalid={Boolean(message)}
+                aria-describedby={message ? "composer-error" : "composer-note"}
+              />
+              {message && <p id="composer-error" role="alert" className="feed-error">{message}</p>}
+              <p id="composer-note" className="feed-composer__dialog-note"><Info size={14} aria-hidden="true" /> {t.composerNote}</p>
+              <div className="feed-composer__dialog-additions" aria-label="إضافة إلى منشورك">
+                <strong>إضافة إلى منشورك</strong>
+                <button type="button" aria-label="إضافة صورة"><ImageIcon aria-hidden="true" /></button>
+                <button type="button" aria-label="الإشارة إلى أشخاص"><UserRoundPlus aria-hidden="true" /></button>
+                <button type="button" aria-label="إضافة شعور"><Smile aria-hidden="true" /></button>
+                <button type="button" aria-label="إضافة موقع"><MapPin aria-hidden="true" /></button>
+              </div>
+              <Button type="submit" loading={busy} disabled={!text.trim()}>{t.publish}</Button>
+            </section>
           </div>
         )}
       </form>
