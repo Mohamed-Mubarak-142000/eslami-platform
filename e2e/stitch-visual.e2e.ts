@@ -1,28 +1,23 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Mounir Stitch shell visual contract", () => {
-  test("secondary routes share the responsive social page contract", async ({ page }) => {
+  test("new public routes share a responsive page contract", async ({ page }) => {
     test.setTimeout(60_000);
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: width > 600 ? 900 : 844 });
-      for (const route of ["/explore", "/search", "/ask/1", "/saved"]) {
+      for (const route of ["/about", "/contact", "/categories"]) {
         await page.goto(route);
-        await expect(page.locator(".social-page")).toBeVisible();
-        await expect(page.locator(".social-page__hero h1")).toBeVisible();
+        await expect(page.locator(".public-page")).toBeVisible();
+        await expect(page.locator(".public-page__hero h1")).toBeVisible();
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow, `${route} at ${width}px`).toBeLessThanOrEqual(1);
       }
     }
 
-    await page.goto("/explore");
-    await expect(page.locator(".topic-grid a")).toHaveCount(1);
-    await expect(page.locator(".scholar-grid")).toBeVisible();
-    await page.goto("/search");
-    await expect(page.locator(".social-search__form")).toBeVisible();
-    await page.goto("/ask/1");
-    await expect(page.locator(".visibility-picker label")).toHaveCount(2);
-    await page.goto("/saved");
-    await expect(page.locator(".saved-collections .feed-post").first()).toBeVisible();
+    await page.goto("/categories");
+    await expect(page.locator(".categories-grid a")).toHaveCount(1);
+    await page.goto("/contact");
+    await expect(page.locator("a[href^='mailto:']")).toHaveCount(3);
   });
 
   test("brand logo and public SEO metadata are exposed", async ({ page, request }) => {
@@ -49,11 +44,10 @@ test.describe("Mounir Stitch shell visual contract", () => {
     const navigation = page.locator(".app-shell__leading-rail");
     const content = page.locator(".app-shell__main");
     const rail = page.locator(".app-shell__rail");
-    const search = page.locator(".app-shell__search");
     const actions = page.locator(".app-shell__actions");
 
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await expect(search).toBeVisible();
+    await expect(page.locator(".app-shell__search")).toHaveCount(0);
     await expect(actions).toBeVisible();
     await expect(page.locator(".app-shell__topnav")).toBeVisible();
     await expect(actions.locator(".social-media-actions")).toHaveCount(0);
@@ -68,7 +62,6 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(accountMenu.locator("[role='menuitem']")).toHaveCount(3);
     await expect(accountMenu.locator("a[role='menuitem'][href='/me/questions']")).toBeVisible();
     await expect(accountMenu.locator("a[role='menuitem'][href='/settings/privacy']")).toBeVisible();
-    await expect(page.locator("#shell-search-query")).toHaveAttribute("placeholder", /ابحث/);
     await expect(page.locator(".feed-composer__prompt")).toHaveText("بم تفكر يا Mohamed؟");
     await expect(page.locator(".feed-composer__quick-actions button")).toHaveCount(3);
     await expect(page.locator(".feed-composer__quick-actions button[aria-label='إنشاء مقطع']")).toBeVisible();
@@ -87,7 +80,7 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await expect(rail.getByRole("heading", { name: "موضوعات مقترحة" })).toHaveCount(0);
     await expect(rail.locator(".discovery-rail__suggestions")).toBeVisible();
     await expect(rail.locator(".discovery-rail__scholars")).toBeVisible();
-    await expect(navigation.locator(".shortcuts-rail nav a > span svg")).toHaveCount(5);
+    await expect(navigation.locator(".shortcuts-rail nav a > span svg")).toHaveCount(4);
     await expect(navigation.locator(".shortcuts-rail__profile > span svg")).toHaveCount(1);
     await expect(navigation.locator(".shortcuts-rail__tile svg")).toHaveCount(1);
     const suggestions = rail.locator(".discovery-rail__suggestions");
@@ -139,10 +132,10 @@ test.describe("Mounir Stitch shell visual contract", () => {
     const navigation = page.locator(".app-shell__nav");
     await expect(page.locator(".app-shell__rail")).toBeHidden();
     await expect(page.locator(".app-shell__leading-rail")).toBeHidden();
-    await expect(page.locator(".app-shell__search")).toBeHidden();
+    await expect(page.locator(".app-shell__search")).toHaveCount(0);
     await expect(page.locator(".app-shell__actions")).toBeVisible();
     await expect(navigation).toBeVisible();
-    await expect(navigation.locator("a")).toHaveCount(5);
+    await expect(navigation.locator("a")).toHaveCount(4);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -161,15 +154,11 @@ test.describe("Mounir Stitch shell visual contract", () => {
     }
   });
 
-  test("header search remains keyboard operable and preserves route query", async ({ page }) => {
-    await page.goto("/");
-    const query = page.locator("#shell-search-query");
-    await query.focus();
-    await expect(query).toBeFocused();
-    await query.fill("مدخل");
-    await query.press("Enter");
-    await expect(page).toHaveURL(/\/search\?q=%D9%85%D8%AF%D8%AE%D9%84$/);
-    await expect(page.locator("main h1")).toBeVisible();
+  test("removed public routes return not found", async ({ page }) => {
+    for (const route of ["/explore", "/search", "/ask/1", "/ask/review"]) {
+      const response = await page.goto(route);
+      expect(response?.status(), route).toBe(404);
+    }
   });
 
   test("composer prompt opens an accessible dialog and stories scroll without visible chrome", async ({ page, browserName }) => {
@@ -208,7 +197,7 @@ test.describe("Mounir Stitch shell visual contract", () => {
   });
 
   test("shell landmarks remain unique and public discovery excludes private fixtures", async ({ page }) => {
-    for (const route of ["/", "/search", "/content/content-1", "/me/questions/question-private-1"]) {
+    for (const route of ["/", "/about", "/content/content-1", "/me/questions/question-private-1"]) {
       await page.goto(route);
       await expect(page.locator("header.app-shell__header")).toHaveCount(1);
       await expect(page.locator("nav.app-shell__nav")).toHaveCount(1);

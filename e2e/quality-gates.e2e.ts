@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const mojibake = /(?:Ø.|Ù.){2,}/;
-const routes = ["/", "/search", "/ask/1", "/content/content-1", "/scholars/sample-researcher"];
+const routes = ["/", "/about", "/contact", "/categories", "/content/content-1", "/scholars/sample-researcher"];
 
 test.describe("Arabic, RTL, accessibility, and responsive gates", () => {
   for (const route of routes) {
