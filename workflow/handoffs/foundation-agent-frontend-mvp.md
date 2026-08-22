@@ -85,3 +85,29 @@ the successor.
 
 No integration/app file or generated `next-env.d.ts` was edited. No commit, push, workflow
 state change, or QA activation was performed.
+
+## Maintenance — FIX-QA-DEF-002
+
+- Reactivated base: `43e8dd142736e90319b52871e87a17a300bc2fa0`
+- Status: `review`
+- `AppShell` now exposes an optional `nested` composition mode. The document-level default
+  retains the skip link, focus target, and single `<main>`; nested shells render their content
+  container as a semantic-neutral `<div>` and do not duplicate the document skip link.
+- `AdminShell` opts into nested composition because the root application `AppShell` already
+  owns the document's primary landmark.
+- Storybook includes a nested-shell scenario documenting the public composition contract.
+
+### FIX-QA-DEF-002 evidence
+
+| Criterion | Evidence | Result |
+|---|---|---|
+| Admin page has one primary landmark | `npx playwright test --config=e2e/playwright.cross-browser.config.ts --grep "admin route exposes exactly one main landmark"` | pass — Chromium, Firefox, WebKit (3/3) |
+| Shared compilation and regression gates | `npm run typecheck`; `npm run lint`; `npm test` | pass — 28/28 tests |
+| Integrated production composition | `npm run build` with Next.js 16.3.2 | pass — 29 routes built |
+| Layout documentation render | `npm run build-storybook` | pass |
+| Patch integrity | `git diff --check` | pass |
+| Fix ownership | `./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId foundation-agent -BaseRef 43e8dd142736e90319b52871e87a17a300bc2fa0` | pass — 4 owned files including this handoff |
+
+The implementation follows the installed Next.js nested-layout guidance: nested layouts wrap
+inside the root layout, so only the outer shell owns the document-level main landmark. No app
+route, QA test/evidence, workflow state, or other owner's output was edited.
