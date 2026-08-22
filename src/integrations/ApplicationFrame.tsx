@@ -49,7 +49,7 @@ export function ApplicationFrame({
       search={<ShellSearch />}
       actions={<ShellActions />}
       navigationRail={<ShortcutsRail navigation={activeNavigation} topics={topics} />}
-      contextualRail={<DiscoveryRail topics={topics} scholars={scholars} />}
+      contextualRail={<DiscoveryRail scholars={scholars} />}
       unreadNotifications={unreadNotifications}
       skipToContentLabel={t.skipToContent}
       notificationsLabel={t.notifications}

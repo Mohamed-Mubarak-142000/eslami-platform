@@ -97,10 +97,8 @@ export function SocialMediaActions() {
 }
 
 export function DiscoveryRail({
-  topics,
   scholars,
 }: {
-  topics: readonly Topic[];
   scholars: readonly ScholarProfile[];
 }) {
   const t = useTranslations("shell");
@@ -125,20 +123,6 @@ export function DiscoveryRail({
         />
         <span>المكتبة الشاملة</span>
       </a>
-
-      <section className="discovery-rail__topics" aria-labelledby="discovery-topics-title">
-        <h3 id="discovery-topics-title">{t.suggestedTopics}</h3>
-        <ul>
-          {topics.map((topic) => (
-            <li key={topic.id}>
-              <Link href={`/topics/${topic.slug}`}>{topic.name}</Link>
-            </li>
-          ))}
-        </ul>
-        <Link className="discovery-rail__more" href="/explore">
-          {t.browseAllTopics}
-        </Link>
-      </section>
 
       <section className="discovery-rail__suggestions" aria-labelledby="discovery-suggestions-title">
         <h3 id="discovery-suggestions-title">اقتراحات للمتابعة</h3>
