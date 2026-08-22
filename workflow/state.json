@@ -2,14 +2,14 @@
   "workflow_version": 1,
   "milestone": "composer-dialog-feed-spacing-v1",
   "status": "active",
-  "active_agent": "qa-agent",
-  "base_ref": "fc9c5e5",
-  "active_task_ids": ["QA-SIDEBAR-ICONS-FOLLOWS-001"],
+  "active_agent": "release-review-agent",
+  "base_ref": "ac81ad5",
+  "active_task_ids": ["REL-SIDEBAR-ICONS-FOLLOWS-001"],
   "acceptance_criteria": [
-    "Verify shortcut badges render SVG icons without letter placeholders",
-    "Verify follow suggestions appear before scholars and expose accessible follow controls",
-    "Verify RTL desktop layout and responsive behavior remain stable",
-    "Run focused cross-browser QA and boundary guard"
+    "Confirm acceptance evidence and ownership gates are complete",
+    "Review accessibility, RTL, privacy, and release risk",
+    "Issue an explicit release recommendation and rollback trigger",
+    "Run release-review boundary guard"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
@@ -18,7 +18,7 @@
     { "order": 4, "agent": "foundation-agent", "status": "accepted" },
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "active" },
-    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+    { "order": 7, "agent": "qa-agent", "status": "accepted" },
+    { "order": 8, "agent": "release-review-agent", "status": "active" }
   ]
 }
