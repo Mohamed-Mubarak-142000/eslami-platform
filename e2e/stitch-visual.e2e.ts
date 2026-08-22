@@ -6,16 +6,18 @@ test.describe("Mounir Stitch shell visual contract", () => {
     await page.goto("/");
 
     const shell = page.locator(".app-shell");
-    const navigation = page.locator(".app-shell__nav");
+    const navigation = page.locator(".app-shell__leading-rail");
     const content = page.locator(".app-shell__main");
     const rail = page.locator(".app-shell__rail");
     const search = page.locator(".app-shell__search");
     const actions = page.locator(".app-shell__actions");
 
-    await expect(shell).toHaveAttribute("dir", "rtl");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(search).toBeVisible();
     await expect(actions).toBeVisible();
+    await expect(navigation).toBeVisible();
     await expect(rail).toBeVisible();
+    await expect(page.locator(".feed-stories")).toBeVisible();
 
     const [navBox, contentBox, railBox] = await Promise.all([
       navigation.boundingBox(),
@@ -48,7 +50,8 @@ test.describe("Mounir Stitch shell visual contract", () => {
 
     const navigation = page.locator(".app-shell__nav");
     await expect(page.locator(".app-shell__rail")).toBeHidden();
-    await expect(page.locator(".app-shell__search")).toBeVisible();
+    await expect(page.locator(".app-shell__leading-rail")).toBeHidden();
+    await expect(page.locator(".app-shell__search")).toBeHidden();
     await expect(page.locator(".app-shell__actions")).toBeVisible();
     await expect(navigation).toBeVisible();
     await expect(navigation.locator("a")).toHaveCount(5);

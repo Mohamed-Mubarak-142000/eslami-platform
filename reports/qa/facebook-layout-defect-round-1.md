@@ -30,3 +30,10 @@ Cross-browser suite: 57 passed, 9 failed. Three failures are one production defe
 ## Unavailable evidence
 
 - The in-app browser runtime had no connected browser, so no additional interactive screenshot session was available. The cross-browser suite still executed locally and produced traces/error contexts.
+
+## Resolution
+
+- `FB-LAYOUT-001` fixed by delaying the desktop destination strip, retaining bottom navigation through tablet widths, and showing shortcuts before contacts.
+- Focused overflow rerun: 3/3 passed.
+- Full cross-browser rerun after aligning obsolete visual assertions: 66/66 passed.
+- Updated screenshots: `reports/qa/screenshots/stitch-desktop-1440.png` and `reports/qa/screenshots/stitch-mobile-390.png`.
