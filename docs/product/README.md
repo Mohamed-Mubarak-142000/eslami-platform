@@ -11,6 +11,7 @@
 | PROD-004 | [governance.md](governance.md): التوثيق والخصوصية والإشراف والخلاف |
 | PROD-005 | [domain-model.md](domain-model.md): المصطلحات والكيانات والحالات والانتقالات |
 | PROD-006 | [traceability.md](traceability.md): ربط القدرات بالشاشات والقصص والتحليلات |
+| PROD-SOCIAL-UI-001 | [social-ui-auth-v2.md](social-ui-auth-v2.md): تجربة اجتماعية RTL أصلية وصفحات الحساب الاحترافية وحدود الأدوات ومعايير القبول |
 
 ## قواعد استخدام الحزمة
 
@@ -19,4 +20,3 @@
 - كل شاشة تنفذ حالات `loading / empty / error / offline / forbidden` المناسبة.
 - الواجهة تعكس الصلاحيات، لكن الخادم هو مصدر قرار التفويض والحالة النهائي.
 - لا تُرسل نصوص الأسئلة أو الإجابات أو بيانات الوثائق إلى analytics أو error logs.
-
