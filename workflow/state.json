@@ -1,10 +1,10 @@
 {
   "workflow_version": 1,
   "milestone": "unified-brand-egypt-radio-v1",
-  "status": "active",
-  "active_agent": "release-review-agent",
-  "base_ref": "4a09c05",
-  "active_task_ids": ["BRAND-01", "RADIO-02", "THEME-01"],
+  "status": "complete",
+  "active_agent": "orchestrator-agent",
+  "base_ref": "70d921b",
+  "active_task_ids": [],
   "acceptance_criteria": [
     "Use the supplied Basira logo on the public home and shared application chrome",
     "Use the official Egyptian Quran Radio stream with clear attribution",
@@ -19,6 +19,6 @@
     { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
     { "order": 6, "agent": "integration-agent", "status": "accepted" },
     { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "active" }
+    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
   ]
 }
