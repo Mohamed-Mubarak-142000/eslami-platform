@@ -24,10 +24,11 @@ describe("buildLetterMatchRound", () => {
     expect(round.tiles).toHaveLength(letters.length * 2);
   });
 
-  it("gives every tile a letterKey that matches its source letter", () => {
+  it("gives the letter tile and name tile of a single chosen pair the same letterKey", () => {
     const round = buildLetterMatchRound(letters, 1, () => 0);
-    const [first] = letters;
-    expect(round.tiles.every((tile) => tile.letterKey === first?.letter)).toBe(true);
+    const [letterTile, nameTile] = round.tiles;
+    expect(letterTile?.letterKey).toBe(nameTile?.letterKey);
+    expect(letters.some((entry) => entry.letter === letterTile?.letterKey)).toBe(true);
   });
 });
 
