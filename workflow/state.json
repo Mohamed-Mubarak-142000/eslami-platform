@@ -2,29 +2,29 @@
   "workflow_version": 1,
   "milestone": "twister-storefront-v1",
   "status": "active",
-  "active_agent": "ux-agent",
-  "base_ref": "e99f2d1",
+  "active_agent": "design-system-agent",
+  "base_ref": "1ec6290",
   "active_task_ids": [
-    "TW-UX-01-sitemap-nav",
-    "TW-UX-02-flows",
-    "TW-UX-03-wireframes-states",
-    "TW-UX-04-motion-choreography",
-    "TW-UX-05-microcopy",
-    "TW-UX-06-accessibility",
-    "TW-UX-07-component-inventory",
-    "TW-UX-08-traceability"
+    "TW-DS-01-tokens",
+    "TW-DS-02-fonts",
+    "TW-DS-03-motion-tokens",
+    "TW-DS-04-primitives",
+    "TW-DS-05-patterns",
+    "TW-DS-06-stories",
+    "TW-DS-07-coverage-matrix"
   ],
   "acceptance_criteria": [
-    "Sitemap and 6-item Arabic nav resolve every route named in docs/product/scope.md and traceability.md",
-    "Flows cover browse-to-WhatsApp-checkout, offer-to-filtered-menu, and admin login-to-CRUD-to-export",
-    "Every state listed in docs/product/p0-requirements.md (loading/empty/error/offline/closed-hours/popup-blocked/invalid-coupon/below-minimum/zone-not-served) has a wireframed representation",
-    "Motion choreography spec defines hero timeline beats and what is disabled for prefers-reduced-motion and coarse pointers",
-    "Component inventory classifies every UI element as primitive/pattern/feature-local, ready to become design-system-agent's acceptance contract"
+    "Dark-luxury token set (#0F0F0F/#D62828/#F4B400/#FFFFFF plus surface/glow/gradient tokens) replaces the Al-Manara green/gold tokens, with documented contrast decisions for red-on-black and gold-button text",
+    "Cairo/Alexandria fonts wired via next/font with CSS variables",
+    "Every primitive and pattern in docs/ux/component-inventory.md exists with the states listed there",
+    "Storybook stories cover RTL plus mobile/desktop widths plus the a11y addon for every new primitive/pattern",
+    "A coverage matrix in docs/design-system/ traces every component-inventory.md entry to a built component and story, with zero gaps",
+    "No legacy Al-Manara pattern/story is deleted in this stage (deletions happen in the reverse sweep after qa-agent acceptance)"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "active" },
-    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 2, "agent": "ux-agent", "status": "accepted" },
+    { "order": 3, "agent": "design-system-agent", "status": "active" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
@@ -32,16 +32,16 @@
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ],
   "change_review": {
-    "handoff": "workflow/handoffs/product-agent-twister-storefront-v1.md",
+    "handoff": "workflow/handoffs/ux-agent-twister-storefront-v1.md",
     "decision": "accepted",
     "evidence": [
       "all acceptance criteria have documented evidence in the handoff",
-      "changed paths matched product-agent ownership (docs/product/**, docs/*.md, TODO.md)",
-      "boundary guard passed: ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId product-agent -BaseRef bac85a3 (24 files checked)",
+      "changed paths matched ux-agent ownership (docs/ux/**)",
+      "boundary guard passed: ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId ux-agent -BaseRef 6790657 (14 files checked)",
       "no unresolved cross-owner requests"
     ],
-    "limitation": "All prices and business facts (logo, address, hours, zones, socials, reviews) remain owner-confirm placeholders; real backend and web push explicitly deferred",
-    "scope": "Full requirements/content package for the Twister pivot; unlocks ux-agent"
+    "limitation": "Admin DataTable/FormLayout column sets are specified only at the pattern level; exact per-resource fields are left to design-system/feature-ui to finalize",
+    "scope": "Full UX package for the Twister pivot; unlocks design-system-agent"
   },
   "notes": [
     "Milestone pivots this repo from Al-Manara (Islamic content platform) to Twister Crepes & Pizza (Arabic RTL restaurant ordering site), per user-approved plan.",
