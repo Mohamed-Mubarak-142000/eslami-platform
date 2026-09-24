@@ -2,52 +2,56 @@
   "workflow_version": 1,
   "milestone": "twister-storefront-v1",
   "status": "active",
-  "active_agent": "design-system-agent",
-  "base_ref": "1ec6290",
+  "active_agent": "foundation-agent",
+  "base_ref": "0531b59",
   "active_task_ids": [
-    "TW-DS-01-tokens",
-    "TW-DS-02-fonts",
-    "TW-DS-03-motion-tokens",
-    "TW-DS-04-primitives",
-    "TW-DS-05-patterns",
-    "TW-DS-06-stories",
-    "TW-DS-07-coverage-matrix"
+    "TW-FD-01-dependencies",
+    "TW-FD-02-next-config-ci",
+    "TW-FD-03-domain-schemas-pure-fns",
+    "TW-FD-04-mocks-seed-data",
+    "TW-FD-05-lib-storage-repositories-format-motion-pwa-analytics",
+    "TW-FD-06-layout-shell-components",
+    "TW-FD-07-fonts-i18n-public-dotfiles"
   ],
   "acceptance_criteria": [
-    "Dark-luxury token set (#0F0F0F/#D62828/#F4B400/#FFFFFF plus surface/glow/gradient tokens) replaces the Al-Manara green/gold tokens, with documented contrast decisions for red-on-black and gold-button text",
-    "Cairo/Alexandria fonts wired via next/font with CSS variables",
-    "Every primitive and pattern in docs/ux/component-inventory.md exists with the states listed there",
-    "Storybook stories cover RTL plus mobile/desktop widths plus the a11y addon for every new primitive/pattern",
-    "A coverage matrix in docs/design-system/ traces every component-inventory.md entry to a built component and story, with zero gaps",
-    "No legacy Al-Manara pattern/story is deleted in this stage (deletions happen in the reverse sweep after qa-agent acceptance)"
+    "package.json adds zustand, react-hook-form, @hookform/resolvers, prettier, husky, lint-staged, @axe-core/playwright, @lhci/cli without removing anything feature-ui/integration still needs from the old stack",
+    "src/domain/twister/** provides zod schemas and pure functions (priceLine, cartTotals, validateCoupon, freeFriesGift, isOpenNow, buildWhatsAppMessage/buildWhatsAppUrl, orderRef) matching docs/product/business-rules.md and whatsapp-order-message.md exactly, with unit tests",
+    "src/mocks/twister/** seed data matches docs/product/menu-catalog.md/offers.md/business-facts.md, validated by zod in a test",
+    "src/lib/{storage,repositories,format,motion,pwa,analytics} exist per the plan's cross-cutting decisions (localStorage-backed repositories behind interfaces, PII-free analytics event union)",
+    "src/components/layout is rewritten (SiteHeader with 6 nav items + CTA + mobile drawer + cartSlot prop, SiteFooter, BrandLogo, LoadingScreen, AmbientLayer/CursorGlow, ScrollProgress, PageTransition, StickyWhatsAppButton, AdminShell) without importing src/features directly",
+    "Cairo/Alexandria fonts wired via next/font bound to the design-system's --ds-font-ui/--ds-font-heading variables",
+    "install, typecheck, lint, unit tests, and next build all pass with legacy Al-Manara code still present and unmodified",
+    "Governance-gap paths assigned in the pre-milestone patch (src/i18n/**, public/**, root dotfiles) are used appropriately: Arabic-only copy decisions, PWA icons/manifest assets, tooling configs"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
-    { "order": 3, "agent": "design-system-agent", "status": "active" },
-    { "order": 4, "agent": "foundation-agent", "status": "pending" },
+    { "order": 3, "agent": "design-system-agent", "status": "accepted" },
+    { "order": 4, "agent": "foundation-agent", "status": "active" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ],
   "change_review": {
-    "handoff": "workflow/handoffs/ux-agent-twister-storefront-v1.md",
+    "handoff": "workflow/handoffs/design-system-agent-twister-storefront-v1.md",
     "decision": "accepted",
     "evidence": [
       "all acceptance criteria have documented evidence in the handoff",
-      "changed paths matched ux-agent ownership (docs/ux/**)",
-      "boundary guard passed: ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId ux-agent -BaseRef 6790657 (14 files checked)",
+      "changed paths matched design-system-agent ownership (src/styles/**, src/components/ui/**, src/components/patterns/**, stories/design-system/**, docs/design-system/**)",
+      "boundary guard passed: ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId design-system-agent -BaseRef fb7cca6 (17 files checked)",
+      "lint, typecheck, unit tests (45/45), and build-storybook all pass",
       "no unresolved cross-owner requests"
     ],
-    "limitation": "Admin DataTable/FormLayout column sets are specified only at the pattern level; exact per-resource fields are left to design-system/feature-ui to finalize",
-    "scope": "Full UX package for the Twister pivot; unlocks design-system-agent"
+    "limitation": "CartLineItem pattern deferred to feature-ui-agent pending real cart domain types; AdminDataTable mobile card variant not yet built",
+    "scope": "Full design-system package (tokens/primitives/patterns/stories/coverage matrix) for the Twister pivot; unlocks foundation-agent"
   },
   "notes": [
     "Milestone pivots this repo from Al-Manara (Islamic content platform) to Twister Crepes & Pizza (Arabic RTL restaurant ordering site), per user-approved plan.",
     "Rollback point: git tag almanara-final at commit f4f3a69.",
     "Pre-milestone governance patch (base_ref commit 5819332) added ownership for src/i18n/**, public/**, root dotfiles, and root docs to close gaps that blocked this milestone; fixed the boundary guard to also catch deletions; removed stale religious-governance/scholar wording from product-agent.md and feature-ui-agent.md.",
     "Retirement of old Al-Manara features/routes/domain happens in a reverse sweep after qa-agent acceptance, before release-review-agent, per the approved plan.",
-    "Admin panel ships as a local-browser sandbox (localStorage + Export JSON) for this milestone; web push notifications and a real multi-user backend are explicitly deferred to a future milestone."
+    "Admin panel ships as a local-browser sandbox (localStorage + Export JSON) for this milestone; web push notifications and a real multi-user backend are explicitly deferred to a future milestone.",
+    "Design tokens are now dark-only and shared globally, so legacy Al-Manara components already render in the new palette; this is expected until the reverse sweep deletes them."
   ]
 }
