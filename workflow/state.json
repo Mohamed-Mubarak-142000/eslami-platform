@@ -2,33 +2,28 @@
   "workflow_version": 1,
   "milestone": "twister-storefront-v1",
   "status": "active",
-  "active_agent": "product-agent",
-  "base_ref": "5819332",
+  "active_agent": "ux-agent",
+  "base_ref": "e99f2d1",
   "active_task_ids": [
-    "TW-PR-01-scope",
-    "TW-PR-02-personas-roles",
-    "TW-PR-03-business-rules",
-    "TW-PR-04-whatsapp-order-message",
-    "TW-PR-05-menu-catalog",
-    "TW-PR-06-offers",
-    "TW-PR-07-business-facts",
-    "TW-PR-08-admin-requirements",
-    "TW-PR-09-analytics-privacy",
-    "TW-PR-10-reviews-policy",
-    "TW-PR-11-traceability"
+    "TW-UX-01-sitemap-nav",
+    "TW-UX-02-flows",
+    "TW-UX-03-wireframes-states",
+    "TW-UX-04-motion-choreography",
+    "TW-UX-05-microcopy",
+    "TW-UX-06-accessibility",
+    "TW-UX-07-component-inventory",
+    "TW-UX-08-traceability"
   ],
   "acceptance_criteria": [
-    "Every P0 screen/flow from the approved brief has traceable, testable acceptance criteria",
-    "Pricing, coupon, free-fries-gift, delivery-zone, and tax rules are fully specified",
-    "The exact Arabic WhatsApp order-message template and wa.me URL/order-ref format are specified",
-    "A single reconciled Egyptian-Arabic menu catalog is produced, every price/asset explicitly labelled owner-confirm",
-    "Admin panel scope is defined as a local-browser sandbox (no real backend), with notifications redefined as an in-app announcement bar",
-    "Missing business facts (logo, photos, address, hours, zones, socials, real reviews) are tracked as open placeholders, not invented as real",
-    "Open decisions and traceability from acceptance criteria to brief phases are recorded"
+    "Sitemap and 6-item Arabic nav resolve every route named in docs/product/scope.md and traceability.md",
+    "Flows cover browse-to-WhatsApp-checkout, offer-to-filtered-menu, and admin login-to-CRUD-to-export",
+    "Every state listed in docs/product/p0-requirements.md (loading/empty/error/offline/closed-hours/popup-blocked/invalid-coupon/below-minimum/zone-not-served) has a wireframed representation",
+    "Motion choreography spec defines hero timeline beats and what is disabled for prefers-reduced-motion and coarse pointers",
+    "Component inventory classifies every UI element as primitive/pattern/feature-local, ready to become design-system-agent's acceptance contract"
   ],
   "stages": [
-    { "order": 1, "agent": "product-agent", "status": "active" },
-    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 1, "agent": "product-agent", "status": "accepted" },
+    { "order": 2, "agent": "ux-agent", "status": "active" },
     { "order": 3, "agent": "design-system-agent", "status": "pending" },
     { "order": 4, "agent": "foundation-agent", "status": "pending" },
     { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
@@ -36,7 +31,18 @@
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ],
-  "change_review": null,
+  "change_review": {
+    "handoff": "workflow/handoffs/product-agent-twister-storefront-v1.md",
+    "decision": "accepted",
+    "evidence": [
+      "all acceptance criteria have documented evidence in the handoff",
+      "changed paths matched product-agent ownership (docs/product/**, docs/*.md, TODO.md)",
+      "boundary guard passed: ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId product-agent -BaseRef bac85a3 (24 files checked)",
+      "no unresolved cross-owner requests"
+    ],
+    "limitation": "All prices and business facts (logo, address, hours, zones, socials, reviews) remain owner-confirm placeholders; real backend and web push explicitly deferred",
+    "scope": "Full requirements/content package for the Twister pivot; unlocks ux-agent"
+  },
   "notes": [
     "Milestone pivots this repo from Al-Manara (Islamic content platform) to Twister Crepes & Pizza (Arabic RTL restaurant ordering site), per user-approved plan.",
     "Rollback point: git tag almanara-final at commit f4f3a69.",
