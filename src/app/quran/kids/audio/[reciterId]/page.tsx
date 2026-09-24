@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ reciterId
     : { title: "قارئ غير موجود — المنارة" };
 }
 
-export default async function QuranKidsReciterPage({ params }: { params: Promise<{ reciterId: string }> }) {
+export default async function QuranKidsAudioReciterPage({ params }: { params: Promise<{ reciterId: string }> }) {
   const { reciterId } = await params;
   const [allReciters, surahs, riwayat] = await Promise.all([getReciters(), getSurahs(), getRiwayat()]);
   const reciter = getKidsReciters(allReciters).find((item) => item.id === Number(reciterId));
@@ -25,7 +25,7 @@ export default async function QuranKidsReciterPage({ params }: { params: Promise
   return (
     <div className="landing-page">
       <SiteHeader isAuthenticated={isAuthenticatedSession(services.session)} />
-      <QuranReciterDetail reciter={reciter} surahs={surahs} riwayat={riwayat} backHref="/quran/kids" backLabel="كل قراء الأطفال" />
+      <QuranReciterDetail reciter={reciter} surahs={surahs} riwayat={riwayat} backHref="/quran/kids/audio" backLabel="كل قراء الأطفال" />
     </div>
   );
 }

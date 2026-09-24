@@ -1,0 +1,75 @@
+.quran-kids-hub .quran-intro { max-inline-size:760px; }
+
+.quran-kids-progress-widget { display:inline-flex; align-items:center; gap:.5rem; margin-block-start:1rem; padding:.55rem 1.1rem; border:1px solid #dce5e1; border-radius:999px; background:#fff; color:var(--landing-green); font-weight:700; font-size:.85rem; text-decoration:none; }
+.quran-kids-progress-widget svg { inline-size:1.05rem; block-size:1.05rem; }
+
+.quran-kids-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; margin-block-start:1.5rem; }
+.quran-kids-card { display:grid; gap:.5rem; padding:1.4rem; border:1px solid #dce5e1; border-radius:1.5rem; background:#fff; color:var(--landing-ink); text-decoration:none; transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease; }
+.quran-kids-card:hover { border-color:var(--landing-green); transform:translateY(-3px); box-shadow:0 14px 28px #176f6218; }
+.quran-kids-card__icon { display:grid; place-items:center; inline-size:3.25rem; block-size:3.25rem; border-radius:50%; background:var(--landing-mint); color:var(--landing-green); }
+.quran-kids-card__icon svg { inline-size:1.6rem; block-size:1.6rem; }
+.quran-kids-card__title { font-weight:800; font-size:1.05rem; }
+.quran-kids-card__description { color:#61736f; font-size:.85rem; line-height:1.6; }
+
+.quran-kids-page-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; margin-block-end:1.5rem; }
+.quran-kids-section-title { margin:2rem 0 1rem; color:var(--landing-green); font-family:var(--ds-font-heading); font-size:1.15rem; }
+
+.quran-kids-surah-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.6rem; }
+.quran-kids-surah-card { display:flex; align-items:center; gap:.6rem; padding:.8rem 1rem; border:1px solid #dce5e1; border-radius:1.1rem; background:#fff; color:var(--landing-ink); text-decoration:none; transition:border-color .15s ease,transform .15s ease; }
+.quran-kids-surah-card:hover { border-color:var(--landing-green); transform:translateY(-2px); }
+.quran-kids-surah-card__progress { flex:1; }
+.quran-kids-surah-card__bar { block-size:.4rem; border-radius:999px; background:var(--landing-mint); overflow:hidden; margin-block-start:.35rem; }
+.quran-kids-surah-card__bar span { display:block; block-size:100%; background:var(--landing-green); border-radius:999px; }
+
+/* Listen & repeat */
+.quran-kids-listen-ayah { display:block; margin-block-end:.85rem; padding:.85rem 1rem; border-radius:1rem; transition:background-color .2s ease; cursor:pointer; }
+.quran-kids-listen-ayah--active { background:var(--landing-mint); }
+.quran-kids-listen-ayah__controls { display:flex; align-items:center; gap:.6rem; margin-block-start:.5rem; }
+.quran-kids-listen-ayah__controls button { display:inline-flex; align-items:center; gap:.35rem; padding:.4rem .85rem; border:1px solid #dce5e1; border-radius:999px; background:#fff; color:var(--landing-green); font-size:.8rem; cursor:pointer; }
+.quran-kids-listen-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin-block-end:1.25rem; }
+
+.quran-kids-checklist { display:grid; gap:.5rem; list-style:none; margin:1.5rem 0 0; padding:0; }
+.quran-kids-checklist__item { display:flex; align-items:center; gap:.75rem; padding:.85rem 1rem; border:1px solid #dce5e1; border-radius:1rem; background:#fff; color:var(--landing-ink); text-align:start; cursor:pointer; font:inherit; width:100%; }
+.quran-kids-checklist__item[data-checked="true"] { border-color:#2f9e44; background:#ebfbee; }
+.quran-kids-checklist__check { display:grid; place-items:center; inline-size:1.4rem; block-size:1.4rem; flex:0 0 auto; border:2px solid #dce5e1; border-radius:50%; color:#2f9e44; }
+.quran-kids-checklist__item[data-checked="true"] .quran-kids-checklist__check { border-color:#2f9e44; background:#fff; }
+.quran-kids-checklist__text { flex:1; font-size:1.15rem; }
+
+/* Badges */
+.quran-kids-badge-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:.85rem; }
+.quran-kids-badge { display:grid; gap:.5rem; padding:1.1rem; border:1px solid #dce5e1; border-radius:1.25rem; background:#fff; text-align:center; opacity:.45; filter:grayscale(1); }
+.quran-kids-badge[data-unlocked="true"] { opacity:1; filter:none; border-color:var(--landing-green); background:var(--landing-mint); }
+.quran-kids-badge__icon { display:grid; place-items:center; inline-size:3rem; block-size:3rem; margin-inline:auto; border-radius:50%; background:#fff; color:var(--landing-green); }
+.quran-kids-badge__label { font-weight:750; font-size:.9rem; }
+.quran-kids-badge__description { color:#61736f; font-size:.75rem; }
+
+/* Match / games */
+.quran-kids-match-tabs { display:flex; gap:.5rem; margin-block-end:1.5rem; }
+.quran-kids-match-tabs a { padding:.55rem 1.1rem; border:1px solid #dce5e1; border-radius:999px; color:var(--landing-ink); font-size:.85rem; font-weight:650; text-decoration:none; }
+.quran-kids-match-tabs a[aria-current] { border-color:var(--landing-green); background:var(--landing-green); color:#fff; }
+
+.quran-kids-tajweed-snippet { max-inline-size:var(--ds-content-reading); margin:0 auto 1.5rem; padding:1.5rem clamp(1rem,4vw,2rem); border:1px solid #dce5e1; border-radius:1.25rem; background:#fff; font-size:1.4rem; text-align:center; }
+.quran-kids-tajweed-target { padding:.05rem .2rem; border-radius:.3rem; border:2px dashed transparent; }
+.quran-kids-tajweed-target[data-selected="true"] { border-color:var(--landing-green); }
+
+.quran-kids-choice-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.6rem; margin-block-start:1rem; }
+.quran-kids-choice { display:flex; align-items:center; justify-content:center; gap:.5rem; padding:.75rem 1rem; border:2px solid #dce5e1; border-radius:1rem; background:#fff; color:var(--landing-ink); font-weight:700; cursor:pointer; font:inherit; }
+.quran-kids-choice[data-state="correct"] { border-color:#2f9e44; background:#ebfbee; color:#2f9e44; }
+.quran-kids-choice[data-state="incorrect"] { border-color:#e03131; background:#fff0f0; color:#e03131; }
+
+.quran-kids-letter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:.6rem; }
+.quran-kids-letter-tile { display:grid; place-items:center; aspect-ratio:1; border:2px solid #dce5e1; border-radius:1rem; background:#fff; font-size:1.8rem; cursor:pointer; }
+.quran-kids-letter-tile[data-selected="true"] { border-color:var(--landing-green); background:var(--landing-mint); }
+.quran-kids-letter-tile[data-matched="true"] { border-color:#2f9e44; background:#ebfbee; opacity:.6; pointer-events:none; }
+
+.quran-kids-celebration { position:fixed; inset:0; display:grid; place-items:center; z-index:200; pointer-events:none; }
+.quran-kids-celebration__card { display:grid; gap:.5rem; justify-items:center; padding:2rem 2.5rem; border-radius:1.5rem; background:#fff; box-shadow:0 24px 60px #06110e30; text-align:center; }
+.quran-kids-celebration__card svg { color:#f5c518; inline-size:3rem; block-size:3rem; }
+
+.quran-kids-score-panel { max-inline-size:26rem; margin:1.5rem auto 0; padding:1.75rem; border-radius:1.5rem; background:#fff; border:1px solid #dce5e1; text-align:center; }
+.quran-kids-score-panel strong { display:block; font-size:2.2rem; color:var(--landing-green); margin-block:.5rem; }
+
+@media(max-width:520px) {
+  .quran-kids-card-grid { grid-template-columns:1fr 1fr; }
+  .quran-kids-surah-grid { grid-template-columns:1fr 1fr; }
+}
