@@ -2,49 +2,56 @@
   "workflow_version": 1,
   "milestone": "twister-storefront-v1",
   "status": "active",
-  "active_agent": "foundation-agent",
-  "base_ref": "0531b59",
+  "active_agent": "feature-ui-agent",
+  "base_ref": "ede0ee7",
   "active_task_ids": [
-    "TW-FD-01-dependencies",
-    "TW-FD-02-next-config-ci",
-    "TW-FD-03-domain-schemas-pure-fns",
-    "TW-FD-04-mocks-seed-data",
-    "TW-FD-05-lib-storage-repositories-format-motion-pwa-analytics",
-    "TW-FD-06-layout-shell-components",
-    "TW-FD-07-fonts-i18n-public-dotfiles"
+    "TW-FI-01-home-hero-sections",
+    "TW-FI-02-menu-catalog",
+    "TW-FI-03-product-detail",
+    "TW-FI-04-cart",
+    "TW-FI-05-checkout-whatsapp",
+    "TW-FI-06-offers",
+    "TW-FI-07-reviews",
+    "TW-FI-08-contact",
+    "TW-FI-09-admin-panel",
+    "TW-FI-10-shared-states"
   ],
   "acceptance_criteria": [
-    "package.json adds zustand, react-hook-form, @hookform/resolvers, prettier, husky, lint-staged, @axe-core/playwright, @lhci/cli without removing anything feature-ui/integration still needs from the old stack",
-    "src/domain/twister/** provides zod schemas and pure functions (priceLine, cartTotals, validateCoupon, freeFriesGift, isOpenNow, buildWhatsAppMessage/buildWhatsAppUrl, orderRef) matching docs/product/business-rules.md and whatsapp-order-message.md exactly, with unit tests",
-    "src/mocks/twister/** seed data matches docs/product/menu-catalog.md/offers.md/business-facts.md, validated by zod in a test",
-    "src/lib/{storage,repositories,format,motion,pwa,analytics} exist per the plan's cross-cutting decisions (localStorage-backed repositories behind interfaces, PII-free analytics event union)",
-    "src/components/layout is rewritten (SiteHeader with 6 nav items + CTA + mobile drawer + cartSlot prop, SiteFooter, BrandLogo, LoadingScreen, AmbientLayer/CursorGlow, ScrollProgress, PageTransition, StickyWhatsAppButton, AdminShell) without importing src/features directly",
-    "Cairo/Alexandria fonts wired via next/font bound to the design-system's --ds-font-ui/--ds-font-heading variables",
-    "install, typecheck, lint, unit tests, and next build all pass with legacy Al-Manara code still present and unmodified",
-    "Governance-gap paths assigned in the pre-milestone patch (src/i18n/**, public/**, root dotfiles) are used appropriately: Arabic-only copy decisions, PWA icons/manifest assets, tooling configs"
+    "US-HOME: hero shows logo/heading/primary CTA (اطلب الآن) clickable immediately on load, not gated behind GSAP completion (animation never blocks LCP); every home section (categories, bestsellers, offers, zones, reviews, FAQ) works with no critical extra JS, animation is progressive enhancement only; prefers-reduced-motion disables curtain/particles/parallax and shows final content directly; a failed product image shows a placeholder, never a broken layout",
+    "US-MENU: sticky category tabs track scroll position (scrollspy) with no layout jump; search normalizes Arabic input (strips tashkeel, unifies alef/taa marbuta forms) and shows a 'no results' state suggesting a nearby category; quick-preview opens in place (no navigation) and allows direct add-to-cart when the product has no mandatory options; a temporarily-unavailable product shows a badge and disables add-to-cart",
+    "US-PRODUCT: displayed price recalculates instantly on every change (size/extras/quantity), fully client-side, before any network call; mandatory options (e.g. pizza size) default to a valid value so add-to-cart is never reachable in an invalid state; changing size after selecting now-incompatible extras auto-clears them and tells the user",
+    "US-CART: total = items - discount + delivery fee (± tax if enabled) with every line itemized (no unexplained final number); the free-fries gift auto-applies per src/domain/twister/gift.ts and auto-removes if the total later drops below threshold; an invalid coupon shows a specific reason (expired/not found/below minimum) without dropping other valid coupons; an empty cart shows a CTA back to the menu, not a broken page; switching delivery zone after adding items recalculates fees without losing cart contents",
+    "US-CHECKOUT: form fields (name, Egyptian-format phone, address, area) validate before the submit button activates; the generated WhatsApp message matches docs/product/whatsapp-order-message.md's template exactly (fields, order, separators) by calling src/domain/twister/whatsapp.ts's buildWhatsAppMessage/buildWhatsAppUrl, not a reimplementation; wa.me opens synchronously inside the click handler (no intervening await) to avoid popup blocking, with a visible fallback link when blocked; very long orders abbreviate/aggregate repeated extra names instead of cutting the message off arbitrarily; a closed-hours state (src/domain/twister/hours.ts isOpenNow) warns before sending but never blocks sending",
+    "US-OFFERS: countdown computes from Africa/Cairo time via src/domain/twister/cairo-time.ts, independent of visitor device timezone, and is hydration-safe (no server/client first-paint mismatch); an offer expiring while the page is open (including offerStatus's weekly-thursday handling) updates to a disabled state automatically with no page refresh",
+    "US-REVIEWS: star ratings, animated counters, and review cards render via the RatingStars/StatCounter/TestimonialCard primitives per docs/ux/component-inventory.md, consistent with docs/product/reviews-policy.md (no fabricated rating presented as a real customer review)",
+    "US-CONTACT: WhatsApp CTA, call CTA, delivery zones, hours, and a contact form are present and functional against src/mocks/twister, matching docs/ux/wireframes.md's contact screen",
+    "US-ADMIN: every admin/** page requires an active local session and redirects an unauthenticated visitor to a login screen; CRUD for all 6 resources (products/offers/zones/coupons/banners/announcements) works fully client-side through src/lib/repositories/twister.ts and reflects immediately in the same-browser customer-facing UI; an 'Export JSON' button downloads a full snapshot of edited data; clearing browser storage falls back to the original seed data without breaking the site; composed admin pages keep AdminShell's single <main> landmark",
+    "US-STATES: loading/empty/error/offline states are covered for every primary path; no persistent element (WhatsApp CTA/cart) hides page content or crosses safe-area-inset boundaries on mobile",
+    "Feature modules consume only the frozen contracts from src/domain/twister, src/mocks/twister, src/lib/repositories, src/components/ui, src/components/patterns, src/components/layout — no edits to shared config/design-system/foundation paths, and no new routes (src/app/** stays integration-agent's)",
+    "typecheck, lint, and unit tests pass for src/features/**; RTL rendering and basic accessibility (axe) checks pass for new feature components; the foundation-agent boundary guard is unaffected (no path outside src/features/** touched)"
   ],
   "stages": [
     { "order": 1, "agent": "product-agent", "status": "accepted" },
     { "order": 2, "agent": "ux-agent", "status": "accepted" },
     { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "active" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "active" },
     { "order": 6, "agent": "integration-agent", "status": "pending" },
     { "order": 7, "agent": "qa-agent", "status": "pending" },
     { "order": 8, "agent": "release-review-agent", "status": "pending" }
   ],
   "change_review": {
-    "handoff": "workflow/handoffs/design-system-agent-twister-storefront-v1.md",
+    "handoff": "workflow/handoffs/foundation-agent-twister-storefront-v1.md",
     "decision": "accepted",
     "evidence": [
-      "all acceptance criteria have documented evidence in the handoff",
-      "changed paths matched design-system-agent ownership (src/styles/**, src/components/ui/**, src/components/patterns/**, stories/design-system/**, docs/design-system/**)",
-      "boundary guard passed: ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId design-system-agent -BaseRef fb7cca6 (17 files checked)",
-      "lint, typecheck, unit tests (45/45), and build-storybook all pass",
-      "no unresolved cross-owner requests"
+      "all acceptance criteria have documented evidence in the handoff (delivered-outputs table + command log)",
+      "changed paths matched foundation-agent ownership: independently re-ran ./.github/scripts/Invoke-AgentBoundaryPS51.ps1 -AgentId foundation-agent -BaseRef d7bc495 (the actual pre-session tip of main) -> pass, 67 files checked",
+      "the same guard against the milestone's original base_ref (0531b59) reports violations, but 100% of flagged paths belong to three unrelated commits (42c3320, 0ac3c1e, d7bc495) that landed on main during this stage; those are pre-existing Quran-kids work the user authorized outside this workflow, recorded in workflow/requests/20260924-user-to-orchestrator-baseera-quran-backlog.md (verified to exist) — not foundation-agent's changes",
+      "lint, typecheck, unit tests (170/170), and next build all pass; legacy Al-Manara routes still build",
+      "no unresolved cross-owner requests blocking this stage"
     ],
-    "limitation": "CartLineItem pattern deferred to feature-ui-agent pending real cart domain types; AdminDataTable mobile card variant not yet built",
-    "scope": "Full design-system package (tokens/primitives/patterns/stories/coverage matrix) for the Twister pivot; unlocks foundation-agent"
+    "limitation": "src/i18n/** deliberately left untouched (milestone is Arabic-only, nothing to add); font variables applied per-component via CSS rather than at the real app root, since src/app/layout.tsx is integration-agent's file — flagged as a non-blocking cross-owner note for integration-agent",
+    "scope": "Dependencies, src/domain/twister, src/mocks/twister, src/lib cross-cutting helpers, src/components/layout rewrite, fonts/i18n/PWA assets for the Twister pivot; unlocks feature-ui-agent"
   },
   "notes": [
     "Milestone pivots this repo from Al-Manara (Islamic content platform) to Twister Crepes & Pizza (Arabic RTL restaurant ordering site), per user-approved plan.",
@@ -52,6 +59,9 @@
     "Pre-milestone governance patch (base_ref commit 5819332) added ownership for src/i18n/**, public/**, root dotfiles, and root docs to close gaps that blocked this milestone; fixed the boundary guard to also catch deletions; removed stale religious-governance/scholar wording from product-agent.md and feature-ui-agent.md.",
     "Retirement of old Al-Manara features/routes/domain happens in a reverse sweep after qa-agent acceptance, before release-review-agent, per the approved plan.",
     "Admin panel ships as a local-browser sandbox (localStorage + Export JSON) for this milestone; web push notifications and a real multi-user backend are explicitly deferred to a future milestone.",
-    "Design tokens are now dark-only and shared globally, so legacy Al-Manara components already render in the new palette; this is expected until the reverse sweep deletes them."
+    "Design tokens are now dark-only and shared globally, so legacy Al-Manara components already render in the new palette; this is expected until the reverse sweep deletes them.",
+    "Three out-of-workflow commits (42c3320, 0ac3c1e, d7bc495) added Quran-kids features on main during the foundation-agent stage; the user authorized this outside the sequential pipeline. Open, unresolved: workflow/requests/20260924-user-to-orchestrator-baseera-quran-backlog.md asks the orchestrator to decide whether to reopen Baseera/Quran as its own milestone or confirm the reverse sweep proceeds as planned (discarding that backlog). Non-blocking for twister-storefront-v1; needs a decision before the reverse-sweep stage.",
+    "SiteHeader/BrandLogo were rewritten in place (not parallel components) for the Twister spec; ~16 legacy quran/landing call sites outside foundation-agent's ownership still compile and render but now visually show the Twister header ahead of the reverse sweep — expected, matching the tokens.css precedent, not a regression.",
+    "twisterFontVariables (src/lib/fonts.ts) is not yet applied at the real app root (src/app/layout.tsx belongs to integration-agent); each new shell component applies it locally for now. integration-agent should apply it at the root <body> once a Twister root layout exists."
   ]
 }
