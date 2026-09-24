@@ -32,7 +32,7 @@ try {
     }
 
     $changed = @(
-        git diff --name-only --diff-filter=ACMR $BaseRef --
+        git diff --name-only --diff-filter=ACMRD $BaseRef --
         git ls-files --others --exclude-standard
     ) | Where-Object { $_ } | Sort-Object -Unique
 

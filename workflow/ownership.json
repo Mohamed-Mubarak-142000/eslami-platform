@@ -5,6 +5,8 @@
   ],
   "product-agent": [
     "docs/product/**",
+    "docs/*.md",
+    "TODO.md",
     "workflow/handoffs/product-agent-*.md"
   ],
   "ux-agent": [
@@ -37,6 +39,14 @@
     "src/domain/**",
     "src/mocks/**",
     "src/components/layout/**",
+    "src/i18n/**",
+    "public/**",
+    ".husky/**",
+    ".prettierrc*",
+    ".prettierignore",
+    ".env.example",
+    "vercel.json",
+    "README.md",
     "workflow/handoffs/foundation-agent-*.md"
   ],
   "feature-ui-agent": [

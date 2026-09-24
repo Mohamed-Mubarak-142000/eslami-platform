@@ -10,8 +10,7 @@ Implement approved P0 feature modules using frozen UX, design-system, and founda
 
 ## Deliverables
 
-- auth/onboarding, feed/content, explore/search, scholars/topics.
-- questions/answers, saved, notifications, verification, moderation feature modules.
+- milestone-scoped feature modules as defined by the active product/UX handoffs.
 - feature-level schemas, hooks, components, and tests colocated where policy permits.
 
 ## Rules
