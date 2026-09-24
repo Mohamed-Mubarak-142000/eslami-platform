@@ -1,69 +1,47 @@
-﻿{
-    "workflow_version":  1,
-    "milestone":  "hero-real-photography-v1",
-    "status":  "complete",
-    "active_agent":  "orchestrator-agent",
-    "base_ref":  "9c38643167e873befbc63f9932f53e44ff3c265a",
-    "active_task_ids":  [
-
-                        ],
-    "acceptance_criteria":  [
-                                "Replace hero illustrations with suitable real photographs",
-                                "Preserve existing user edits and responsive accessible carousel behavior",
-                                "Record image sources and pass lint typecheck and ownership guard"
-                            ],
-    "stages":  [
-                   {
-                       "order":  1,
-                       "agent":  "product-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  2,
-                       "agent":  "ux-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  3,
-                       "agent":  "design-system-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  4,
-                       "agent":  "foundation-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  5,
-                       "agent":  "feature-ui-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  6,
-                       "agent":  "integration-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  7,
-                       "agent":  "qa-agent",
-                       "status":  "accepted"
-                   },
-                   {
-                       "order":  8,
-                       "agent":  "release-review-agent",
-                       "status":  "accepted"
-                   }
-               ],
-    "change_review":  {
-                          "handoff":  "workflow/handoffs/feature-ui-agent-hero-real-photography-v1.md",
-                          "decision":  "accepted",
-                          "evidence":  [
-                                           "lint passed",
-                                           "typecheck passed",
-                                           "ownership guard passed",
-                                           "orchestrator diff review passed; existing edits preserved"
-                                       ],
-                          "limitation":  "No connected browser; responsive visual behavior not verified in browser",
-                          "scope":  "Feature-only photography update; other stages retained from prior accepted milestone"
-                      }
+{
+  "workflow_version": 1,
+  "milestone": "twister-storefront-v1",
+  "status": "active",
+  "active_agent": "product-agent",
+  "base_ref": "5819332",
+  "active_task_ids": [
+    "TW-PR-01-scope",
+    "TW-PR-02-personas-roles",
+    "TW-PR-03-business-rules",
+    "TW-PR-04-whatsapp-order-message",
+    "TW-PR-05-menu-catalog",
+    "TW-PR-06-offers",
+    "TW-PR-07-business-facts",
+    "TW-PR-08-admin-requirements",
+    "TW-PR-09-analytics-privacy",
+    "TW-PR-10-reviews-policy",
+    "TW-PR-11-traceability"
+  ],
+  "acceptance_criteria": [
+    "Every P0 screen/flow from the approved brief has traceable, testable acceptance criteria",
+    "Pricing, coupon, free-fries-gift, delivery-zone, and tax rules are fully specified",
+    "The exact Arabic WhatsApp order-message template and wa.me URL/order-ref format are specified",
+    "A single reconciled Egyptian-Arabic menu catalog is produced, every price/asset explicitly labelled owner-confirm",
+    "Admin panel scope is defined as a local-browser sandbox (no real backend), with notifications redefined as an in-app announcement bar",
+    "Missing business facts (logo, photos, address, hours, zones, socials, real reviews) are tracked as open placeholders, not invented as real",
+    "Open decisions and traceability from acceptance criteria to brief phases are recorded"
+  ],
+  "stages": [
+    { "order": 1, "agent": "product-agent", "status": "active" },
+    { "order": 2, "agent": "ux-agent", "status": "pending" },
+    { "order": 3, "agent": "design-system-agent", "status": "pending" },
+    { "order": 4, "agent": "foundation-agent", "status": "pending" },
+    { "order": 5, "agent": "feature-ui-agent", "status": "pending" },
+    { "order": 6, "agent": "integration-agent", "status": "pending" },
+    { "order": 7, "agent": "qa-agent", "status": "pending" },
+    { "order": 8, "agent": "release-review-agent", "status": "pending" }
+  ],
+  "change_review": null,
+  "notes": [
+    "Milestone pivots this repo from Al-Manara (Islamic content platform) to Twister Crepes & Pizza (Arabic RTL restaurant ordering site), per user-approved plan.",
+    "Rollback point: git tag almanara-final at commit f4f3a69.",
+    "Pre-milestone governance patch (base_ref commit 5819332) added ownership for src/i18n/**, public/**, root dotfiles, and root docs to close gaps that blocked this milestone; fixed the boundary guard to also catch deletions; removed stale religious-governance/scholar wording from product-agent.md and feature-ui-agent.md.",
+    "Retirement of old Al-Manara features/routes/domain happens in a reverse sweep after qa-agent acceptance, before release-review-agent, per the approved plan.",
+    "Admin panel ships as a local-browser sandbox (localStorage + Export JSON) for this milestone; web push notifications and a real multi-user backend are explicitly deferred to a future milestone."
+  ]
 }
