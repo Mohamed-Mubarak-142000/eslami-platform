@@ -28,3 +28,49 @@
 .ds-state__message { color: var(--ds-color-text-muted); }
 @media (max-width: 39.99rem) { .ds-source { border-inline-start-width: 0; border-block-start: .1875rem solid var(--ds-color-accent); } }
 @media (forced-colors: active) { .ds-trust, .ds-source, .ds-opinion { border-color: CanvasText; } }
+
+/* --- Twister storefront patterns ------------------------------------- */
+
+.ds-product-card { display: grid; gap: var(--ds-space-3); }
+.ds-product-card__media { position: relative; aspect-ratio: 4 / 3; border-radius: var(--ds-radius-lg); overflow: hidden; background: var(--ds-color-surface-subtle); }
+.ds-product-card__media img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.ds-product-card__badge { position: absolute; inset-inline-start: var(--ds-space-2); inset-block-start: var(--ds-space-2); }
+.ds-product-card__name { margin: 0; font-family: var(--ds-font-heading); font-size: var(--ds-font-size-lg); }
+.ds-product-card__price { color: var(--ds-color-accent); font-weight: 700; }
+.ds-product-card[data-available="false"] .ds-product-card__media { filter: grayscale(0.6); opacity: 0.6; }
+
+.ds-category-chip { display: inline-flex; flex-direction: column; align-items: center; gap: var(--ds-space-2); min-inline-size: 4.5rem; background: transparent; border: none; cursor: pointer; color: var(--ds-color-text-muted); }
+.ds-category-chip__icon { inline-size: 3.5rem; block-size: 3.5rem; border-radius: 50%; display: grid; place-items: center; background: var(--ds-color-surface-subtle); border: 1px solid var(--ds-color-border); overflow: hidden; }
+.ds-category-chip__icon img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.ds-category-chip[aria-current="true"] .ds-category-chip__icon { border-color: var(--ds-color-accent); box-shadow: var(--ds-glow-accent); }
+.ds-category-chip[aria-current="true"] { color: var(--ds-color-text); }
+
+.ds-offer-banner { position: relative; border-radius: var(--ds-radius-lg); overflow: hidden; padding: var(--ds-space-6); background: linear-gradient(135deg, var(--ds-color-primary-container), var(--ds-color-surface-raised)); border: 1px solid var(--ds-color-border); }
+.ds-offer-banner__title { margin: 0 0 var(--ds-space-2); font-family: var(--ds-font-heading); font-size: var(--ds-font-size-2xl); color: var(--ds-color-text); }
+.ds-offer-banner__description { color: var(--ds-color-text-muted); margin: 0 0 var(--ds-space-4); }
+
+.ds-testimonial-card { display: grid; gap: var(--ds-space-2); }
+.ds-testimonial-card__text { color: var(--ds-color-text-muted); }
+
+.ds-zone-card { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); }
+.ds-zone-card[data-served="false"] { opacity: 0.6; }
+
+.ds-section-heading { text-align: center; margin-block-end: var(--ds-space-6); }
+.ds-section-heading__title { font-family: var(--ds-font-heading); font-size: clamp(1.5rem, 3vw, 2.25rem); color: var(--ds-color-text); margin: 0; }
+.ds-section-heading__subtitle { color: var(--ds-color-text-muted); margin-block-start: var(--ds-space-2); }
+
+.ds-cta-section { text-align: center; padding: var(--ds-space-10) var(--ds-space-4); border-radius: var(--ds-radius-xl); background: radial-gradient(circle at center, var(--ds-color-primary-container), var(--ds-color-canvas)); }
+
+.ds-stat-counter { text-align: center; }
+.ds-stat-counter__value { display: block; font-family: var(--ds-font-heading); font-size: clamp(1.75rem, 4vw, 2.75rem); color: var(--ds-color-accent); font-weight: 700; }
+.ds-stat-counter__label { color: var(--ds-color-text-muted); }
+
+/* Admin */
+.ds-admin-table { inline-size: 100%; border-collapse: separate; border-spacing: 0; }
+.ds-admin-table th, .ds-admin-table td { padding: var(--ds-space-3); border-block-end: 1px solid var(--ds-color-border); text-align: start; }
+.ds-admin-table th { color: var(--ds-color-text-muted); font-weight: 650; background: var(--ds-color-surface-subtle); }
+.ds-admin-form { display: grid; gap: var(--ds-space-4); }
+.ds-admin-stat-tile { padding: var(--ds-space-4); border-radius: var(--ds-radius-lg); background: var(--ds-color-surface-raised); border: 1px solid var(--ds-color-border); }
+.ds-admin-stat-tile__value { font-family: var(--ds-font-heading); font-size: var(--ds-font-size-2xl); color: var(--ds-color-accent); }
+.ds-admin-stat-tile__label { color: var(--ds-color-text-muted); font-size: var(--ds-font-size-sm); }
+.ds-admin-local-notice { background: var(--ds-color-accent-container); color: var(--ds-color-on-accent-container); border-radius: var(--ds-radius-md); padding: var(--ds-space-3) var(--ds-space-4); font-size: var(--ds-font-size-sm); }

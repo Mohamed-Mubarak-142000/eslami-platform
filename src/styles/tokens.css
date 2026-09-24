@@ -1,30 +1,43 @@
 :root {
-  color-scheme: light;
-  --ds-color-canvas: #ffffff;
-  --ds-color-surface: #fffdf8;
-  --ds-color-surface-subtle: #edf3ee;
-  --ds-color-surface-raised: #ffffff;
-  --ds-color-text: #102f2c;
-  --ds-color-text-muted: #5d706c;
-  --ds-color-border: #d5e0da;
-  --ds-color-primary: #176f62;
-  --ds-color-primary-hover: #10594f;
-  --ds-color-primary-container: #dff4ed;
-  --ds-color-on-primary: #ffffff;
-  --ds-color-accent: #9a6b0b;
-  --ds-color-accent-muted: #d8a538;
-  --ds-color-accent-container: #f8edce;
-  --ds-color-on-accent-container: #684606;
-  --ds-color-success: #31a24c;
-  --ds-color-warning: #f7b928;
-  --ds-color-danger: #f02849;
-  --ds-color-info: #176f62;
-  --ds-color-focus: #176f62;
-  --ds-color-overlay: rgb(0 0 0 / 64%);
+  color-scheme: dark;
+  /* Twister Crepes & Pizza — dark-luxury cinematic brand palette (single theme, no light mode). */
+  --ds-color-canvas: #0f0f0f;
+  --ds-color-surface: #171412;
+  --ds-color-surface-subtle: #1f1a17;
+  --ds-color-surface-raised: #221c19;
+  --ds-color-text: #ffffff;
+  --ds-color-text-muted: #b9aea6;
+  --ds-color-border: #322a25;
 
-  --ds-font-ui: "IBM Plex Sans Arabic", "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
-  --ds-font-reading: "Amiri", "Source Serif 4", "Noto Naskh Arabic", serif;
-  --ds-font-heading: "IBM Plex Sans Arabic", "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
+  --ds-color-primary: #d62828;
+  --ds-color-primary-hover: #b71f1f;
+  --ds-color-primary-container: #391414;
+  --ds-color-on-primary: #ffffff;
+
+  --ds-color-accent: #f4b400;
+  --ds-color-accent-hover: #ffc72c;
+  --ds-color-accent-muted: #c99a2e;
+  --ds-color-accent-container: #3a2e0c;
+  --ds-color-on-accent-container: #f4c945;
+  /* Solid gold surfaces (buttons/badges) need a dark foreground — white on gold fails contrast. */
+  --ds-color-on-accent-solid: #1a1400;
+
+  --ds-color-whatsapp: #25d366;
+  --ds-color-on-whatsapp: #062f16;
+
+  --ds-color-success: #3dab5c;
+  --ds-color-warning: #e8a33d;
+  --ds-color-danger: #ff5252;
+  --ds-color-info: #4ea1d6;
+  --ds-color-focus: #f4b400;
+  --ds-color-overlay: rgb(0 0 0 / 72%);
+
+  --ds-glow-primary: 0 0 32px rgb(214 40 40 / 45%);
+  --ds-glow-accent: 0 0 32px rgb(244 180 0 / 40%);
+
+  --ds-font-ui: "Cairo", "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
+  --ds-font-reading: "Cairo", "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
+  --ds-font-heading: "Alexandria", "Cairo", "Segoe UI", system-ui, sans-serif;
   --ds-font-size-xs: 0.75rem;
   --ds-font-size-sm: 0.875rem;
   --ds-font-size-md: 1rem;
@@ -48,11 +61,11 @@
   --ds-space-16: 4rem;
   --ds-radius-sm: 0.375rem;
   --ds-radius-md: 0.5rem;
-  --ds-radius-lg: 0.5rem;
-  --ds-radius-xl: 0.75rem;
+  --ds-radius-lg: 0.75rem;
+  --ds-radius-xl: 1rem;
   --ds-radius-pill: 999px;
-  --ds-shadow-raised: 0 1px 2px rgb(0 0 0 / 12%), 0 1px 3px rgb(0 0 0 / 8%);
-  --ds-shadow-overlay: 0 12px 28px rgb(0 0 0 / 22%);
+  --ds-shadow-raised: 0 1px 2px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 32%);
+  --ds-shadow-overlay: 0 16px 36px rgb(0 0 0 / 56%);
   --ds-duration-fast: 120ms;
   --ds-duration-normal: 180ms;
   --ds-duration-slow: 220ms;
@@ -60,7 +73,7 @@
   --ds-content-reading: 45rem;
   --ds-content-app: 80rem;
   --ds-touch-target: 2.75rem;
-  --ds-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-color-focus) 32%, transparent);
+  --ds-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ds-color-focus) 40%, transparent);
 
   /* shadcn-compatible semantic aliases; values remain owned by DS tokens. */
   --background: var(--ds-color-canvas);
@@ -72,7 +85,7 @@
   --primary: var(--ds-color-primary);
   --primary-foreground: var(--ds-color-on-primary);
   --secondary: var(--ds-color-surface-subtle);
-  --secondary-foreground: var(--ds-color-primary);
+  --secondary-foreground: var(--ds-color-text);
   --muted: var(--ds-color-surface-subtle);
   --muted-foreground: var(--ds-color-text-muted);
   --accent: var(--ds-color-accent-container);
@@ -82,33 +95,6 @@
   --input: var(--ds-color-border);
   --ring: var(--ds-color-focus);
   --radius: var(--ds-radius-md);
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-  --ds-color-canvas: #08110f;
-  --ds-color-surface: #0f1d1a;
-  --ds-color-surface-subtle: #19302a;
-  --ds-color-surface-raised: #12231f;
-  --ds-color-text: #f4f0e7;
-  --ds-color-text-muted: #b8c8c3;
-  --ds-color-border: #29443d;
-  --ds-color-primary: #73cbb2;
-  --ds-color-primary-hover: #91dcc7;
-  --ds-color-primary-container: #153d34;
-  --ds-color-on-primary: #06231d;
-  --ds-color-accent: #e1b952;
-  --ds-color-accent-muted: #c99b36;
-  --ds-color-accent-container: #463817;
-  --ds-color-on-accent-container: #f5d77d;
-  --ds-color-success: #45bd62;
-  --ds-color-warning: #f7b928;
-  --ds-color-danger: #f3425f;
-  --ds-color-info: #73cbb2;
-  --ds-color-focus: #e1b952;
-  --ds-color-overlay: rgb(0 0 0 / 72%);
-  --ds-shadow-raised: 0 1px 2px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 32%);
-  --ds-shadow-overlay: 0 16px 36px rgb(0 0 0 / 48%);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -12,3 +12,17 @@ button, input, textarea, select { font: inherit; }
 @media (min-width: 40rem) { .ds-container { inline-size: min(100% - 3rem, var(--ds-content-app)); } }
 @media (min-width: 64rem) { .ds-container { inline-size: min(100% - 4rem, var(--ds-content-app)); } }
 @media (forced-colors: active) { :focus-visible { outline: 3px solid CanvasText; } }
+
+/* Cinematic accents (hero/offers/badges). Decorative only; never gate content readiness. */
+.ds-glow-primary { box-shadow: var(--ds-glow-primary); }
+.ds-glow-accent { box-shadow: var(--ds-glow-accent); }
+.ds-sparkle { position: relative; }
+.ds-sparkle::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--ds-color-accent) 55%, transparent) 0, transparent 42%);
+  opacity: 0; animation: ds-sparkle-pulse 2.4s ease-in-out infinite;
+}
+@keyframes ds-sparkle-pulse { 0%, 100% { opacity: 0; } 50% { opacity: 0.5; } }
+@media (prefers-reduced-motion: reduce) {
+  .ds-sparkle::after { animation: none; opacity: 0; }
+}
