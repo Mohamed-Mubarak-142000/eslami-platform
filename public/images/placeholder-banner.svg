@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="صورة توضيحية — لسه مفيش صورة حقيقية">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#171412"/>
+      <stop offset="100%" stop-color="#0f0f0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="600" cy="300" r="170" fill="none" stroke="#d62828" stroke-width="10" opacity="0.55"/>
+  <circle cx="600" cy="300" r="120" fill="none" stroke="#f4b400" stroke-width="6" opacity="0.7"/>
+  <text x="600" y="470" text-anchor="middle" font-family="Cairo, sans-serif" font-size="34" fill="#b9aea6">صورة توضيحية — لسه مش نهائية</text>
+  <text x="600" y="300" text-anchor="middle" dominant-baseline="middle" font-family="Alexandria, sans-serif" font-size="46" font-weight="700" fill="#ffffff">Twister</text>
+</svg>

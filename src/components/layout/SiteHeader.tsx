@@ -2,20 +2,46 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { BookOpenCheck, Home, Menu, Radio, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "./BrandLogo";
-import "@/features/landing/landing.css";
+import { twisterFontVariables } from "@/lib/fonts";
+import { cn } from "@/lib/cn";
+import "./twister-shell.css";
 
-const navItems = [
-  { href: "/", label: "الرئيسية", icon: Home },
-  { href: "/#radio", label: "إذاعة القرآن", icon: Radio },
-  { href: "/quran", label: "القرآن الكريم", icon: BookOpenCheck },
+export interface SiteHeaderNavItem {
+  href: string;
+  label: string;
+}
+
+/** CPY-NAV (docs/ux/states-and-microcopy.md): the 6 primary nav destinations, in order. */
+export const defaultSiteHeaderNavItems: readonly SiteHeaderNavItem[] = [
+  { href: "/", label: "الرئيسية" },
+  { href: "/menu", label: "المنيو" },
+  { href: "/offers", label: "العروض" },
+  { href: "/#zones", label: "المناطق" },
+  { href: "/reviews", label: "تقييمات" },
+  { href: "/contact", label: "اتصل بنا" },
 ];
 
-export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+export interface SiteHeaderProps {
+  navItems?: readonly SiteHeaderNavItem[];
+  /** CPY-CTA-ORDER. */
+  ctaLabel?: string;
+  ctaHref?: string;
+  /** Feature-owned cart trigger/badge — this shell never imports cart logic itself. */
+  cartSlot?: ReactNode;
+  /** @deprecated legacy Al-Manara prop kept only so existing quran/landing call sites still typecheck. */
+  isAuthenticated?: boolean;
+}
+
+/**
+ * Twister storefront header (LAY-A): brand + 6 nav links + "اطلب الآن" CTA + cart slot, collapsing
+ * to a hamburger + full-height RTL drawer under 1024px (docs/ux/information-architecture.md).
+ * Feature-agnostic: no `src/features/**` import, driven entirely by props/slots.
+ */
+export function SiteHeader({ navItems = defaultSiteHeaderNavItems, ctaLabel = "اطلب الآن", ctaHref = "/menu", cartSlot }: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const primaryHref = (isAuthenticated ? "/quran" : "/register") as Route;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -32,25 +58,58 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
   }, [menuOpen]);
 
   return (
-    <header className="landing-header">
-      <Link className="landing-brand" href="/" aria-label="المنارة — الرئيسية">
-        <BrandLogo priority />
+    <header className={cn("tw-header", twisterFontVariables)}>
+      <Link className="tw-header__brand" href="/" aria-label="توستر كريبس آند بيتزا — الرئيسية">
+        <BrandLogo />
       </Link>
-      <button className="landing-menu" type="button" aria-expanded={menuOpen} aria-controls="site-nav" onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? <X aria-hidden /> : <Menu aria-hidden />} <span className="sr-only">{menuOpen ? "إغلاق القائمة" : "فتح القائمة"}</span>
-      </button>
-      <nav id="site-nav" className="landing-nav" data-open={menuOpen || undefined} aria-label="التنقل العام">
-        {navItems.map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href as Route} onClick={() => setMenuOpen(false)}><Icon aria-hidden /> {label}</Link>
+
+      <nav className="tw-header__nav" aria-label="التنقل الأساسي">
+        {navItems.map((item) => (
+          <Link key={item.href} href={item.href as Route} className="tw-header__nav-link">
+            {item.label}
+          </Link>
         ))}
-        <div className="landing-nav__actions">
-          {!isAuthenticated && <Link className="landing-button landing-button--ghost" href="/login" onClick={() => setMenuOpen(false)}>تسجيل الدخول</Link>}
-          <Link className="landing-button" href={primaryHref} onClick={() => setMenuOpen(false)}>{isAuthenticated ? "استمع للقرآن" : "أنشئ حسابًا"}</Link>
-        </div>
       </nav>
-      <div className="landing-header__actions">
-        {!isAuthenticated && <Link className="landing-button landing-button--ghost" href="/login">تسجيل الدخول</Link>}
-        <Link className="landing-button" href={primaryHref}>{isAuthenticated ? "استمع للقرآن" : "أنشئ حسابًا"}</Link>
+
+      <div className="tw-header__actions">
+        {cartSlot}
+        <Link href={ctaHref as Route} className="tw-header__cta">
+          {ctaLabel}
+        </Link>
+        <button
+          type="button"
+          className="tw-header__menu-button"
+          aria-expanded={menuOpen}
+          aria-controls="tw-mobile-nav"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <X aria-hidden /> : <Menu aria-hidden />}
+          <span className="ds-visually-hidden">{menuOpen ? "إغلاق القائمة" : "فتح القائمة"}</span>
+        </button>
+      </div>
+
+      {menuOpen && (
+        <button type="button" className="tw-header__scrim" aria-hidden="true" tabIndex={-1} onClick={() => setMenuOpen(false)} />
+      )}
+      <div
+        id="tw-mobile-nav"
+        className="tw-header__drawer"
+        data-open={menuOpen || undefined}
+        role="dialog"
+        aria-modal="true"
+        aria-label="قائمة التنقل"
+      >
+        <nav aria-label="التنقل — نسخة الموبايل">
+          {navItems.map((item) => (
+            <Link key={item.href} href={item.href as Route} className="tw-header__drawer-link" onClick={() => setMenuOpen(false)}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        {cartSlot}
+        <Link href={ctaHref as Route} className="tw-header__cta tw-header__cta--drawer" onClick={() => setMenuOpen(false)}>
+          {ctaLabel}
+        </Link>
       </div>
     </header>
   );

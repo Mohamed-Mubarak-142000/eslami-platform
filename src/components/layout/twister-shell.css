@@ -1,0 +1,464 @@
+/*
+ * Twister storefront shell styles. Imports the design-system's token/foundation layer so the
+ * real app (not just Storybook) gets `--ds-*` variables wherever a layout component is used,
+ * then binds `--ds-font-ui`/`--ds-font-heading` to the fonts loaded via `src/lib/fonts.ts`.
+ */
+@import "../../styles/tokens.css";
+@import "../../styles/foundations.css";
+
+:root {
+  --ds-font-ui: var(--font-cairo), "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
+  --ds-font-reading: var(--font-cairo), "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
+  --ds-font-heading: var(--font-alexandria), var(--font-cairo), "Segoe UI", system-ui, sans-serif;
+}
+
+/* ---------- SiteHeader ---------- */
+.tw-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-4);
+  min-block-size: 4.25rem;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+  background: color-mix(in srgb, var(--ds-color-canvas) 88%, transparent);
+  border-block-end: 1px solid var(--ds-color-border);
+  backdrop-filter: blur(14px);
+  font-family: var(--ds-font-ui);
+}
+.tw-header__brand {
+  display: inline-flex;
+  text-decoration: none;
+}
+.tw-header__nav {
+  display: none;
+  align-items: center;
+  gap: var(--ds-space-5);
+  margin-inline-start: var(--ds-space-4);
+}
+.tw-header__nav-link {
+  color: var(--ds-color-text-muted);
+  font-weight: 650;
+  text-decoration: none;
+  min-block-size: var(--ds-touch-target);
+  display: inline-flex;
+  align-items: center;
+  transition: color var(--ds-duration-normal) var(--ds-ease-standard);
+}
+.tw-header__nav-link:hover,
+.tw-header__nav-link:focus-visible {
+  color: var(--ds-color-accent);
+}
+.tw-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-inline-start: auto;
+}
+.tw-header__cta {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--ds-touch-target);
+  padding-inline: var(--ds-space-5);
+  border-radius: var(--ds-radius-pill);
+  text-decoration: none;
+  background: var(--ds-color-primary);
+  color: var(--ds-color-on-primary);
+  font-weight: 700;
+  box-shadow: var(--ds-glow-primary);
+  transition: background-color var(--ds-duration-normal) var(--ds-ease-standard);
+}
+.tw-header__cta:hover,
+.tw-header__cta:focus-visible {
+  background: var(--ds-color-primary-hover);
+}
+.tw-header__menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--ds-touch-target);
+  block-size: var(--ds-touch-target);
+  border-radius: var(--ds-radius-md);
+  border: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface-raised);
+  color: var(--ds-color-text);
+  cursor: pointer;
+}
+.tw-header__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: var(--ds-color-overlay);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.tw-header__drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 50;
+  inline-size: min(86vw, 22rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-6);
+  padding: calc(var(--ds-space-6) + env(safe-area-inset-top, 0px)) var(--ds-space-5)
+    calc(var(--ds-space-6) + env(safe-area-inset-bottom, 0px));
+  background: var(--ds-color-surface);
+  border-inline-start: 1px solid var(--ds-color-border);
+  transform: translateX(100%);
+  transition: transform var(--ds-duration-slow) var(--ds-ease-standard);
+}
+:root[dir="rtl"] .tw-header__drawer,
+[dir="rtl"] .tw-header__drawer {
+  transform: translateX(-100%);
+}
+.tw-header__drawer[data-open] {
+  transform: translateX(0);
+}
+.tw-header__drawer nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+.tw-header__drawer-link {
+  min-block-size: var(--ds-touch-target);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--ds-space-3);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text);
+  text-decoration: none;
+  font-weight: 650;
+}
+.tw-header__drawer-link:hover,
+.tw-header__drawer-link:focus-visible {
+  background: var(--ds-color-accent-container);
+  color: var(--ds-color-on-accent-container);
+}
+.tw-header__cta--drawer {
+  display: inline-flex;
+  margin-block-start: auto;
+}
+@media (min-width: 64rem) {
+  .tw-header__nav {
+    display: flex;
+  }
+  .tw-header__cta {
+    display: inline-flex;
+  }
+  .tw-header__menu-button,
+  .tw-header__drawer,
+  .tw-header__scrim {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tw-header__drawer {
+    transition: none;
+  }
+}
+
+/* ---------- SiteFooter ---------- */
+.tw-footer {
+  font-family: var(--ds-font-ui);
+  background: var(--ds-color-surface);
+  border-block-start: 1px solid var(--ds-color-border);
+}
+.tw-footer__grid {
+  display: grid;
+  gap: var(--ds-space-8);
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 3vw, 2rem);
+  inline-size: min(100%, var(--ds-content-app));
+  margin-inline: auto;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+.tw-footer__heading {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-color-text);
+  font-size: var(--ds-font-size-sm);
+  font-weight: 700;
+}
+.tw-footer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--ds-space-2);
+}
+.tw-footer__list a,
+.tw-footer__list address {
+  color: var(--ds-color-text-muted);
+  text-decoration: none;
+  font-style: normal;
+}
+.tw-footer__list a:hover,
+.tw-footer__list a:focus-visible {
+  color: var(--ds-color-accent);
+}
+.tw-footer__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-block-size: var(--ds-touch-target);
+  padding-inline: var(--ds-space-4);
+  border-radius: var(--ds-radius-pill);
+  text-decoration: none;
+  background: var(--ds-color-whatsapp);
+  color: var(--ds-color-on-whatsapp);
+  font-weight: 700;
+  width: fit-content;
+}
+.tw-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ds-space-4) clamp(1rem, 3vw, 2rem);
+  border-block-start: 1px solid var(--ds-color-border);
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-size-xs);
+}
+.tw-footer__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem var(--ds-space-2);
+  border-radius: var(--ds-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--ds-color-accent) 32%, var(--ds-color-border));
+  color: var(--ds-color-accent);
+}
+
+/* ---------- LoadingScreen ---------- */
+.tw-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--ds-color-canvas);
+}
+.tw-loading-screen__stage {
+  display: grid;
+  justify-items: center;
+  gap: var(--ds-space-4);
+}
+.tw-loading-screen__pizza {
+  inline-size: 4rem;
+  block-size: 4rem;
+  border-radius: 50%;
+  background: conic-gradient(from 90deg, var(--ds-color-accent), var(--ds-color-primary), var(--ds-color-accent));
+  animation: tw-spin 1.1s linear infinite;
+}
+.tw-loading-screen__label {
+  margin: 0;
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-ui);
+  font-size: var(--ds-font-size-sm);
+}
+@keyframes tw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tw-loading-screen {
+    display: none;
+  }
+  .tw-loading-screen__pizza {
+    animation: none;
+  }
+}
+@media (forced-colors: active) {
+  .tw-loading-screen {
+    background: Canvas;
+  }
+  .tw-loading-screen__label {
+    color: CanvasText;
+  }
+}
+
+/* ---------- AmbientLayer / CursorGlow ---------- */
+.tw-ambient-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.tw-ambient-layer__particle {
+  position: absolute;
+  inline-size: 0.4rem;
+  block-size: 0.4rem;
+  border-radius: 50%;
+  background: var(--ds-color-accent);
+  opacity: 0.55;
+  filter: blur(0.5px);
+  animation: tw-float 9s ease-in-out infinite;
+}
+@keyframes tw-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.5rem);
+  }
+}
+.tw-cursor-glow {
+  position: fixed;
+  z-index: 1;
+  inline-size: 22rem;
+  block-size: 22rem;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ds-color-accent) 18%, transparent), transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: opacity var(--ds-duration-normal) var(--ds-ease-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tw-ambient-layer__particle {
+    animation: none;
+  }
+}
+
+/* ---------- ScrollProgress ---------- */
+.tw-scroll-progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 60;
+  block-size: 0.2rem;
+  background: var(--ds-color-border);
+  transform-origin: right;
+}
+:root[dir="ltr"] .tw-scroll-progress,
+[dir="ltr"] .tw-scroll-progress {
+  transform-origin: left;
+}
+.tw-scroll-progress__bar {
+  block-size: 100%;
+  background: linear-gradient(90deg, var(--ds-color-primary), var(--ds-color-accent));
+  transform-origin: inherit;
+}
+
+/* ---------- PageTransition ---------- */
+.tw-page-transition {
+  min-block-size: 60vh;
+}
+
+/* ---------- StickyWhatsAppButton ---------- */
+.tw-sticky-whatsapp {
+  position: fixed;
+  inset-inline-end: var(--ds-space-4);
+  inset-block-end: calc(var(--ds-space-4) + env(safe-area-inset-bottom, 0px));
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  border-radius: 50%;
+  background: var(--ds-color-whatsapp);
+  color: var(--ds-color-on-whatsapp);
+  box-shadow: var(--ds-shadow-overlay);
+  text-decoration: none;
+}
+.tw-sticky-whatsapp:focus-visible {
+  outline: var(--ds-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- AdminShell ---------- */
+.tw-admin-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-block-size: 100dvh;
+  background: var(--ds-color-canvas);
+  font-family: var(--ds-font-ui);
+}
+.tw-admin-shell__notice {
+  grid-column: 1 / -1;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  text-align: center;
+  background: var(--ds-color-accent-container);
+  color: var(--ds-color-on-accent-container);
+  font-size: var(--ds-font-size-sm);
+  font-weight: 650;
+}
+.tw-admin-shell__topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-block-end: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface);
+}
+.tw-admin-shell__body {
+  display: flex;
+  min-block-size: 0;
+}
+.tw-admin-shell__nav {
+  display: none;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-4);
+  inline-size: 15rem;
+  flex: 0 0 auto;
+  border-inline-end: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface);
+}
+.tw-admin-shell__nav a {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--ds-touch-target);
+  padding-inline: var(--ds-space-3);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+.tw-admin-shell__nav a:hover,
+.tw-admin-shell__nav a:focus-visible,
+.tw-admin-shell__nav a[aria-current="page"] {
+  background: var(--ds-color-accent-container);
+  color: var(--ds-color-on-accent-container);
+}
+.tw-admin-shell__main {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+.tw-admin-shell__bottom-tabs {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  padding-block: var(--ds-space-2);
+  padding-block-end: calc(var(--ds-space-2) + env(safe-area-inset-bottom, 0px));
+  background: var(--ds-color-surface);
+  border-block-start: 1px solid var(--ds-color-border);
+}
+.tw-admin-shell__bottom-tabs a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--ds-color-text-muted);
+  text-decoration: none;
+  font-size: var(--ds-font-size-xs);
+}
+.tw-admin-shell__bottom-tabs a[aria-current="page"] {
+  color: var(--ds-color-accent);
+}
+@media (min-width: 64rem) {
+  .tw-admin-shell__nav {
+    display: flex;
+  }
+  .tw-admin-shell__bottom-tabs {
+    display: none;
+  }
+}

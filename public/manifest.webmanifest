@@ -1,0 +1,16 @@
+{
+  "name": "Twister Crepes & Pizza",
+  "short_name": "Twister",
+  "description": "اطلب بيتزا وكريب وبرجر من توستر واستلم طلبك عبر واتساب.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

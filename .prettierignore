@@ -1,0 +1,14 @@
+node_modules
+.next
+storybook-static
+coverage
+test-results
+playwright-report
+reports
+tsconfig.tsbuildinfo
+next-env.d.ts
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+public
+.github/git-excludes
