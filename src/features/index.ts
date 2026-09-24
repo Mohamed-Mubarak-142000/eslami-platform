@@ -4,5 +4,6 @@ export * from "./explore/ExploreFeatures";
 export * from "./landing/LandingPage";
 export * from "./quran";
 export * from "./quran-kids";
+export * from "./quran-extras";
 export * from "./radio";
 export * from "./shared/FeatureState";

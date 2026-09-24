@@ -1,6 +1,7 @@
 export * from "./api";
 export * from "./textApi";
 export * from "./tajweedApi";
+export * from "./lastReadStorage";
 export * from "./QuranReciters";
 export * from "./QuranReciterDetail";
 export * from "./QuranSubnav";

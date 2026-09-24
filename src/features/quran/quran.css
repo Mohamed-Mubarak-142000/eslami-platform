@@ -63,6 +63,9 @@
 .quran-player__progress output { min-inline-size:2.6rem; text-align:center; }
 .quran-player__status { grid-column:1/-1; min-block-size:1.2em; margin:.4rem 0 0!important; color:#ffcf9b!important; font-size:.78rem; max-inline-size:1240px; margin-inline:auto!important; }
 
+.quran-resume-banner { display:inline-flex; align-items:center; gap:.55rem; margin-block-end:1.25rem; padding:.7rem 1.1rem; border:1px solid var(--landing-green); border-radius:999px; background:var(--landing-mint); color:var(--landing-green); font-weight:700; font-size:.88rem; text-decoration:none; }
+.quran-resume-banner svg { inline-size:1.1rem; block-size:1.1rem; }
+
 .quran-read-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.6rem; }
 .quran-read-card { display:flex; align-items:center; gap:.65rem; padding:.85rem 1rem; border:1px solid #dce5e1; border-radius:1rem; background:#fff; color:var(--landing-ink); text-decoration:none; transition:border-color .15s ease,transform .15s ease; }
 .quran-read-card:hover { border-color:var(--landing-green); transform:translateY(-2px); }

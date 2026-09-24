@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Amiri_Quran } from "next/font/google";
 import { ArrowLeft, ArrowRight, BookOpenCheck } from "lucide-react";
 import type { Ayah, TafsirAyah } from "./textApi";
 import type { TajweedAyah } from "./tajweedApi";
 import { TAJWEED_RULES } from "./tajweedApi";
 import type { Surah } from "./api";
+import { saveLastRead } from "./lastReadStorage";
 import "./quran.css";
 
 const amiriQuran = Amiri_Quran({ subsets: ["arabic"], weight: "400", display: "swap" });
@@ -41,6 +42,10 @@ export function QuranReadSurah({
   const [showTafsir, setShowTafsir] = useState(false);
   const prevId = surah.id > 1 ? surah.id - 1 : null;
   const nextId = surah.id < 114 ? surah.id + 1 : null;
+
+  useEffect(() => {
+    if (ayahs.length > 0) saveLastRead(surah.id, surah.name);
+  }, [surah.id, surah.name, ayahs.length]);
 
   return (
     <main id="quran-main" className="quran-page">

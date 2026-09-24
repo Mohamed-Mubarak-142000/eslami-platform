@@ -4,11 +4,13 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import type { Ayah, Surah } from "@/features/quran";
 import { useKidsProgress } from "./KidsProgressProvider";
+import { CompletionCertificate } from "./CompletionCertificate";
 import "../quran-kids.css";
 
 export function SurahMemorizationChecklist({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] }) {
   const { state, setAyahMemorized } = useKidsProgress();
   const memorized = new Set(state.memorizedAyahsBySurah[surah.id] ?? []);
+  const isComplete = ayahs.length > 0 && memorized.size >= ayahs.length;
 
   return (
     <main id="quran-main" className="quran-page">
@@ -45,6 +47,8 @@ export function SurahMemorizationChecklist({ surah, ayahs }: { surah: Surah; aya
           );
         })}
       </ul>
+
+      {isComplete && <CompletionCertificate surahName={surah.name} />}
     </main>
   );
 }

@@ -1,7 +1,51 @@
 .quran-kids-hub .quran-intro { max-inline-size:760px; }
 
-.quran-kids-progress-widget { display:inline-flex; align-items:center; gap:.5rem; margin-block-start:1rem; padding:.55rem 1.1rem; border:1px solid #dce5e1; border-radius:999px; background:#fff; color:var(--landing-green); font-weight:700; font-size:.85rem; text-decoration:none; }
+.quran-kids-progress-widget-row { display:flex; flex-wrap:wrap; gap:.6rem; margin-block-start:1rem; }
+.quran-kids-progress-widget { display:inline-flex; align-items:center; gap:.5rem; padding:.55rem 1.1rem; border:1px solid #dce5e1; border-radius:999px; background:#fff; color:var(--landing-green); font-weight:700; font-size:.85rem; text-decoration:none; }
 .quran-kids-progress-widget svg { inline-size:1.05rem; block-size:1.05rem; }
+.quran-kids-progress-widget--streak { border-color:#f5a524; color:#c9750b; }
+
+/* Parent gate & dashboard */
+.quran-parent-gate { max-inline-size:26rem; margin:2rem auto 0; padding:2rem; border:1px solid #dce5e1; border-radius:1.5rem; background:#fff; text-align:center; display:grid; gap:.85rem; justify-items:center; }
+.quran-parent-gate__icon { display:grid; place-items:center; inline-size:3.25rem; block-size:3.25rem; border-radius:50%; background:var(--landing-mint); color:var(--landing-green); }
+.quran-parent-gate__form { display:grid; gap:.65rem; inline-size:100%; margin-block-start:.5rem; }
+.quran-parent-gate__form input { padding:.7rem 1rem; border:1px solid #dce5e1; border-radius:999px; font:inherit; text-align:center; letter-spacing:.3em; }
+.quran-parent-gate__submit { padding:.7rem 1.4rem; border:0; border-radius:999px; background:var(--landing-green); color:#fff; font-weight:700; cursor:pointer; }
+.quran-parent-gate__forgot { border:0; background:none; color:#61736f; font-size:.8rem; text-decoration:underline; cursor:pointer; }
+
+.quran-parent-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.85rem; margin-block-end:1.5rem; }
+.quran-parent-stat { display:grid; justify-items:center; gap:.3rem; padding:1.1rem; border:1px solid #dce5e1; border-radius:1.25rem; background:#fff; text-align:center; }
+.quran-parent-stat strong { font-size:1.6rem; color:var(--landing-green); }
+.quran-parent-stat span { color:#61736f; font-size:.78rem; }
+.quran-parent-stat__badge-icon { font-size:1.4rem; }
+
+.quran-parent-review-list { display:grid; gap:.5rem; list-style:none; margin:0 0 1.5rem; padding:0; }
+.quran-parent-review-list li { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 1rem; border:1px solid #dce5e1; border-radius:1rem; background:#fff; }
+.quran-parent-review-list button { padding:.4rem .9rem; border:0; border-radius:999px; background:var(--landing-green); color:#fff; font-size:.8rem; font-weight:700; cursor:pointer; }
+
+/* Completion certificate */
+.quran-certificate-panel { margin-block-start:2rem; padding:1.5rem; border:1px solid #dce5e1; border-radius:1.5rem; background:#fff; display:grid; gap:1rem; justify-items:center; text-align:center; }
+.quran-certificate-panel__name-field { display:grid; gap:.35rem; inline-size:100%; max-inline-size:22rem; font-size:.8rem; color:#61736f; }
+.quran-certificate-panel__name-field input { padding:.6rem .9rem; border:1px solid #dce5e1; border-radius:.75rem; font:inherit; }
+.quran-certificate-panel__print { display:inline-flex; align-items:center; gap:.4rem; padding:.6rem 1.3rem; border:0; border-radius:999px; background:var(--landing-green); color:#fff; font-weight:700; cursor:pointer; }
+.quran-certificate { inline-size:100%; max-inline-size:28rem; padding:2rem; border:3px double var(--landing-green); border-radius:1rem; background:linear-gradient(160deg,#fbfdfc,var(--landing-mint)); }
+.quran-certificate__icon { color:#f5c518; }
+.quran-certificate__kicker { color:#61736f; font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; }
+.quran-certificate__title { margin:.35rem 0; font-family:var(--ds-font-heading); color:var(--landing-green); }
+.quran-certificate__name,.quran-certificate__date { margin:.2rem 0; color:var(--landing-ink); }
+
+@media print {
+  body * { visibility:hidden; }
+  .quran-certificate, .quran-certificate * { visibility:visible; }
+  .quran-certificate { position:fixed; inset:0; margin:2rem auto; border-width:4px; }
+}
+
+/* Recite & compare */
+.quran-recite-recorder { margin-block-start:1.5rem; padding:1.1rem; border:1px dashed #dce5e1; border-radius:1.25rem; display:grid; gap:.65rem; justify-items:start; }
+.quran-recite-recorder__label { color:#61736f; font-size:.85rem; }
+.quran-recite-recorder button { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem 1.1rem; border:1px solid #dce5e1; border-radius:999px; background:#fff; color:var(--landing-green); font-size:.82rem; cursor:pointer; }
+.quran-recite-recorder__stop { border-color:#e03131!important; color:#e03131!important; }
+.quran-recite-recorder__playback { display:grid; gap:.6rem; }
 
 .quran-kids-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; margin-block-start:1.5rem; }
 .quran-kids-card { display:grid; gap:.5rem; padding:1.4rem; border:1px solid #dce5e1; border-radius:1.5rem; background:#fff; color:var(--landing-ink); text-decoration:none; transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease; }

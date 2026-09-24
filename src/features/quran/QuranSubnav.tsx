@@ -5,6 +5,7 @@ const TABS = [
   { key: "listen", href: "/quran", label: "الاستماع" },
   { key: "kids", href: "/quran/kids", label: "تعليم الأطفال" },
   { key: "read", href: "/quran/read", label: "قراءة القرآن" },
+  { key: "more", href: "/quran/more", label: "المزيد" },
 ] as const;
 
 export function QuranSubnav({ active }: { active: (typeof TABS)[number]["key"] }) {

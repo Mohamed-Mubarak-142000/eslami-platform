@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Award, Headphones, PenLine, Puzzle, Sparkles } from "lucide-react";
+import { Award, Headphones, PenLine, Puzzle, ShieldCheck, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSocialMotionPreset } from "@/lib/motion";
 import { KidsProgressWidget } from "./progress/KidsProgressWidget";
@@ -37,6 +37,12 @@ const CARDS = [
     icon: Award,
     title: "رحلتي وشاراتي",
     description: "تابع الآيات التي حفظتها واجمع الشارات.",
+  },
+  {
+    href: "/quran/kids/parent",
+    icon: ShieldCheck,
+    title: "لوحة الأهل",
+    description: "ملخّص لولي الأمر عن تقدّم الطفل، محمي برمز دخول محلي.",
   },
 ] as const;
 

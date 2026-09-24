@@ -1,0 +1,30 @@
+.quran-extras-page { display:grid; gap:1.5rem; }
+
+.quran-extras-card { padding:1.5rem clamp(1rem,4vw,2rem); border:1px solid #dce5e1; border-radius:1.25rem; background:#fff; }
+.quran-extras-card h2 { display:flex; align-items:center; gap:.5rem; margin:0 0 .5rem; font-family:var(--ds-font-heading); font-size:1.15rem; color:var(--landing-green); }
+.quran-extras-card__hint { color:#61736f; font-size:.82rem; line-height:1.7; margin-block-end:1rem; }
+.quran-extras-card__action { display:inline-flex; align-items:center; gap:.5rem; padding:.65rem 1.3rem; border:0; border-radius:999px; background:var(--landing-green); color:#fff; font-weight:700; cursor:pointer; }
+
+.quran-extras-qibla { display:flex; align-items:center; gap:.5rem; margin-block:1rem; font-weight:700; color:var(--landing-ink); }
+
+.quran-extras-prayer-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:.6rem; list-style:none; margin:1rem 0 0; padding:0; }
+.quran-extras-prayer-grid li { display:grid; justify-items:center; gap:.25rem; padding:.75rem .5rem; border-radius:1rem; background:var(--landing-mint); color:var(--landing-green); text-align:center; }
+.quran-extras-prayer-grid strong { font-size:1.05rem; }
+.quran-extras-prayer-grid span { font-size:.78rem; }
+
+.quran-extras-card--ramadan { background:linear-gradient(160deg,#fbfdfc,var(--landing-mint)); }
+
+.quran-extras-duas-list { display:grid; gap:.85rem; list-style:none; margin:0; padding:0; }
+.quran-extras-duas-list li { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem; border:1px solid #dce5e1; border-radius:1.1rem; background:#fbfdfc; }
+.quran-extras-duas-list__title { display:block; font-weight:700; color:var(--landing-green); font-size:.85rem; }
+.quran-extras-duas-list__text { margin:.35rem 0; font-family:var(--ds-font-reading); font-size:1.1rem; color:var(--landing-ink); }
+.quran-extras-duas-list__source { color:#61736f; font-size:.72rem; }
+.quran-extras-duas-list button { flex:0 0 auto; display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem; border:1px solid #dce5e1; border-radius:999px; background:#fff; color:var(--landing-green); font-size:.78rem; cursor:pointer; }
+
+.quran-extras-topics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.75rem; }
+.quran-extras-topic { display:grid; gap:.3rem; padding:1rem; border:1px solid #dce5e1; border-radius:1.1rem; background:var(--landing-mint); color:var(--landing-green); }
+.quran-extras-topic span { color:#0f2b25b3; font-size:.78rem; }
+
+.quran-extras-qa-list { display:grid; gap:1rem; margin:1rem 0 0; }
+.quran-extras-qa-list dt { font-weight:700; color:var(--landing-ink); }
+.quran-extras-qa-list dd { margin:.35rem 0 0; color:#61736f; line-height:1.7; }

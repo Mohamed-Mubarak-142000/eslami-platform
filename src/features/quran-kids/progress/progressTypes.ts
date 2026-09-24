@@ -17,6 +17,12 @@ export interface KidsListenStats {
   lastPlayedAt: string | null;
 }
 
+export interface KidsSurahReview {
+  intervalIndex: number;
+  lastReviewedAt: string;
+  dueAt: string;
+}
+
 export interface KidsProgressState {
   version: 1;
   memorizedAyahsBySurah: Record<number, number[]>;
@@ -24,6 +30,8 @@ export interface KidsProgressState {
   matchStats: KidsMatchStats;
   listenStats: KidsListenStats;
   unlockedBadgeIds: string[];
+  activityDates: string[];
+  reviewSchedule: Record<number, KidsSurahReview>;
   updatedAt: string;
 }
 
@@ -34,5 +42,7 @@ export const DEFAULT_KIDS_PROGRESS: KidsProgressState = {
   matchStats: { tajweedGamesCompleted: 0, letterGamesCompleted: 0, lastPlayedAt: null },
   listenStats: { surahsCompleted: [], lastPlayedAt: null },
   unlockedBadgeIds: [],
+  activityDates: [],
+  reviewSchedule: {},
   updatedAt: new Date(0).toISOString(),
 };

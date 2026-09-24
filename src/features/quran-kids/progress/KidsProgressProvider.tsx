@@ -4,6 +4,8 @@ import { createContext, useContext, useSyncExternalStore, type ReactNode } from 
 import { DEFAULT_KIDS_PROGRESS, type KidsProgressState } from "./progressTypes";
 import { loadKidsProgress, saveKidsProgress } from "./progressStorage";
 import { computeUnlockedBadgeIds } from "./badges";
+import { recordActivityDate } from "./streak";
+import { advanceReviewSchedule, isSurahFullyMemorized, startReviewSchedule } from "./reviewSchedule";
 
 type Listener = () => void;
 
@@ -33,7 +35,12 @@ function commit(next: KidsProgressState) {
 }
 
 function withRecomputedBadges(state: KidsProgressState): KidsProgressState {
-  return { ...state, unlockedBadgeIds: computeUnlockedBadgeIds(state), updatedAt: new Date().toISOString() };
+  return {
+    ...state,
+    unlockedBadgeIds: computeUnlockedBadgeIds(state),
+    activityDates: recordActivityDate(state.activityDates),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 function toggleAyah(list: number[], numberInSurah: number, memorized: boolean): number[] {
@@ -47,6 +54,7 @@ interface KidsProgressContextValue {
   recordQuizResult: (correct: number, total: number) => void;
   recordMatchGameCompletion: (kind: "tajweed" | "letters") => void;
   recordListenCompletion: (surahId: number) => void;
+  markSurahReviewed: (surahId: number) => void;
   resetProgress: () => void;
 }
 
@@ -59,7 +67,24 @@ export function KidsProgressProvider({ children }: { children: ReactNode }) {
     const current = getSnapshot();
     const currentList = current.memorizedAyahsBySurah[surahId] ?? [];
     const nextList = toggleAyah(currentList, numberInSurah, memorized);
-    commit(withRecomputedBadges({ ...current, memorizedAyahsBySurah: { ...current.memorizedAyahsBySurah, [surahId]: nextList } }));
+    const nextMemorized = { ...current.memorizedAyahsBySurah, [surahId]: nextList };
+    const nextState = { ...current, memorizedAyahsBySurah: nextMemorized };
+
+    const wasFullyMemorized = isSurahFullyMemorized(current, surahId);
+    const isNowFullyMemorized = isSurahFullyMemorized(nextState, surahId);
+    const reviewSchedule =
+      isNowFullyMemorized && !wasFullyMemorized && !(surahId in current.reviewSchedule)
+        ? { ...current.reviewSchedule, [surahId]: startReviewSchedule() }
+        : current.reviewSchedule;
+
+    commit(withRecomputedBadges({ ...nextState, reviewSchedule }));
+  }
+
+  function markSurahReviewed(surahId: number) {
+    const current = getSnapshot();
+    const existing = current.reviewSchedule[surahId];
+    if (!existing) return;
+    commit(withRecomputedBadges({ ...current, reviewSchedule: { ...current.reviewSchedule, [surahId]: advanceReviewSchedule(existing) } }));
   }
 
   function recordQuizResult(correct: number, total: number) {
@@ -107,7 +132,7 @@ export function KidsProgressProvider({ children }: { children: ReactNode }) {
 
   return (
     <KidsProgressContext.Provider
-      value={{ state, setAyahMemorized, recordQuizResult, recordMatchGameCompletion, recordListenCompletion, resetProgress }}
+      value={{ state, setAyahMemorized, recordQuizResult, recordMatchGameCompletion, recordListenCompletion, markSurahReviewed, resetProgress }}
     >
       {children}
     </KidsProgressContext.Provider>

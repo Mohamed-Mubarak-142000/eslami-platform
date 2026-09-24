@@ -7,6 +7,7 @@ import { Amiri_Quran } from "next/font/google";
 import type { Ayah, Surah } from "@/features/quran";
 import { useKidsProgress } from "../progress/KidsProgressProvider";
 import { buildAyahAudioUrl } from "./kidsAudioApi";
+import { ReciteRecorder } from "./ReciteRecorder";
 import "../quran-kids.css";
 
 const amiriQuran = Amiri_Quran({ subsets: ["arabic"], weight: "400", display: "swap" });
@@ -129,6 +130,8 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
       />
       <p className="quran-empty" role="status" aria-live="polite">{error}</p>
       {completedOnce && <p className="quran-empty">أحسنت! أكملت هذه السورة 🎉</p>}
+
+      {currentAyah && <ReciteRecorder key={`${surah.id}-${currentAyah.numberInSurah}`} />}
     </main>
   );
 }

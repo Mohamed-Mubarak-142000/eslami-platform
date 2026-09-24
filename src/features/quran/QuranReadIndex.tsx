@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { BookOpenCheck, Search } from "lucide-react";
+import type { Route } from "next";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { BookOpenCheck, History, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSocialMotionPreset } from "@/lib/motion";
 import type { Surah } from "./api";
+import { getLastReadSnapshot, getServerLastReadSnapshot, subscribeLastRead } from "./lastReadStorage";
 import "./quran.css";
 
 export function QuranReadIndex({ surahs }: { surahs: Surah[] }) {
   const reveal = useSocialMotionPreset("reveal");
   const [search, setSearch] = useState("");
+  const lastRead = useSyncExternalStore(subscribeLastRead, getLastReadSnapshot, getServerLastReadSnapshot);
 
   const filteredSurahs = useMemo(() => {
     const query = search.trim();
@@ -25,6 +28,13 @@ export function QuranReadIndex({ surahs }: { surahs: Surah[] }) {
         <h1>قراءة القرآن الكريم</h1>
         <p>تصفّح المصحف الشريف سورة سورة، بالرسم العثماني وأرقام الآيات.</p>
       </motion.section>
+
+      {lastRead && (
+        <Link href={`/quran/read/${lastRead.surahId}` as Route} className="quran-resume-banner">
+          <History aria-hidden />
+          <span>أكمل من حيث توقفت: سورة {lastRead.surahName}</span>
+        </Link>
+      )}
 
       <div className="quran-filters">
         <label className="quran-search">

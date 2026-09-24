@@ -22,5 +22,16 @@ export const kidsProgressSchema = z.object({
     lastPlayedAt: z.string().nullable(),
   }),
   unlockedBadgeIds: z.array(z.string()),
+  activityDates: z.array(z.string()).default([]),
+  reviewSchedule: z
+    .record(
+      z.string(),
+      z.object({
+        intervalIndex: z.number().int().nonnegative(),
+        lastReviewedAt: z.string(),
+        dueAt: z.string(),
+      }),
+    )
+    .default({}),
   updatedAt: z.string(),
 });
