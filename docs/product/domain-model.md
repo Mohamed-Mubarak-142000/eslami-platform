@@ -1,68 +1,43 @@
-# PROD-005 — قاموس ونموذج المجال
+# PROD-005 — المصطلحات والكيانات والحالات
 
-## المصطلحات
+هذا هو المرجع اللفظي لـ`foundation-agent` عند كتابة `src/domain/twister/**`؛
+الأسماء هنا هي نفسها المتوقعة في الأنواع/الـschemas (بالإنجليزية في الكود،
+موضّحة هنا بالعربية للسياق).
 
-| المصطلح | التعريف |
-|---|---|
-| Account | هوية دخول وحالة تشغيل وأدوار؛ ليست ملف عالم بذاتها |
-| ScholarProfile | ملف علمي عام مرتبط بحساب وتخصصات وأدلة عرض عامة |
-| VerificationApplication | طلب حساس مستقل، أدلته غير عامة |
-| TrustMark | عرض مشتق من توثيق approved فعّال؛ ليس قيمة يحررها العميل |
-| Topic | موضوع تصنيفي عام قابل للمتابعة |
-| Specialty | نطاق علمي معتمد يحد صلاحية الإجابة والتوجيه |
-| Content | أصل معرفي عام: post أو article؛ Answer كيان متخصص مرتبط بسؤال |
-| Source | مرجع منظم: نوع، عنوان، مؤلف/جهة، locator، URL اختياري |
-| Question | طلب معرفة بخصوصية وحالة وتخصص وتوجيه |
-| Answer | إجابة من عالم موثق، بمصادر وحالة مراجعة |
-| OpinionGroup | تجميع محايد لإجابات/آراء في خلاف معتبر، وليس تصويتًا |
-| Collection | مجموعة خاصة يملكها عضو لحفظ موارد عامة متاحة له |
-| Report/Case | بلاغ وحالة مراجعة؛ البلاغ لا يساوي إدانة |
-| AuditEvent | سجل append-only لفعل حساس مع الفاعل والسبب والوقت والإصدار |
+## الكيانات
 
-## كيانات وحقول مطلوبة للواجهة
-
-```text
-Account { id, displayName, roles[], status, onboardingStatus, permissions[] }
-ScholarProfile { id, accountId, name, bio, specialties[], credentials[], institution?, verificationStatus, updatedAt }
-VerificationApplication { id, ownerId, status, steps, evidenceMetadata[], consentAt?, version, timeline[] }
-Content { id, type(post|article), title, excerpt, body, author, topics[], sources[], reviewStatus, publishedAt, updatedAt }
-Question { id, ownerRef, title, details, visibility, anonymity, specialty, topics[], assignees[], status, createdAt, version }
-Answer { id, questionId, scholar, specialty, body, sources[1..n], reviewStatus, publishedAt, updatedAt }
-OpinionGroup { id, questionId, recognizedStatus, label, neutralSummary, answerIds[], editorialOrder }
-Source { id, type, title, authorOrOrg?, locator?, url?, publicationDate? }
-ReportCase { id, targetRef, reporterRef, reason, note?, status, priority, assignee?, version, timeline[] }
-Notification { id, recipientId, type, entityRef, readAt?, createdAt }
-```
-
-`ownerRef` يكون معرفًا مستعارًا في العقود العامة. لا يحتوي fixture أو response عام على
-البريد أو الهاتف أو معرف وثيقة أو نص خاص.
-
-## حالات وانتقالات
-
-| الكيان | الحالات | الانتقالات المسموحة |
+| كيان | الحقول الجوهرية | ملاحظات |
 |---|---|---|
-| Account | active, suspended, deleted | active↔suspended؛ active/suspended→deleted |
-| Onboarding | not_started, in_progress, completed | تسلسلي مع حفظ المسودة؛ completed يعاد تحرير إعداداته لا الحالة |
-| Verification | draft, pending, needs_info, approved, rejected, suspended, revoked | draft→pending؛ pending→needs_info/approved/rejected؛ needs_info→pending؛ approved→suspended/revoked؛ suspended→approved/revoked |
-| Content review | draft, pending_review, published, hidden, removed | draft→pending_review/published حسب الصلاحية؛ published↔hidden؛ hidden→removed/published |
-| Question | draft, pending_moderation, routed, answered, rejected, closed | draft→pending_moderation؛ pending→routed/rejected؛ routed→answered/closed؛ answered→closed |
-| Answer | draft, submitted, published, hidden, withdrawn | draft→submitted؛ submitted→published؛ published↔hidden؛ published/hidden→withdrawn |
-| Report | open, triaged, in_review, actioned, dismissed, appealed, closed | open→triaged→in_review→actioned/dismissed؛ actioned/dismissed→appealed/closed؛ appealed→closed |
+| `Category` | id, name(ar), order | التصنيف المعتمد الموحّد — انظر `menu-catalog.md` |
+| `Product` | id, categoryId, name, description, images[], basePrice, sizes[]?, extras[]?, spicyLevels[]?, calories?, isBestseller, isAvailable, verified | `verified: false` = بيانات placeholder |
+| `Size` | id, label, priceDelta | فرق السعر عن `basePrice`، لا سعر مطلق مستقل |
+| `Extra` | id, label, price, compatibleSizes?[] | إن غاب `compatibleSizes` فمتوافق مع كل المقاسات |
+| `SpicyLevel` | id, label, order | لا يغيّر السعر |
+| `CartLine` | productId, sizeId?, extraIds[], spicyLevelId?, quantity, notes?, unitPrice(محسوب) | `unitPrice` محسوب لحظيًا من domain، لا يُخزَّن كقيمة ثابتة |
+| `Offer` | id, title, description, startAt, endAt, bannerImage, linkedCategoryId? | يقود لصفحة منيو مفلترة عند وجود `linkedCategoryId` |
+| `Coupon` | code, kind(percent\|fixed\|freeItem), value, minSubtotal, expiresAt, stackable | القواعد الكاملة في `business-rules.md` |
+| `Zone` | id, name, deliveryFee, minOrder, isServed | `isServed:false` = "غير مخدومة حاليًا" في الواجهة |
+| `Review` | id, authorName, rating(1-5), text, source(real\|placeholder) | `source:placeholder` يُعرض بوسم واضح دومًا |
+| `Faq` | id, question, answer, order | |
+| `Banner` | id, image, headline, ctaHref, order | يستخدمه bestseller/hero/offers |
+| `Announcement` | id, text, isActive | يستبدل "push notifications" لهذا المعلم — شريط داخل التطبيق فقط |
+| `BusinessInfo` | address, phone, whatsappNumber, socials{}, hours[], verified | verified=false حتى تأكيد صاحب المطعم |
+| `OrderDraft` | customer{name,phone,address,zoneId,landmark?}, lines[], couponCode?, paymentMethod, notes? | يُبنى منه نص واتساب |
+| `Order` | orderRef, draft, totals, createdAt, status(local-log) | يُخزَّن محليًا فقط في متصفح الإدارة |
 
-## ثوابت المجال
+## الحالات (states)
 
-1. لا Answer منشورة بلا `scholar.verificationStatus=approved` وقت النشر، specialty معتمد،
-   ومصدر واحد على الأقل.
-2. تعليق/سحب التوثيق يمنع النشر الجديد؛ لا يمحو التاريخ، بل يظهر حالة المؤلف الحالية
-   وملاحظة تحريرية إن قررت الإدارة الإبقاء على محتوى سابق.
-3. `private Question` لا يدخل أي collection عامة أو search index أو public cache.
-4. الحالة المعروضة تأتي من الخادم مع `version`; العميل لا يستنتج اعتمادًا نهائيًا.
-5. حذف Topic/Specialty مستخدم يكون soft-delete مع بديل أو منع للعملية.
-6. AuditEvent لا يعدل أو يحذف من واجهة الـMVP.
+- **منتج**: `available` → `unavailable` (يدويًا من لوحة التحكم؛ لا حالة "نفذت
+  الكمية" تلقائية في هذا المعلم لعدم وجود مخزون حقيقي).
+- **عرض**: `scheduled` (لم يبدأ) → `active` → `expired` — محسوبة من التواريخ،
+  لا تُخزَّن كحقل منفصل يحتاج تحديثًا يدويًا.
+- **كوبون**: `valid` → `expired` | `below-minimum` | `not-found` — الحالة تُحسب
+  عند إدخال الكود، لا تُخزَّن.
+- **طلب (سجل محلي)**: `submitted` (فور فتح واتساب بنجاح) — لا حالات "مؤكد/تم
+  التسليم" لأن التأكيد يحدث في محادثة واتساب خارج الموقع تمامًا.
 
-## حالات العرض المشتركة
+## قاموس مصطلحات (Arabic → متغيرات الكود)
 
-كل query لها `loading`, `success`, `empty`, `error`, `offline`. يضاف `forbidden` للموارد
-المحمية و`stale/conflict` للقرارات الحساسة. Retry لا يكرر mutation غير idempotent؛ تعرض
-الواجهة مرجع العملية عند حالة غير محسومة.
-
+`سلة` = cart، `سعر أساسي` = basePrice، `فرق سعر` = priceDelta، `هدية تلقائية` =
+autoGift، `رسوم توصيل` = deliveryFee، `حد أدنى للطلب` = minOrder، `مرجع الطلب` =
+orderRef (صيغة: `TW-YYMMDD-XXXX`).
