@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import mosquePhoto from "./assets/hero-mosque.jpg";
+import quranPhoto from "./assets/hero-quran.jpg";
+import readingPhoto from "./assets/hero-reading.jpg";
+import radioPhoto from "./assets/hero-radio.jpg";
 import type { Route } from "next";
 import {
-  ArrowLeft, BookOpenCheck, Bookmark, CircleUserRound, Headphones,
-  HeartHandshake, Info, LayoutGrid, LibraryBig, Menu, MessageCircleQuestion, Pause,
+  ArrowLeft, BookOpenCheck, ChevronLeft, ChevronRight, CircleUserRound, Headphones,
+  HeartHandshake, LibraryBig, Pause,
   Play, Radio, SearchCheck, ShieldCheck, Sparkles, UsersRound, Volume2,
-  X,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { BrandLogo } from "@/components/layout";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { BrandLogo, SiteHeader } from "@/components/layout";
 import { useSocialMotionPreset } from "@/lib/motion";
+import { useRadio } from "@/features/radio";
 import "./landing.css";
 
 const MotionLink = motion.create(Link);
@@ -29,67 +34,35 @@ const trustPoints = [
   { title: "مجتمع يحترم المعرفة", text: "نقاش هادئ يحفظ الاختلاف ويقرب الفهم.", icon: UsersRound },
 ];
 
-export interface QuranRadioStation {
-  name: string;
-  streamUrl: string;
-  providerName: string;
-  providerUrl: string;
+function HeroCta({ href, className, children }: { href: string; className: string; children: ReactNode }) {
+  if (href.startsWith("#")) {
+    return <a className={className} href={href}>{children}</a>;
+  }
+  return <Link className={className} href={href as Route}>{children}</Link>;
 }
 
-function QuranRadio({ station }: { station: QuranRadioStation }) {
+function QuranRadio() {
   const reveal = useSocialMotionPreset("reveal");
-  const audioRef = useRef<HTMLAudioElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [sectionVisible, setSectionVisible] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [volume, setVolume] = useState(70);
-
-  useEffect(() => () => {
-    audioRef.current?.pause();
-  }, []);
+  const { station, playing, loading, error, volume, togglePlayback, updateVolume, setSectionVisible } = useRadio();
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
     const observer = new IntersectionObserver(([entry]) => setSectionVisible(entry?.isIntersecting ?? false), { threshold: 0.12 });
     observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
-
-  async function togglePlayback() {
-    const audio = audioRef.current;
-    if (!audio) return;
-    setError("");
-    if (playing) {
-      audio.pause();
-      setPlaying(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      await audio.play();
-      setPlaying(true);
-    } catch {
-      setPlaying(false);
-      setError("تعذر تشغيل البث الآن. تحقق من اتصالك ثم حاول مرة أخرى.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function updateVolume(value: number) {
-    setVolume(value);
-    if (audioRef.current) audioRef.current.volume = value / 100;
-  }
+    return () => {
+      observer.disconnect();
+      setSectionVisible(false);
+    };
+  }, [setSectionVisible]);
 
   return (
     <motion.section className="landing-radio" id="radio" aria-labelledby="radio-title" ref={sectionRef} {...reveal} viewport={{ once: true, amount: 0.25 }}>
       <div className="landing-radio__copy">
         <span className="landing-kicker"><Radio size={17} aria-hidden /> بث مباشر</span>
         <h2 id="radio-title">إذاعة القرآن الكريم</h2>
-        <p>اجعل تلاوة القرآن رفيقة وقتك. يبدأ البث فقط عندما تضغط تشغيل.</p>
+        <p>اجعل تلاوة القرآن رفيقة وقتك. يبدأ البث فقط عندما تضغط تشغيل، ويستمر معك أثناء تصفح المنارة.</p>
         <a href={station.providerUrl} target="_blank" rel="noreferrer">مصدر البث: {station.providerName}</a>
       </div>
       <div className="radio-player">
@@ -108,96 +81,137 @@ function QuranRadio({ station }: { station: QuranRadioStation }) {
           <input type="range" min="0" max="100" value={volume} onChange={(event) => updateVolume(Number(event.currentTarget.value))} />
           <output>{volume}%</output>
         </label>
-        <audio ref={audioRef} src={station.streamUrl} preload="none" onPause={() => setPlaying(false)}
-          onError={() => { setPlaying(false); setLoading(false); setError("البث غير متاح مؤقتًا. حاول مرة أخرى لاحقًا."); }} />
         <p className="radio-player__status" role="status" aria-live="polite">{error}</p>
       </div>
-      {playing && !sectionVisible && (
-        <div className="radio-dock" role="region" aria-label="مشغل إذاعة القرآن الكريم المصغر">
-          <div className="radio-dock__inner">
-            <span className="radio-dock__live"><Radio aria-hidden /> مباشر</span>
-            <div className="radio-dock__station"><strong>{station.name}</strong><small>إذاعة القرآن الكريم المصرية</small></div>
-            <button type="button" className="radio-dock__control" onClick={togglePlayback} aria-label="إيقاف إذاعة القرآن مؤقتًا"><Pause fill="currentColor" /></button>
-            <label className="radio-dock__volume"><Volume2 aria-hidden /><span className="sr-only">مستوى صوت الإذاعة</span><input type="range" min="0" max="100" value={volume} onChange={(event) => updateVolume(Number(event.currentTarget.value))} /></label>
-            <button type="button" className="radio-dock__close" onClick={() => { audioRef.current?.pause(); setPlaying(false); }} aria-label="إغلاق مشغل الإذاعة"><X aria-hidden /></button>
-          </div>
-        </div>
-      )}
     </motion.section>
   );
 }
 
-export function LandingPage({ station, isAuthenticated = false }: { station: QuranRadioStation; isAuthenticated?: boolean }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+export function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [autoplayPaused, setAutoplayPaused] = useState(false);
   const reveal = useSocialMotionPreset("reveal");
-  const primaryHref = (isAuthenticated ? "/community" : "/register") as Route;
+  const primaryHref = (isAuthenticated ? "/quran" : "/register") as Route;
+  const joinLabel = isAuthenticated ? "استمع للقرآن الكريم" : "أنشئ حسابًا في المنارة";
+
+  const heroSlides = [
+    {
+      id: "knowledge",
+      kicker: "معرفة إسلامية موثوقة",
+      icon: Sparkles,
+      title: <>معرفة تُبصر بها،<br /><em>وقرآن يرافقك دومًا.</em></>,
+      text: "منصة عربية تجمع المحتوى الإسلامي الموثق، والمصادر الواضحة، وأهل الاختصاص في مساحة واحدة هادئة وقريبة منك.",
+      primaryLabel: joinLabel,
+      primaryHref,
+      secondaryLabel: "تصفّح القرآن الكريم",
+      secondaryHref: "/quran",
+      photo: mosquePhoto, photoAlt: "أقواس مسجد مزخرفة تطل على المئذنة والفناء", photoPosition: "50% 60%",
+    },
+    {
+      id: "sources",
+      kicker: "مصادر موثقة",
+      icon: SearchCheck,
+      title: <>كل معلومة،<br /><em>ومصدرها أمامك.</em></>,
+      text: "لا نكتفي بنقل المعلومة، بل نُرفقها بمرجعها الأصلي؛ لتتحقق بنفسك وتطمئن وترجع إليه متى شئت.",
+      primaryLabel: joinLabel,
+      primaryHref,
+      secondaryLabel: "تصفّح القرآن الكريم",
+      secondaryHref: "/quran",
+      photo: quranPhoto, photoAlt: "مصحف مفتوح على حامل خشبي داخل مسجد", photoPosition: "50% 57%",
+    },
+    {
+      id: "identity",
+      kicker: "هوية موثوقة",
+      icon: CircleUserRound,
+      title: <>تعرف من يتحدث،<br /><em>قبل أن تثق بما يُقال.</em></>,
+      text: "كل صاحب محتوى في المنارة موثّق الهوية والتخصص، فتختار بثقة من تتابعه ومن تسأله.",
+      primaryLabel: joinLabel,
+      primaryHref,
+      secondaryLabel: "تصفّح القرآن الكريم",
+      secondaryHref: "/quran",
+      photo: readingPhoto, photoAlt: "رجل يقرأ القرآن في لحظة هادئة من التدبر", photoPosition: "53% 45%",
+    },
+    {
+      id: "radio",
+      kicker: "بث مباشر",
+      icon: Radio,
+      title: <>استمع لإذاعة القرآن،<br /><em>وأنت تتصفح.</em></>,
+      text: "دع تلاوة القرآن الكريم ترافقك أثناء القراءة والتصفح، بضغطة واحدة من أي مكان في المنارة.",
+      primaryLabel: "استمع الآن",
+      primaryHref: "#radio",
+      secondaryLabel: joinLabel,
+      secondaryHref: primaryHref,
+      photo: radioPhoto, photoAlt: "جهاز راديو كلاسيكي للاستماع إلى البث الإذاعي", photoPosition: "50% 50%",
+    },
+  ];
+
+  const slide = heroSlides[activeSlide]!;
+
+  function goTo(index: number) {
+    setActiveSlide(((index % heroSlides.length) + heroSlides.length) % heroSlides.length);
+  }
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [menuOpen]);
+    if (autoplayPaused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setActiveSlide((prev) => (prev + 1) % heroSlides.length), 7000);
+    return () => clearInterval(id);
+  }, [activeSlide, autoplayPaused, heroSlides.length]);
 
   return (
     <div className="landing-page">
       <a className="landing-skip" href="#landing-main">انتقل إلى المحتوى</a>
-      <header className="landing-header">
-        <Link className="landing-brand" href="/" aria-label="المنارة — الرئيسية">
-          <BrandLogo priority />
-        </Link>
-        <button className="landing-menu" type="button" aria-expanded={menuOpen} aria-controls="landing-nav" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X aria-hidden /> : <Menu aria-hidden />} <span className="sr-only">{menuOpen ? "إغلاق القائمة" : "فتح القائمة"}</span>
-        </button>
-        <nav id="landing-nav" className="landing-nav" data-open={menuOpen || undefined} aria-label="التنقل العام">
-          <a href="#why" onClick={() => setMenuOpen(false)}><Info aria-hidden /> لماذا المنارة؟</a>
-          <a href="#categories" onClick={() => setMenuOpen(false)}><LayoutGrid aria-hidden /> الأقسام</a>
-          <a href="#radio" onClick={() => setMenuOpen(false)}><Radio aria-hidden /> إذاعة القرآن</a>
-          <Link href="/about" onClick={() => setMenuOpen(false)}><UsersRound aria-hidden /> من نحن</Link>
-          <div className="landing-nav__actions">
-            <Link className="landing-button landing-button--ghost" href="/login" onClick={() => setMenuOpen(false)}>تسجيل الدخول</Link>
-            <Link className="landing-button" href={primaryHref} onClick={() => setMenuOpen(false)}>{isAuthenticated ? "اذهب للمجتمع" : "أنشئ حسابًا"}</Link>
-          </div>
-        </nav>
-        <div className="landing-header__actions">
-          <Link className="landing-button landing-button--ghost" href="/login">تسجيل الدخول</Link>
-          <Link className="landing-button" href={primaryHref}>{isAuthenticated ? "اذهب للمجتمع" : "أنشئ حسابًا"}</Link>
-        </div>
-      </header>
+      <SiteHeader isAuthenticated={isAuthenticated} />
 
       <main id="landing-main">
-        <motion.section className="landing-hero" {...reveal} viewport={{ once: true, amount: 0.25 }}>
-          <div className="landing-hero__copy">
-            <span className="landing-kicker"><Sparkles size={17} aria-hidden /> معرفة إسلامية موثوقة</span>
-            <h1>معرفة تُبصر بها،<br /><em>ومجتمع تنمو معه.</em></h1>
-            <p>منصة عربية تجمع المحتوى الإسلامي الموثق، والمصادر الواضحة، وأهل الاختصاص في مساحة واحدة هادئة وقريبة منك.</p>
-            <div className="landing-hero__actions">
-              <Link className="landing-button landing-button--large" href={primaryHref}>
-                {isAuthenticated ? "ادخل مجتمع المنارة" : "انضم إلى مجتمع المنارة"}<ArrowLeft aria-hidden />
-              </Link>
-              <Link className="landing-button landing-button--ghost landing-button--large" href="/categories">استكشف الأقسام</Link>
+        <section className="landing-hero" aria-roledescription="carousel" aria-label="أبرز ما يميز المنارة"
+          onMouseEnter={() => setAutoplayPaused(true)} onMouseLeave={() => setAutoplayPaused(false)}>
+          <AnimatePresence mode="wait">
+            <motion.div key={slide.id} className="landing-hero__slide" role="group" aria-roledescription="شريحة"
+              aria-label={`الشريحة ${activeSlide + 1} من ${heroSlides.length}`}
+              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] }}>
+              <div className="landing-hero__photo">
+                <Image
+                  src={slide.photo}
+                  alt={slide.photoAlt}
+                  fill
+                  sizes="100vw"
+                  placeholder="blur"
+                  loading={activeSlide === 0 ? "eager" : "lazy"}
+                  fetchPriority={activeSlide === 0 ? "high" : "auto"}
+                  style={{ objectPosition: slide.photoPosition }}
+                />
+                {slide.id === "identity" && <span className="landing-hero__photo-caption">صورة تعبيرية عن التعلّم والتدبّر</span>}
+              </div>
+              <div className="landing-hero__copy">
+                <span className="landing-kicker"><slide.icon size={17} aria-hidden /> {slide.kicker}</span>
+                <h1>{slide.title}</h1>
+                <p>{slide.text}</p>
+                <div className="landing-hero__actions">
+                  <HeroCta href={slide.primaryHref} className="landing-button landing-button--large">
+                    {slide.primaryLabel}<ArrowLeft aria-hidden />
+                  </HeroCta>
+                  <HeroCta href={slide.secondaryHref} className="landing-button landing-button--ghost landing-button--large">
+                    {slide.secondaryLabel}
+                  </HeroCta>
+                </div>
+                {activeSlide === 0 && (
+                  <div className="landing-proof"><span>مصادر واضحة</span><span>باحثون موثقون</span><span>خصوصيتك أولًا</span></div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+          <div className="landing-hero__controls">
+            <button type="button" className="landing-hero__arrow" onClick={() => goTo(activeSlide - 1)} aria-label="الشريحة السابقة"><ChevronRight aria-hidden /></button>
+            <div className="landing-hero__dots">
+              {heroSlides.map((item, index) => (
+                <button key={item.id} type="button" aria-current={index === activeSlide} aria-label={`الانتقال إلى شريحة ${item.kicker}`} onClick={() => goTo(index)} />
+              ))}
             </div>
-            <div className="landing-proof"><span>مصادر واضحة</span><span>باحثون موثقون</span><span>خصوصيتك أولًا</span></div>
+            <button type="button" className="landing-hero__arrow" onClick={() => goTo(activeSlide + 1)} aria-label="الشريحة التالية"><ChevronLeft aria-hidden /></button>
           </div>
-          <div className="landing-preview" aria-label="معاينة لتجربة مجتمع المنارة">
-            <div className="landing-preview__glow" />
-            <div className="preview-search"><SearchCheck aria-hidden /><span>ابحث في المعرفة والمصادر</span></div>
-            <article className="preview-post">
-              <div className="preview-avatar">م</div><div><strong>باحث المنارة</strong><small>متخصص في علوم القرآن · موثق</small></div>
-              <span className="preview-tag">علوم القرآن</span>
-              <h2>كيف نقرأ السياق قبل فهم الآية؟</h2>
-              <p>مدخل موجز يربط المعنى بالسياق، مع إحالات واضحة إلى مصادر التفسير.</p>
-              <div className="preview-source"><BookOpenCheck aria-hidden /><span>المصدر موثق ومتاح للرجوع</span><Bookmark aria-hidden /></div>
-            </article>
-          </div>
-        </motion.section>
+        </section>
 
         <motion.section className="landing-trust" id="why" aria-labelledby="why-title" {...reveal} viewport={{ once: true, amount: 0.25 }}>
           <div className="landing-section-heading"><span>ما الذي يميز المنارة؟</span><h2 id="why-title">الثقة ليست شعارًا، بل جزء من كل تجربة.</h2></div>
@@ -206,19 +220,14 @@ export function LandingPage({ station, isAuthenticated = false }: { station: Qur
 
         <motion.section className="landing-categories" id="categories" aria-labelledby="categories-title" {...reveal} viewport={{ once: true, amount: 0.2 }}>
           <div className="landing-section-heading"><span>تعلّم حسب اهتمامك</span><h2 id="categories-title">أبواب معرفة مرتبة وواضحة.</h2><p>ابدأ من المجال الأقرب إليك، واحفظ ما يفيدك لتعود إليه لاحقًا.</p></div>
-          <div className="landing-category-grid">{categories.map(({ title, text, icon: Icon }, index) => <MotionLink href="/categories" key={title} className="landing-category" {...reveal} viewport={{ once: true, amount: 0.4 }} transition={{ ...reveal.transition, delay: index * 0.08 }}><span>0{index + 1}</span><Icon aria-hidden /><h3>{title}</h3><p>{text}</p><ArrowLeft aria-hidden /></MotionLink>)}</div>
+          <div className="landing-category-grid">{categories.map(({ title, text, icon: Icon }, index) => <MotionLink href="/quran" key={title} className="landing-category" {...reveal} viewport={{ once: true, amount: 0.4 }} transition={{ ...reveal.transition, delay: index * 0.08 }}><span>0{index + 1}</span><Icon aria-hidden /><h3>{title}</h3><p>{text}</p><ArrowLeft aria-hidden /></MotionLink>)}</div>
         </motion.section>
 
-        <motion.section className="landing-community" aria-labelledby="community-title" {...reveal} viewport={{ once: true, amount: 0.25 }}>
-          <div><span className="landing-kicker"><UsersRound size={17} aria-hidden /> مجتمع المعرفة</span><h2 id="community-title">لا تكتفِ بالقراءة.<br />شارك، اسأل، وتابع من تثق بهم.</h2><p>داخل مجتمع المنارة تستطيع متابعة أهل الاختصاص، حفظ المواد، ومناقشة الأفكار في مساحة تراعي العلم والإنسان.</p><Link className="landing-button landing-button--large" href={primaryHref}>ابدأ رحلتك الآن <ArrowLeft aria-hidden /></Link></div>
-          <div className="community-orbit" aria-hidden><span><MessageCircleQuestion /></span><span><Bookmark /></span><span><UsersRound /></span><div><strong>مجتمع<br />المنارة</strong></div></div>
-        </motion.section>
+        <QuranRadio />
 
-        <QuranRadio station={station} />
-
-        <motion.section className="landing-final" {...reveal} viewport={{ once: true, amount: 0.3 }}><Sparkles aria-hidden /><h2>مكان واحد لمعرفة أعمق<br />وصحبة أفضل.</h2><p>انضم إلى المنارة وابدأ تجربة معرفية تحفظ وقتك وعقلك.</p><Link className="landing-button landing-button--light landing-button--large" href={primaryHref}>{isAuthenticated ? "دخول المجتمع" : "إنشاء حساب مجاني"}<ArrowLeft aria-hidden /></Link></motion.section>
+        <motion.section className="landing-final" {...reveal} viewport={{ once: true, amount: 0.3 }}><Sparkles aria-hidden /><h2>مكان واحد لمعرفة أعمق<br />وصحبة أفضل.</h2><p>انضم إلى المنارة وابدأ تجربة معرفية تحفظ وقتك وعقلك.</p><Link className="landing-button landing-button--light landing-button--large" href={primaryHref}>{isAuthenticated ? "الاستماع للقرآن الكريم" : "إنشاء حساب مجاني"}<ArrowLeft aria-hidden /></Link></motion.section>
       </main>
-      <footer className="landing-footer"><Link className="landing-brand" href="/" aria-label="المنارة — الرئيسية"><BrandLogo /></Link><p>معرفة موثوقة، بهوية واضحة.</p><nav aria-label="روابط التذييل"><Link href="/about">من نحن</Link><Link href="/contact">اتصل بنا</Link><Link href="/categories">جميع الأقسام</Link></nav><small>© 2026 المنارة</small></footer>
+      <footer className="landing-footer"><Link className="landing-brand" href="/" aria-label="المنارة — الرئيسية"><BrandLogo /></Link><p>معرفة موثوقة، بهوية واضحة.</p><nav aria-label="روابط التذييل"><Link href="/quran">القرآن الكريم</Link></nav><small>© 2026 المنارة</small></footer>
     </div>
   );
 }

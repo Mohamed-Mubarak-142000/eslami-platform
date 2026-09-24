@@ -5,10 +5,10 @@ import { dictionaries } from "@/i18n/dictionaries";
 import { LocaleProvider } from "@/i18n/LocaleProvider";
 import { defaultLocale, dirFor, isLocale, localeCookieName } from "@/i18n/locales";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
-import { ApplicationFrame, IntegrationProvider, services } from "@/integrations";
+import { IntegrationProvider, services } from "@/integrations";
 import { SplashScreen } from "@/components/layout";
+import { RadioDock, RadioProvider } from "@/features/radio";
 import "@/styles/application.css";
-import "@/integrations/shell-composition.css";
 
 async function resolveLocale() {
   const store = await cookies();
@@ -52,12 +52,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await resolveLocale();
-  const navigation = [
-    { href: "/community", label: locale === "ar" ? "المجتمع" : "Community" },
-    { href: "/about", label: locale === "ar" ? "من نحن" : "About" },
-    { href: "/contact", label: locale === "ar" ? "اتصل بنا" : "Contact" },
-    { href: "/categories", label: locale === "ar" ? "جميع الأقسام" : "All categories" },
-  ];
 
   return (
     <html lang={locale} dir={dirFor[locale]} suppressHydrationWarning>
@@ -66,14 +60,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ThemeProvider>
           <LocaleProvider initialLocale={locale}>
             <IntegrationProvider session={services.session}>
-              <ApplicationFrame
-                navigation={navigation}
-                topics={services.data.topics}
-                scholars={services.data.scholars}
-                unreadNotifications={1}
-              >
+              <RadioProvider>
                 {children}
-              </ApplicationFrame>
+                <RadioDock />
+              </RadioProvider>
             </IntegrationProvider>
           </LocaleProvider>
         </ThemeProvider>

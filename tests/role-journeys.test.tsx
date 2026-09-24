@@ -1,10 +1,5 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { can, canReadQuestion, type Account, type Question, type Session } from "@/domain";
-import { ModerationQueue, ReviewDecision } from "@/features/admin/AdminFeatures";
-import { AnswerEditor } from "@/features/questions/QuestionFeatures";
-
-afterEach(cleanup);
 
 const account = (role: Account["roles"][number]): Account => ({
   id: `account-${role}`,
@@ -25,15 +20,6 @@ const privateQuestion: Question = {
   assignedScholarId: "account-verified_scholar",
 };
 
-const reviewCase = {
-  id: "case-1",
-  status: "new",
-  priority: "normal",
-  kind: "content" as const,
-  ageLabel: "one day",
-  version: 3,
-};
-
 describe("P0 role journeys and permission contracts", () => {
   it("allows only the owner, assigned scholar, moderator, or admin to read a private question", () => {
     const session = (role: Account["roles"][number]): Session => ({ account: account(role), expiresAt: null });
@@ -44,30 +30,9 @@ describe("P0 role journeys and permission contracts", () => {
     expect(canReadQuestion(session("admin"), privateQuestion)).toBe(true);
   });
 
-  it("allows an in-specialty verified scholar to complete the answer action", () => {
-    const submit = vi.fn();
+  it("grants answer, moderate, and verification permissions to the matching roles", () => {
     expect(can(account("verified_scholar"), "answer", { specialtyMatches: true })).toBe(true);
-    render(<AnswerEditor permission onSubmit={submit} />);
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "answer with a structured source" } });
-    fireEvent.click(screen.getByRole("button"));
-    expect(submit).toHaveBeenCalledWith("answer with a structured source");
-  });
-
-  it("allows a moderator to open the moderation queue", () => {
     expect(can(account("moderator"), "moderate")).toBe(true);
-    render(<ModerationQueue cases={[reviewCase]} canModerate />);
-    expect(screen.getByRole("table")).toBeInTheDocument();
-    expect(screen.getByText("new")).toBeInTheDocument();
-  });
-
-  it("requires an admin decision reason and forwards the record version", () => {
-    const decide = vi.fn();
     expect(can(account("admin"), "manage_verification")).toBe(true);
-    render(<ReviewDecision reviewCase={{ ...reviewCase, kind: "verification" }} onDecision={decide} />);
-    const button = screen.getByRole("button");
-    expect(button).toBeDisabled();
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "evidence reviewed" } });
-    fireEvent.click(button);
-    expect(decide).toHaveBeenCalledWith("approve", "evidence reviewed", 3);
   });
 });

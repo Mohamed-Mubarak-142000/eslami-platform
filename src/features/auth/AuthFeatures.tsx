@@ -293,35 +293,3 @@ export function ResetPasswordForm({ tokenState = "valid", requestState = "idle",
     </AuthSurface>
   );
 }
-
-export function Onboarding({ step = 1, interests = [], onNext }: { step?: number; interests?: readonly string[]; onNext?: (selected: readonly string[]) => void }) {
-  const t = useTranslations("auth");
-  const [selected, setSelected] = useState<readonly string[]>([]);
-  const preset = useSocialMotionPreset("onboarding");
-  return (
-    <motion.section className="onboarding-card" aria-labelledby="onboarding-title" {...preset}>
-      <p aria-label={t.onboarding.stepAria(step)}>{t.onboarding.stepLabel(step)}</p>
-      <h1 id="onboarding-title">{t.onboarding.title}</h1>
-      {interests.length === 0 ? (
-        <p>{t.onboarding.noInterests}</p>
-      ) : (
-        <fieldset>
-          <legend>{t.onboarding.legend(selected.length)}</legend>
-          {interests.map((item) => (
-            <Checkbox
-              id={`interest-${item}`}
-              key={item}
-              checked={selected.includes(item)}
-              onChange={() => setSelected(selected.includes(item) ? selected.filter((value) => value !== item) : [...selected, item])}
-              label={item}
-            />
-          ))}
-        </fieldset>
-      )}
-      <div>
-        <Button onClick={() => onNext?.(selected)}>{t.onboarding.save}</Button>
-        <Button variant="ghost" onClick={() => onNext?.([])}>{t.onboarding.skip}</Button>
-      </div>
-    </motion.section>
-  );
-}

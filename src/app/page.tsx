@@ -9,15 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return (
-    <LandingPage
-      isAuthenticated={isAuthenticatedSession(services.session)}
-      station={{
-        name: "إذاعة القرآن الكريم من القاهرة — مصر",
-        streamUrl: process.env.NEXT_PUBLIC_QURAN_RADIO_URL ?? "https://stream.radiojar.com/8s5u5tpdtwzuv",
-        providerName: "إذاعة القرآن الكريم المصرية — الموقع الرسمي",
-        providerUrl: "https://misrquran.gov.eg/",
-      }}
-    />
-  );
+  return <LandingPage isAuthenticated={isAuthenticatedSession(services.session)} />;
 }

@@ -1,24 +1,69 @@
-{
-  "workflow_version": 1,
-  "milestone": "unified-brand-egypt-radio-v1",
-  "status": "complete",
-  "active_agent": "orchestrator-agent",
-  "base_ref": "70d921b",
-  "active_task_ids": [],
-  "acceptance_criteria": [
-    "Use the supplied Basira logo on the public home and shared application chrome",
-    "Use the official Egyptian Quran Radio stream with clear attribution",
-    "Keep active radio playback available in a full-width fixed bottom player after scrolling",
-    "Apply the landing green, gold, and warm-neutral identity across the whole application"
-  ],
-  "stages": [
-    { "order": 1, "agent": "product-agent", "status": "accepted" },
-    { "order": 2, "agent": "ux-agent", "status": "accepted" },
-    { "order": 3, "agent": "design-system-agent", "status": "accepted" },
-    { "order": 4, "agent": "foundation-agent", "status": "accepted" },
-    { "order": 5, "agent": "feature-ui-agent", "status": "accepted" },
-    { "order": 6, "agent": "integration-agent", "status": "accepted" },
-    { "order": 7, "agent": "qa-agent", "status": "accepted" },
-    { "order": 8, "agent": "release-review-agent", "status": "accepted" }
-  ]
+﻿{
+    "workflow_version":  1,
+    "milestone":  "hero-real-photography-v1",
+    "status":  "complete",
+    "active_agent":  "orchestrator-agent",
+    "base_ref":  "9c38643167e873befbc63f9932f53e44ff3c265a",
+    "active_task_ids":  [
+
+                        ],
+    "acceptance_criteria":  [
+                                "Replace hero illustrations with suitable real photographs",
+                                "Preserve existing user edits and responsive accessible carousel behavior",
+                                "Record image sources and pass lint typecheck and ownership guard"
+                            ],
+    "stages":  [
+                   {
+                       "order":  1,
+                       "agent":  "product-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  2,
+                       "agent":  "ux-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  3,
+                       "agent":  "design-system-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  4,
+                       "agent":  "foundation-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  5,
+                       "agent":  "feature-ui-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  6,
+                       "agent":  "integration-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  7,
+                       "agent":  "qa-agent",
+                       "status":  "accepted"
+                   },
+                   {
+                       "order":  8,
+                       "agent":  "release-review-agent",
+                       "status":  "accepted"
+                   }
+               ],
+    "change_review":  {
+                          "handoff":  "workflow/handoffs/feature-ui-agent-hero-real-photography-v1.md",
+                          "decision":  "accepted",
+                          "evidence":  [
+                                           "lint passed",
+                                           "typecheck passed",
+                                           "ownership guard passed",
+                                           "orchestrator diff review passed; existing edits preserved"
+                                       ],
+                          "limitation":  "No connected browser; responsive visual behavior not verified in browser",
+                          "scope":  "Feature-only photography update; other stages retained from prior accepted milestone"
+                      }
 }

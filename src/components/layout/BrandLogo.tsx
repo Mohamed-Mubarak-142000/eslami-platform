@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/cn";
 import siteLogo from "./assets/site-logo.png";
+import "./brand-logo.css";
 
 export function BrandLogo({ className, priority = false, showName = true }: { className?: string; priority?: boolean; showName?: boolean }) {
   return (
