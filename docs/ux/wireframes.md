@@ -2,75 +2,47 @@
 
 ## قواعد القوالب والاستجابة
 
-- `LAY-A Public`: header (علامة، بحث، دخول/إشعارات) + main مقروء + footer.
-- `LAY-B App`: desktop side nav 248 + main حتى 720 + rail حتى 320؛ tablet main + drawers؛
-  mobile main واحد + bottom nav ثابت مع safe-area.
-- `LAY-C Admin`: desktop side nav 240 + toolbar + table/detail؛ tablet cards أو table scroll
-  مع عمود أول ثابت؛ mobile filter sheet وقائمة cards ثم detail كامل.
-- الحاوية: 16px هاتف، 24px لوحي، 32px سطح مكتب. لا horizontal scroll إلا جدول معلّم.
-- الأزرار الأساسية sticky أسفل wizard في الهاتف، inline في نهاية النموذج على الأكبر.
+انظر `LAY-A/B/C` في `information-architecture.md`. الحاوية: 16px هاتف، 24px
+لوحي، 32px سطح مكتب. لا horizontal scroll إلا carousel/tabs معلّمة صريحًا.
+CTA الأساسي sticky أسفل الشاشة في الهاتف لصفحات المنتج/checkout، inline في
+نهاية القسم على الأكبر.
 
-## الشاشات العامة والاستهلاكية
+## الشاشات العامة
 
-| ID | القالب | ترتيب المناطق من أعلى لأسفل | السلوك الضيق/الواسع |
+| ID | القالب | ترتيب المناطق من أعلى لأسفل | السلوك ضيق/واسع |
 |---|---|---|---|
-| SCR-001 | LAY-A | value proposition؛ مثال معرفة بمصدر؛ كيف تعمل الثقة؛ CTA استكشف/أنشئ حسابًا | هاتف بلا hero مزدوج؛ desktop نص + نموذج بطاقة |
-| SCR-002 | LAY-A | عنوان دخول؛ بريد؛ كلمة مرور؛ نسيت؛ submit؛ رابط تسجيل | بطاقة 100% هاتف، max 440 أكبر؛ رسائل قرب الحقول |
-| SCR-003 | LAY-A | اسم عرض؛ بريد؛ كلمة مرور؛ موافقة؛ submit؛ دخول | نفس SCR-002؛ لا حفظ لكلمة المرور |
-| SCR-004 | LAY-A | بريد؛ submit؛ تأكيد عام لا يكشف وجود الحساب | شاشة نجاح داخل نفس البطاقة |
-| SCR-005 | LAY-A | progress؛ عنوان خطوة؛ الحقول/اختيارات؛ رجوع/التالي | chips تلتف؛ desktop max 680؛ CTA sticky هاتف |
-| SCR-010 | LAY-B | عنوان؛ tabs لك/تتابعهم/الأحدث؛ قائمة ContentCard؛ load more sentinel | rail: موضوعات/علماء؛ الهاتف skeleton بطول ثابت |
-| SCR-011 | LAY-B | بحث؛ أقسام موضوعات؛ علماء؛ أسئلة عامة؛ حديث | carousel ممنوع للمعنى الضروري؛ grids 1/2/3 أعمدة |
-| SCR-012 | LAY-B | search input؛ chips الفلاتر؛ tabs + دلالة count؛ نتائج؛ pagination | filters Sheet هاتف، inline/rail desktop؛ URL يطابق الحالة |
-| SCR-013 | LAY-B | اسم/وصف موضوع؛ follow؛ tabs محتوى/أسئلة/علماء | hero مختصر؛ rail موضوعات مرتبطة |
-| SCR-014 | LAY-B | ScholarIdentity؛ TrustMark قابل للشرح؛ bio؛ مؤهلات/تخصصات؛ updated؛ follow؛ tabs المحتوى | desktop identity + trust card؛ هاتف trust accordion قبل المحتوى |
-| SCR-015 | LAY-B | breadcrumb؛ type/title؛ ScholarIdentity؛ dates؛ body؛ SourceCitation؛ actions؛ report | عرض قراءة ≤720؛ source margin يتحول block هاتف |
-| SCR-016 | LAY-B | سؤال/خصوصية الاسم؛ metadata؛ AnswerPanels؛ OpinionGroups؛ sources/actions | كل OpinionGroup بنفس الوزن؛ لا counts أو winner؛ rail سؤال مشابه عام فقط |
+| SCR-001 | LAY-A | Hero (شعار reveal، عنوان، CTA، badge عرض) → تصنيفات (slider) → الأكثر طلبًا (carousel) → بانر الافتتاح → لماذا نحن → مناطق التوصيل → تقييمات (slider) → إنستجرام (grid) → أسئلة شائعة (accordion) → CTA طلب | هاتف: كل قسم عمود واحد، sliders أفقية بلمس؛ سطح مكتب: شبكات 3-4 أعمدة، Hero بعرض كامل مع parallax |
+| SCR-002 | LAY-A | شريط تبويبات تصنيف (sticky تحت Header) → شريط بحث/فلترة → شبكة بطاقات منتج → Quick Preview (modal/sheet) | هاتف: تبويبات scrollable أفقيًا + scrollspy؛ شبكة عمودين؛ سطح مكتب: تبويبات ثابتة كاملة، شبكة 3-4 أعمدة |
+| SCR-003 | LAY-A | معرض صور (zoom) → اسم/وصف/سعر أساسي → مقاس (radio cards) → إضافات (checkbox cards) → درجة الحرارة → ملاحظات → عداد كمية → السعر اللحظي → "أضف للسلة" → منتجات ذات صلة | هاتف: صور فوق، CTA sticky أسفل؛ سطح مكتب: صور يسار/يمين (RTL: يمين) + تفاصيل بجانبها |
+| SCR-007 | LAY-A | عنوان → بطاقات عروض (افتتاح/بطاطس هدية/خميس) كل بطاقة بعداد تنازلي وCTA | هاتف: عمود واحد؛ سطح مكتب: شبكة 2-3 أعمدة |
+| SCR-008 | LAY-A | إجمالي/عدادات متحركة → شبكة بطاقات تقييم (نجوم + شارة "تقييم توضيحي" إن لزم) → فيديوهات (إن وُجدت فقط) | هاتف: عمود واحد قابل للتمرير؛ سطح مكتب: شبكة 2-3 أعمدة |
+| SCR-009 | LAY-A | CTA واتساب/اتصال بارزين أعلى الصفحة → خريطة (facade قابلة للنقر للتحميل) → قائمة مناطق وساعات → نموذج تواصل | هاتف: عمود واحد، خريطة بعد CTA مباشرة؛ سطح مكتب: عمودين (معلومات + نموذج) |
+| SCR-010 | LAY-A | أيقونة عدم اتصال → رسالة → زر "إعادة المحاولة" → روابط لصفحات مخزّنة مسبقًا (إن وُجدت) | نفس التصميم لكل الأحجام |
 
-## شاشات العضو
+## سلة والـcheckout
 
 | ID | القالب | ترتيب المناطق | ملاحظات تنفيذية |
 |---|---|---|---|
-| SCR-020 | LAY-B | progress؛ حقل الخطوة؛ مشابهات بعد العنوان؛ رجوع/التالي؛ مؤشر حفظ | 6 خطوات: عنوان، تفاصيل، تصنيف، خصوصية، هوية، مراجعة |
-| SCR-021 | LAY-B | بطاقة «من سيرى؟»؛ preview السؤال؛ تحذير بيانات شخصية؛ consent؛ تعديل/إرسال | العام والخاص variants منفصلان؛ لا معاينة URL للخاص |
-| SCR-022 | LAY-B | filters الحالة؛ قائمة status/timestamp/next action | السبب العام فقط؛ لا نص خاص في cards إذا setting يخفيه |
-| SCR-023 | LAY-B | label «سؤال خاص» إن لزم؛ status timeline؛ body للمالك؛ إجابات؛ next action | no share/related للخاص؛ cache/metadata محجوبان |
-| SCR-024 | LAY-B | قائمة مجموعات؛ المجموعة النشطة؛ items؛ إنشاء/تسمية/حذف | mobile groups Sheet؛ تأكيد حذف واضح |
-| SCR-025 | LAY-B | heading + unread count؛ tabs؛ mark all؛ مجموعات زمنية؛ preferences link | لا preview حساس؛ status icon + text |
-| SCR-026 | LAY-B | section nav؛ الحساب؛ الخصوصية؛ اهتمامات؛ إشعارات؛ حذف/تصدير | destructive في قسم منفصل مع شرح أثر غير محسوم قانونيًا |
-| SCR-027 | modal/sheet | target عام مختصر؛ reasons radio؛ other textarea؛ submit | لا تعرض body حساس؛ sheet هاتف/dialog أكبر |
-| SCR-028 | LAY-B | progress؛ fields؛ uploader rows؛ consent؛ review | 6 خطوات؛ uploads تعرض progress/cancel/retry داخل الطلب فقط |
-| SCR-029 | LAY-B | status summary؛ timeline؛ next action؛ fields المطلوبة عند needs_info | لا internal notes؛ approved يشرح معنى الشارة |
-| SCR-045 | LAY-A | حالة الحساب؛ سبب عام؛ تاريخ؛ ما يزال متاحًا؛ مسار مراجعة | لا nav إنشائي؛ قراءة عامة ممكنة حسب السياسة |
+| SCR-004 (Drawer) | overlay | عنوان + إغلاق → قائمة بنود (صورة صغيرة، اسم، مقاس/إضافات، عداد كمية، سعر، حذف) → حقل كوبون → بند هدية (إن وُجد، غير قابل للحذف اليدوي) → ملخص (فرعي/توصيل/إجمالي) → CTA إتمام الطلب | فارغة: رسالة + CTA "تصفح المنيو"؛ طويلة: قائمة تمرّر داخليًا، الملخص وCTA ثابتان أسفل |
+| SCR-004 (/cart) | LAY-B | نفس محتوى الـDrawer بعرض كامل الصفحة | لصفحة مستقلة قابلة للمشاركة/التحديث بدون فقد الحالة (persisted) |
+| SCR-005 | LAY-B | اختيار المنطقة (select يحدّث الرسوم فورًا) → الاسم/الهاتف/العنوان/علامة مميزة → طريقة الدفع (radio) → ملاحظات → ملخص السلة القابل للطي → CTA "إرسال عبر واتساب" | تحت الحد الأدنى: الحقل الأول (المنطقة) يعرض تنبيهًا والزر معطّل مع سبب واضح |
+| SCR-006 | حالة داخل LAY-B | أيقونة نجاح → رقم الطلب → "لم تُفتح نافذة واتساب؟ اضغط هنا" (رابط بديل دومًا ظاهر، لا مشروط بالفشل فقط) → CTA "طلب جديد" | — |
 
-## سطح العالم والإدارة
+## الإدارة
 
 | ID | القالب | ترتيب المناطق | ملاحظات تنفيذية |
 |---|---|---|---|
-| SCR-030 | LAY-C | heading؛ filters status/specialty؛ assigned list؛ privacy labels | السؤال الخاص يعرض مقتطفًا منقحًا أو عنوانًا عامًا فقط |
-| SCR-031 | LAY-C | minimal question context؛ permission/specialty؛ editor؛ structured sources؛ preview؛ submit | autosave محلي آمن؛ source ≥1؛ lost-permission recovery |
-| SCR-040 | LAY-C | queue metrics بلا تنافس؛ filters؛ assigned cases table/cards | أعمدة: حالة، أولوية، نوع، عمر، مكلف؛ بلا هوية مبلغ |
-| SCR-041 | LAY-C | version/status؛ target context؛ report reason؛ timeline؛ decision form | reason required؛ actions الحساسة confirmation بنطاق |
-| SCR-042 | LAY-C | filters؛ requests table/cards؛ assignment | أعمدة غير حساسة فقط؛ الأدلة في detail |
-| SCR-043 | LAY-C | version/status؛ applicant data؛ evidence viewer؛ timeline؛ decision form | viewer لا يكشف signed URL؛ reason + confirmation |
-| SCR-044 | LAY-C | tabs topics/specialties؛ search؛ create؛ rows name/status/usage؛ edit | moderator view-only؛ replacement قبل تعطيل مستخدم |
+| SCR-020 | مركزة (بلا nav) | شعار → حقل كلمة مرور → خطأ عام لا يفرّق بين "غير موجود" و"خطأ" (لا يوجد حسابات متعددة ليُسرَّب وجودها) | لا "تذكرني" يخزّن كلمة المرور نفسها، الكوكي فقط |
+| SCR-021 | LAY-C | تنبيه ثابت أعلى: "الأرقام أدناه محلية لهذا المتصفح فقط" → بطاقات مؤشرات (عدد طلبات/متوسط قيمة) → روابط سريعة للموارد | التنبيه لا يُخفى/يُغلق نهائيًا — يبقى مرئيًا كل مرة |
+| SCR-022..027 | LAY-C | Toolbar (بحث + "إضافة جديد") → DataTable (أعمدة أساسية) → Drawer/Dialog نموذج إنشاء/تعديل → تأكيد حذف | موبايل: DataTable → بطاقات؛ فورم Sheet كامل الشاشة |
+| SCR-028 | LAY-C | فلاتر بسيطة (تاريخ) → جدول طلبات (رقم، تاريخ، إجمالي، منطقة) → تفاصيل عند النقر (نفس محتوى رسالة واتساب المرسلة) | يشمل زر "تصدير JSON" و"استيراد JSON" و"تصفير" في شريط علوي ثابت |
 
-## أنماط داخل الشاشة
+## أنماط داخل الشاشة (تصبح مدخل design-system-agent)
 
-- `PAT-01 ScholarIdentity`: اسم، تخصص، حالة نصية؛ فتح الشرح دون مغادرة سياق القراءة.
-- `PAT-02 TrustMark`: «موثّق» + «ما معنى ذلك؟»؛ overlay: الهوية والمسار والتخصص وتاريخ التحقق،
-  مع «لا تعني موافقة المنصة على كل رأي».
-- `PAT-03 SourceCitation`: رقم، نوع، عنوان، مؤلف/جهة، locator، رابط اختياري. غياب الرابط
-  لا يزيل المرجع.
-- `PAT-04 OpinionGroup`: label محايد، summary، حدود التطبيق، الإجابات/الأدلة، آخر مراجعة؛
-  ترتيب ثابت ومتساوٍ.
-- `PAT-05 AsyncAction`: label → spinner + تعطيل → نجاح مؤكد أو rollback + سبب وإعادة.
-- `PAT-06 StatusTimeline`: الحالة + نص + actor عام عند الملاءمة + timestamp؛ لا لون منفرد.
-
-## كثافة المحتوى والطول
-
-- العنوان يلتف حتى 3 أسطر في card ثم يختصر مع اسم كامل accessible؛ في detail بلا truncation.
-- أسماء عربية طويلة ومحتوى عربي/إنجليزي يستخدم `dir=auto` للقطع الحرة دون قلب shell.
-- صورة مفقودة → أحرف أولى؛ مؤسسة غير متحقق منها تظهر «مذكورة في الملف» لا كعلامة ثقة.
-- الجداول تتحول cards عند فقد قابلية القراءة؛ الإجراءات لا تختفي داخل horizontal overflow.
-
+- `PAT-01 ProductCard`: صورة، اسم، سعر يبدأ من، شارة الأكثر طلبًا، CTA إضافة سريعة.
+- `PAT-02 CategoryChip/Slider`: تصنيف مع أيقونة/صورة مصغّرة، حالة نشطة واضحة.
+- `PAT-03 OfferBanner`: صورة/عنوان/عداد تنازلي/CTA.
+- `PAT-04 TestimonialCard`: نجوم، اسم، نص، شارة "توضيحي" عند اللزوم.
+- `PAT-05 ZoneCard`: اسم المنطقة، رسوم التوصيل، الحد الأدنى، حالة الخدمة.
+- `PAT-06 CartLineItem`: صورة، تفاصيل الخيارات، عداد كمية، سعر، حذف.
+- `PAT-07 AdminDataTable/FormLayout/StatTile`: جدول قابل للفرز + نموذج قياسي + بطاقة مؤشر.

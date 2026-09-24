@@ -1,23 +1,31 @@
-# حزمة تجربة المستخدم — Frontend MVP
+# حزمة تجربة المستخدم — Twister Crepes & Pizza (`twister-storefront-v1`)
 
-هذه الحزمة هي عقد التنفيذ بين المنتج والتصميم والواجهة. العربية و`RTL` هما الوضع
-الأساسي، وكل معرف ثابت ويجب الاحتفاظ به في التصميم وStorybook والاختبارات.
+هذه الحزمة عقد التنفيذ بين المنتج والتصميم والواجهة. العربية وRTL هما الوضع
+الأساسي، وكل معرّف ثابت يُحتفظ به في التصميم وStorybook والاختبارات.
 
 | المهمة | المخرج |
 |---|---|
-| UX-001 | [information-architecture.md](information-architecture.md): خريطة الموقع والتنقل والأدوار |
-| UX-002 | [task-flows.md](task-flows.md): الرحلات الحرجة ونقاط القرار والاسترداد |
+| UX-001 | [information-architecture.md](information-architecture.md): خريطة الموقع والتنقل والقوالب |
+| UX-002 | [task-flows.md](task-flows.md): الرحلات الحرجة (طلب واتساب، عرض، أدمن) |
 | UX-003 | [wireframes.md](wireframes.md): مواصفات نصية لكل شاشات P0 والاستجابة |
-| UX-004 | [states-and-microcopy.md](states-and-microcopy.md): الحالات والخصوصية والنصوص العربية |
+| UX-004 | [states-and-microcopy.md](states-and-microcopy.md): الحالات والنصوص العربية |
 | UX-005 | [usability-test-plan.md](usability-test-plan.md): خطة اختبار قابلة للتنفيذ |
-| بوابة التسليم | [traceability.md](traceability.md): ربط CAP/US/AC بالشاشة والمسار والحالة |
-| UX-SOCIAL-UI-001 | [social-ui-auth-v2.md](social-ui-auth-v2.md): shell اجتماعي RTL وتفاعلات المحتوى وتدفقات الحساب mock |
+| UX-MOTION-01 | [motion-choreography.md](motion-choreography.md): مواصفة GSAP/ScrollTrigger وتعطيل الحركة |
+| UX-A11Y-01 | [accessibility.md](accessibility.md): مواصفة إمكانية الوصول |
+| UX-INV-01 | [component-inventory.md](component-inventory.md): مخزون المكونات — عقد design-system-agent |
+| بوابة التسليم | [traceability.md](traceability.md): ربط CAP/US بالشاشة والمسار والحالة |
 
 ## قواعد القراءة والتنفيذ
 
-- `SCR-*` شاشة، `FLW-*` رحلة، `STA-*` حالة، `CPY-*` نص، `AC-*` معيار قبول UX.
-- كل شاشة عامة قد تظهر للزائر؛ الحساب والخاص والتوثيق والإدارة `noindex`.
-- إخفاء عنصر لا يمثل تفويضًا. تعرض الواجهة ما تسمح به session، والخادم مصدر القرار.
-- لا يدخل نص سؤال/إجابة أو اسم ملف أو سبب حر في URL أو analytics أو error logs.
-- «بصيرة» اسم تشغيلي مؤقت. لا يتغير معنى النصوص عند تغيير العلامة.
-- الأولوية عند التعارض: متطلبات المنتج المقبولة، ثم هذه الحزمة، ثم التوجيه البصري القديم.
+- `SCR-*` شاشة، `FLW-*` رحلة، `STA-*` حالة، `CPY-*` نص، `PAT-*` نمط داخل الشاشة.
+- كل شاشة عامة قابلة للفهرسة إلا `admin/**` (`noindex` + `robots.txt disallow`).
+- إخفاء عنصر في الواجهة لا يمثل حماية بيانات — لوحة التحكم محلية بالكامل، انظر
+  `docs/product/governance.md`.
+- الحركة تحسين تدريجي دومًا؛ لا وظيفة تعتمد على اكتمال أنيميشن.
+- الأولوية عند التعارض: متطلبات المنتج المقبولة (`docs/product/`)، ثم هذه
+  الحزمة، ثم أي توجيه بصري قديم من منصة "المنارة" السابقة.
+
+## أرشيف
+
+وثائق UX لمنصة "بَصيرة"/"المنارة" الإسلامية السابقة محفوظة بالكامل في تاريخ
+Git (وسم `almanara-final`) وليست جزءًا من هذه الحزمة.
