@@ -7,7 +7,7 @@ import { BellOff, BellRing, X } from "lucide-react";
 import { StarMark } from "@/components/ui/Ornament";
 import { TOAST_ADHKAR, type ToastDhikr } from "./toastAdhkar";
 
-const INTERVAL_MS = 30_000;
+const INTERVAL_MS = 2 * 60_000;
 const VISIBLE_MS = 9_000;
 const STORAGE_KEY = "al-manara:adhkar-toast:v1";
 
