@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useActiveLearner } from "@/features/account/AccountProvider";
-import { applyLastRead, readLastRead, subscribeLastRead } from "./lastReadStorage";
+import { applyLastRead, clearLastRead, readLastRead, subscribeLastRead } from "./lastReadStorage";
 
 const PUSH_DELAY_MS = 1500;
 
@@ -11,6 +11,13 @@ const PUSH_DELAY_MS = 1500;
 export function LastReadSync() {
   const learner = useActiveLearner();
   const learnerId = learner?.id ?? null;
+  const previousLearnerId = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Signed in → signed out: the device copy came from the account, so drop it.
+    if (previousLearnerId.current && !learnerId) clearLastRead();
+    previousLearnerId.current = learnerId;
+  }, [learnerId]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();

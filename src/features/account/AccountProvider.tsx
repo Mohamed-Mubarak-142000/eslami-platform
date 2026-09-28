@@ -26,6 +26,8 @@ interface AccountContextValue {
   state: AccountState;
   setActiveLearner: (learnerId: string) => void;
   refresh: () => void;
+  /** Ends the session in this browser right away (cookies, learner choice, in-memory account). */
+  signOut: () => Promise<void>;
 }
 
 const AccountContext = createContext<AccountContextValue | null>(null);
@@ -109,8 +111,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     router.refresh();
   }
 
+  async function signOut() {
+    // "local": this device only — the user's other devices stay signed in.
+    await getSupabaseBrowserClient()?.auth.signOut({ scope: "local" });
+    document.cookie = `${ACTIVE_LEARNER_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    setState({ status: "signed-out" });
+  }
+
   return (
-    <AccountContext.Provider value={{ state, setActiveLearner, refresh: () => setVersion((value) => value + 1) }}>
+    <AccountContext.Provider value={{ state, setActiveLearner, refresh: () => setVersion((value) => value + 1), signOut }}>
       {children}
     </AccountContext.Provider>
   );

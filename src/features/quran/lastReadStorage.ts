@@ -44,6 +44,17 @@ export function applyLastRead(next: LastRead): void {
   listeners.forEach((notify) => notify());
 }
 
+/** Forgets the position on this device — used on sign-out so the next person doesn't see it. */
+export function clearLastRead(): void {
+  cached = null;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Storage unavailable — nothing was persisted.
+  }
+  listeners.forEach((notify) => notify());
+}
+
 export function readLastRead(): LastRead | null {
   return read();
 }

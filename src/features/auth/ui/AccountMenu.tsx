@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Award, BookOpenCheck, ChevronDown, GraduationCap, LogIn, LogOut, Settings, Shield } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
 import { signOutAction } from "../actions";
-import { useAccount, type AccountSummary } from "@/features/account/AccountProvider";
+import { useAccount, useAccountContext, type AccountSummary } from "@/features/account/AccountProvider";
 
 const LINKS: { href: Route; label: string; icon: LucideIcon; admin?: boolean }[] = [
   { href: "/dashboard", label: "رحلتي", icon: BookOpenCheck },
@@ -45,15 +45,30 @@ export function AccountLinks({ account, onNavigate }: { account: AccountSummary;
           </Link>
         );
       })}
-      <form action={signOutAction}>
-        <button
-          type="submit"
-          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-rose hover:bg-rose/10"
-        >
-          <LogOut className="size-4" aria-hidden /> تسجيل الخروج
-        </button>
-      </form>
+      <SignOutButton />
     </>
+  );
+}
+
+function SignOutButton() {
+  const { signOut } = useAccountContext();
+  const [pending, startSignOut] = useTransition();
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      // A plain button, not a <form>: the menu closes (and unmounts) on click, which could cancel a
+      // form submission. The transition keeps running after unmount.
+      onClick={() =>
+        startSignOut(async () => {
+          await signOut();
+          await signOutAction(); // clears the server cookies too, then redirects home
+        })
+      }
+      className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-rose hover:bg-rose/10 disabled:opacity-60"
+    >
+      <LogOut className="size-4" aria-hidden /> {pending ? "جارٍ الخروج…" : "تسجيل الخروج"}
+    </button>
   );
 }
 

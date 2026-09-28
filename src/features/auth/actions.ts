@@ -1,6 +1,7 @@
 "use server";
 
 import type { Route } from "next";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -8,6 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SITE_URL, isSupabaseConfigured } from "@/lib/supabase/env";
 import { NOT_CONFIGURED, authErrorMessage, otpErrorMessage } from "./errors";
 import { consumeOtp, issueOtp } from "./otp";
+import { ACTIVE_LEARNER_COOKIE } from "./session";
 
 export interface FormState {
   error?: string;
@@ -181,7 +183,8 @@ export async function resetPasswordAction(_: FormState | undefined, formData: Fo
 export async function signOutAction(): Promise<void> {
   if (isSupabaseConfigured) {
     const supabase = await createSupabaseServerClient();
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
   }
+  (await cookies()).delete(ACTIVE_LEARNER_COOKIE);
   redirect("/");
 }
