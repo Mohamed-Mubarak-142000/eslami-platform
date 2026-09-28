@@ -9,6 +9,7 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, isActivePath } from "./nav";
+import { AccountMenu } from "@/features/auth/ui/AccountMenu";
 
 const noopSubscribe = () => () => {};
 
@@ -117,13 +118,17 @@ export function SiteHeader() {
           </ul>
         </nav>
 
+        <div className="ms-auto lg:ms-3">
+          <AccountMenu />
+        </div>
+
         <button
           ref={toggleRef}
           type="button"
           onClick={() => setOpenedOn(pathname)}
           aria-expanded={open}
           aria-controls="mobile-nav"
-          className="ms-auto grid size-11 place-items-center rounded-full border border-line bg-white text-ink shadow-soft active:scale-95 lg:hidden"
+          className="grid size-11 place-items-center rounded-full border border-line bg-white text-ink shadow-soft active:scale-95 lg:hidden"
         >
           <Menu className="size-5" aria-hidden />
           <span className="sr-only">فتح القائمة</span>

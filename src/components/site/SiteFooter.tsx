@@ -38,7 +38,15 @@ export function SiteFooter() {
       </div>
       <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6">
         <Divider tone="light" />
-        <p className="mt-6 text-center text-xs text-white/55">© {new Date().getFullYear()} المنارة — جميع الحقوق محفوظة</p>
+        <p className="mt-6 flex justify-center gap-5 text-xs">
+          <Link href="/privacy" className="text-white/70 transition-colors hover:text-gold-soft">
+            سياسة الخصوصية
+          </Link>
+          <Link href="/terms" className="text-white/70 transition-colors hover:text-gold-soft">
+            شروط الاستخدام
+          </Link>
+        </p>
+        <p className="mt-3 text-center text-xs text-white/55">© {new Date().getFullYear()} المنارة — جميع الحقوق محفوظة</p>
       </div>
     </footer>
   );

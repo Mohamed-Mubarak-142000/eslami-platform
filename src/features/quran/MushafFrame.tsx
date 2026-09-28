@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { toArabicDigits } from "@/lib/arabic";
 
-function Corner({ className }: { className: string }) {
+export function FrameCorner({ className }: { className: string }) {
   return (
     <svg viewBox="0 0 64 64" className={`pointer-events-none absolute size-12 text-gold sm:size-14 ${className}`} aria-hidden>
       <path d="M2 2h40v3H5v37H2z" fill="currentColor" opacity="0.9" />
@@ -45,10 +45,10 @@ export function MushafFrame({ headerStart, headerEnd, page, children }: MushafFr
           className="relative rounded-[1rem] border border-gold/45 px-5 pb-5 pt-4 sm:px-12 sm:pb-7 sm:pt-6"
           style={{ background: "var(--page-bg)", color: "var(--page-ink)" }}
         >
-          <Corner className="right-1 top-1 -scale-x-100" />
-          <Corner className="left-1 top-1" />
-          <Corner className="bottom-1 right-1 rotate-180" />
-          <Corner className="bottom-1 left-1 -scale-y-100" />
+          <FrameCorner className="right-1 top-1 -scale-x-100" />
+          <FrameCorner className="left-1 top-1" />
+          <FrameCorner className="bottom-1 right-1 rotate-180" />
+          <FrameCorner className="bottom-1 left-1 -scale-y-100" />
 
           <div
             className="relative flex items-center justify-between gap-3 border-b border-gold/30 px-6 pb-3 text-xs font-bold sm:text-sm"

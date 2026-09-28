@@ -26,7 +26,7 @@ function starsFor(moves: number, pairs: number): number {
 }
 
 export function LetterMemoryGame() {
-  const { recordMatchGameCompletion } = useKidsProgress();
+  const { recordGame } = useKidsProgress();
   const [tiles, setTiles] = useState<LetterMatchTile[] | null>(null);
   const [pairs, setPairs] = useState(0);
   const [flipped, setFlipped] = useState<string[]>([]);
@@ -66,7 +66,7 @@ export function LetterMemoryGame() {
         setTimeout(() => {
           sfx.win();
           setWon(true);
-          recordMatchGameCompletion("letters");
+          recordGame({ game: "letters", score: pairs, total: pairs, moves: moves + 1, stars: starsFor(moves + 1, pairs) });
         }, 450);
       }
       return;

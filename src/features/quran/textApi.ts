@@ -141,6 +141,48 @@ export async function getQuranMeta(): Promise<SurahMeta[]> {
   }
 }
 
+export interface JuzAyah {
+  number: number;
+  surah: number;
+  numberInSurah: number;
+  text: string;
+}
+
+/** Every ayah of one juz in Uthmani script; the basmala prefix of first ayahs is removed. */
+export async function getJuzAyahs(juz: number): Promise<JuzAyah[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/juz/${juz}/quran-uthmani`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { data: { ayahs: (RawAyah & { surah: { number: number } })[] } };
+    return data.data.ayahs.map((ayah) => {
+      let text = stripLeadingBom(ayah.text);
+      if (ayah.numberInSurah === 1 && !SURAHS_WITHOUT_SEPARATE_BASMALA.has(ayah.surah.number) && text.startsWith(BASMALA))
+        text = text.slice(BASMALA.length).trim();
+      return { number: ayah.number, surah: ayah.surah.number, numberInSurah: ayah.numberInSurah, text };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export interface AyahRef {
+  surah: number;
+  ayah: number;
+}
+
+/** First ayah of each of the 30 juz (index 0 = juz 1), from the API — never hand-typed. */
+export async function getJuzStarts(): Promise<AyahRef[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/meta`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { data: { juzs: { references: AyahRef[] } } };
+    const starts = data.data.juzs.references.map(({ surah, ayah }) => ({ surah, ayah }));
+    return starts.length === 30 ? starts : [];
+  } catch {
+    return [];
+  }
+}
+
 export interface MushafPage {
   page: number;
   juz: number;

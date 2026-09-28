@@ -24,8 +24,6 @@ const nextConfig: NextConfig = {
       { source: "/quran/kids/match/letters", destination: "/kids/games/letters", permanent: true },
       { source: "/quran/kids/match/:surah", destination: "/kids/games/tajweed/:surah", permanent: true },
       { source: "/quran/kids/:path*", destination: "/kids/:path*", permanent: true },
-      { source: "/login", destination: "/", permanent: false },
-      { source: "/register", destination: "/", permanent: false },
     ];
   },
 };

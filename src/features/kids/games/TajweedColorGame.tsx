@@ -55,7 +55,7 @@ function kidsRound(ayah: TajweedAyah): TajweedMatchRound | null {
 }
 
 export function TajweedColorGame({ surah, ayahs }: { surah: Surah; ayahs: TajweedAyah[] }) {
-  const { recordMatchGameCompletion } = useKidsProgress();
+  const { recordGame } = useKidsProgress();
   const rounds = ayahs.map(kidsRound).filter((round): round is TajweedMatchRound => round !== null);
   const [round, setRound] = useState<TajweedMatchRound | null>(null);
   const [selected, setSelected] = useState<TajweedMatchTarget | null>(null);
@@ -103,7 +103,13 @@ export function TajweedColorGame({ surah, ayahs }: { surah: Surah; ayahs: Tajwee
       setTimeout(() => {
         sfx.win();
         setWon(true);
-        recordMatchGameCompletion("tajweed");
+        recordGame({
+          game: "tajweed",
+          surah: surah.id,
+          score: round.targets.length,
+          total: round.targets.length + mistakes,
+          stars: mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1,
+        });
       }, 400);
     }
   }

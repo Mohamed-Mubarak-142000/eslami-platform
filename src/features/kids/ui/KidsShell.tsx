@@ -12,6 +12,7 @@ import garden from "@/assets/scenes/garden.png";
 import { useKidsProgress } from "../progress/KidsProgressProvider";
 import { computeStars } from "../progress/stars";
 import { setSfxEnabled, useSfxEnabled } from "../sfx";
+import { GuestMergeBanner, LearnerSwitcher } from "@/features/account/LearnerSwitcher";
 
 const LEAVES = Array.from({ length: 7 }, (_, i) => ({
   left: `${8 + i * 13}%`,
@@ -100,6 +101,7 @@ export function KidsShell({ children }: { children: ReactNode }) {
             <Home className="size-5" aria-hidden /> {atGarden ? "العودة للموقع" : "العودة للحديقة"}
           </Link>
           <div className="ms-auto flex items-center gap-2">
+            <LearnerSwitcher variant="kids" />
             <Link
               href="/kids/progress"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#fff6d8] px-4 py-2.5 text-base font-extrabold text-[#8a5a00] shadow-lift ring-4 ring-white/60"
@@ -121,6 +123,7 @@ export function KidsShell({ children }: { children: ReactNode }) {
       </header>
 
       <main id="main" className="mx-auto max-w-6xl px-3 pb-32 pt-6 sm:px-5">
+        <GuestMergeBanner className="mb-6" />
         {children}
       </main>
       <Greeting />

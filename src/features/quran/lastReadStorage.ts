@@ -30,7 +30,11 @@ function read(): LastRead | null {
 }
 
 export function saveLastRead(entry: Omit<LastRead, "updatedAt">): void {
-  const next: LastRead = { ...entry, updatedAt: new Date().toISOString() };
+  applyLastRead({ ...entry, updatedAt: new Date().toISOString() });
+}
+
+/** Stores an entry as-is (keeps its timestamp) — used when the account has a newer position. */
+export function applyLastRead(next: LastRead): void {
   cached = next;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -40,11 +44,15 @@ export function saveLastRead(entry: Omit<LastRead, "updatedAt">): void {
   listeners.forEach((notify) => notify());
 }
 
-function subscribe(listener: () => void) {
+export function readLastRead(): LastRead | null {
+  return read();
+}
+
+export function subscribeLastRead(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
 export function useLastRead(): LastRead | null {
-  return useSyncExternalStore(subscribe, read, () => null);
+  return useSyncExternalStore(subscribeLastRead, read, () => null);
 }

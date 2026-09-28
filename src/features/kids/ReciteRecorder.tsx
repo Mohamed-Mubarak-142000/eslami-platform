@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Mic, Square, Trash2 } from "lucide-react";
+import { buttonClass } from "@/components/ui/button";
 import { kidsButton } from "./ui/kidsStyles";
 
 type RecordingStatus = "idle" | "recording" | "recorded" | "unsupported" | "denied";
 
 // Recordings live only in memory (an object URL) and are never uploaded or saved —
 // this is a "listen to yourself next to the reciter" aid, not a record.
-export function ReciteRecorder() {
+export function ReciteRecorder({ variant = "kids" }: { variant?: "kids" | "site" }) {
+  const site = variant === "site";
   const [status, setStatus] = useState<RecordingStatus>("idle");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -65,12 +67,16 @@ export function ReciteRecorder() {
   return (
     <div className="flex flex-col items-center gap-3">
       {(status === "idle" || status === "denied" || status === "unsupported") && (
-        <button type="button" onClick={start} className={kidsButton("white", "px-7")}>
+        <button type="button" onClick={start} className={site ? buttonClass("outline", "md") : kidsButton("white", "px-7")}>
           <Mic aria-hidden className="text-[#e84a67]" /> سجّل صوتك
         </button>
       )}
       {status === "recording" && (
-        <button type="button" onClick={() => recorderRef.current?.stop()} className={kidsButton("rose", "px-7")}>
+        <button
+          type="button"
+          onClick={() => recorderRef.current?.stop()}
+          className={site ? buttonClass("primary", "md", "bg-rose hover:bg-rose/90") : kidsButton("rose", "px-7")}
+        >
           <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1, repeat: Infinity }} className="inline-flex">
             <Square aria-hidden className="fill-current" />
           </motion.span>
@@ -87,7 +93,9 @@ export function ReciteRecorder() {
         </div>
       )}
       {status === "denied" && (
-        <p className="text-center text-sm text-muted">نحتاج إذن الميكروفون لنسجّل صوتك — اطلب من أحد والديك السماح به.</p>
+        <p className="text-center text-sm text-muted">
+          {site ? "اسمح للمتصفح باستخدام الميكروفون لتسجيل صوتك." : "نحتاج إذن الميكروفون لنسجّل صوتك — اطلب من أحد والديك السماح به."}
+        </p>
       )}
       {status === "unsupported" && <p className="text-center text-sm text-muted">هذا المتصفح لا يدعم تسجيل الصوت.</p>}
     </div>

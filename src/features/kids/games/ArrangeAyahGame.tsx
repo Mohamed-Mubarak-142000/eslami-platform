@@ -11,9 +11,11 @@ import type { Ayah } from "@/features/quran/textApi";
 import { Celebration } from "../ui/Celebration";
 import { kidsButton, kidsPanel } from "../ui/kidsStyles";
 import { sfx } from "../sfx";
+import { useKidsProgress } from "../progress/KidsProgressProvider";
 import { buildWordTiles, isPlayableAyah, wrongPositions, type WordTile } from "./arrangeGameLogic";
 
 export function ArrangeAyahGame({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] }) {
+  const { recordGame } = useKidsProgress();
   const playable = ayahs.filter((ayah) => isPlayableAyah(ayah.text));
   const [ayah, setAyah] = useState<Ayah | null>(null);
   const [bank, setBank] = useState<WordTile[]>([]);
@@ -60,6 +62,8 @@ export function ArrangeAyahGame({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
     setChecked(true);
     setTries((value) => value + 1);
     if (wrongPositions(order).size === 0) {
+      const attempt = tries + 1;
+      recordGame({ game: "arrange", surah: surah.id, score: 1, total: attempt, stars: attempt === 1 ? 3 : attempt === 2 ? 2 : 1 });
       sfx.win();
       setTimeout(() => setWon(true), 350);
     } else {

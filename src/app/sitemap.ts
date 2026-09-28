@@ -8,6 +8,8 @@ const ROUTES = [
   "/prayer-times",
   "/calendar",
   "/adhkar",
+  "/privacy",
+  "/terms",
   "/kids",
   "/kids/learn",
   "/kids/listen",

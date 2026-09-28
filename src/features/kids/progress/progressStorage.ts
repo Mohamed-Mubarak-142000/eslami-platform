@@ -23,3 +23,12 @@ export function saveKidsProgress(state: KidsProgressState): void {
     // Storage full or unavailable (private browsing) — progress simply won't persist this session.
   }
 }
+
+export function clearKidsProgress(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Nothing stored or storage unavailable.
+  }
+}

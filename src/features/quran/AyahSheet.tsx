@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, Loader2, Pause, Play, X } from "lucide-react";
+import { BookmarkCheck, BookmarkPlus, Check, Copy, Loader2, Pause, Play, X } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { useAudio } from "@/features/audio/AudioProvider";
 import { toArabicDigits } from "@/lib/arabic";
+import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
+import { useActiveLearner } from "@/features/account/AccountProvider";
 import { husaryAyahUrl } from "./ayahAudio";
 import type { Ayah } from "./textApi";
 
@@ -21,6 +23,10 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose }: AyahShe
   const audio = useAudio();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState(false);
+  const progress = useKidsProgress();
+  const learner = useActiveLearner();
+  const memorized = ayah ? (progress.state.memorizedAyahsBySurah[surahId] ?? []).includes(ayah.numberInSurah) : false;
+  const forWhom = learner?.kind === "child" ? ` — لملف ${learner.display_name}` : "";
 
   useEffect(() => {
     if (!ayah) return;
@@ -79,7 +85,7 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose }: AyahShe
             role="dialog"
             aria-modal="true"
             aria-label={reference}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[80dvh] max-w-2xl overflow-y-auto rounded-t-[2rem] bg-ivory p-6 text-ink shadow-lift sm:p-8"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[80dvh] max-w-2xl overflow-y-auto rounded-t-4xl bg-ivory p-6 text-ink shadow-lift sm:p-8"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -116,7 +122,19 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose }: AyahShe
                 {copied ? <Check aria-hidden className="text-emerald" /> : <Copy aria-hidden />}
                 {copied ? "تم النسخ" : "انسخ مع المرجع"}
               </button>
+              <button
+                type="button"
+                aria-pressed={memorized}
+                onClick={() => ayah && progress.setAyahMemorized(surahId, ayah.numberInSurah, !memorized)}
+                className={buttonClass(memorized ? "gold" : "outline", "md")}
+              >
+                {memorized ? <BookmarkCheck aria-hidden /> : <BookmarkPlus aria-hidden />}
+                {memorized ? "محفوظة" : "حفظتُ هذه الآية"}
+              </button>
             </div>
+            <p className="mt-3 text-center text-xs text-muted">
+              {progress.synced ? `يُسجَّل حفظك في حسابك${forWhom}.` : "يُسجَّل حفظك على هذا الجهاز — سجّل الدخول ليُحفظ في حسابك."}
+            </p>
             <section className="mt-7 rounded-3xl border border-line bg-white p-5">
               <h3 className="text-sm font-bold text-gold-deep">التفسير الميسّر</h3>
               <p className="mt-2 leading-9 text-ink/85">{tafsir ?? "التفسير غير متاح لهذه الآية الآن."}</p>

@@ -6,3 +6,7 @@ test-results/
 playwright-report/
 tsconfig.tsbuildinfo
 next-env.d.ts
+
+# Local secrets (Supabase keys etc.)
+.env
+.env*.local

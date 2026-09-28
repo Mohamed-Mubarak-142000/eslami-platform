@@ -143,6 +143,8 @@
   .print-area {
     position: absolute;
     inset: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 
