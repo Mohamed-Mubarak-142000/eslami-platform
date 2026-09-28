@@ -20,6 +20,7 @@ const storySchema = z.object({
 
 function revalidateStories() {
   revalidatePath("/admin/stories");
+  revalidatePath("/stories", "layout");
   revalidatePath("/kids/stories", "layout");
 }
 

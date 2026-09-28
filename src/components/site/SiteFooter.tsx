@@ -17,7 +17,7 @@ export function SiteFooter() {
         <nav aria-label="روابط التذييل">
           <h2 className="text-sm font-bold text-gold-soft">الأقسام</h2>
           <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
-            {NAV_ITEMS.filter((item) => !item.kidsOnly).map((item) => (
+            {NAV_ITEMS.filter((item) => !item.kidsOnly && !item.signedInOnly).map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="text-white/75 transition-colors hover:text-gold-soft">
                   {item.label}

@@ -18,7 +18,8 @@ export function SiteHeader() {
   const pathname = usePathname();
   const account = useAccount();
   const childSelected = account.status === "signed-in" && account.activeLearner.kind === "child";
-  const navItems = NAV_ITEMS.filter((item) => !item.kidsOnly || childSelected);
+  const signedIn = account.status === "signed-in";
+  const navItems = NAV_ITEMS.filter((item) => (!item.kidsOnly || childSelected) && (!item.signedInOnly || signedIn));
   // Remember which page the menu was opened on, so navigating closes it without an effect.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;

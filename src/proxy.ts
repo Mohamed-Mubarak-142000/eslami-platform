@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
-const PROTECTED = ["/account", "/dashboard", "/exams", "/admin", "/certificates/mine", "/kids"];
+const PROTECTED = ["/account", "/dashboard", "/exams", "/admin", "/certificates/mine", "/kids", "/stories"];
 const AUTH_ONLY_FOR_GUESTS = ["/login", "/register"];
 
 // Optimistic checks only — every protected page and action verifies the session again on the server.
