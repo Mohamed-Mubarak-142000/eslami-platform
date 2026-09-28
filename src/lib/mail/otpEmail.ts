@@ -1,10 +1,10 @@
 import "server-only";
 import type { OtpPurpose } from "@/lib/supabase/database.types";
-import { SITE_URL } from "@/lib/supabase/env";
 
 /**
  * Branded OTP email. Table layout with inline styles only, since Gmail/Outlook drop <style>
- * blocks and flexbox; colors mirror the site tokens in globals.css.
+ * blocks and flexbox; colors mirror the site tokens in globals.css. Deliberately no links, hidden
+ * preheader text, or emoji: each is a common spam-filter signal for a new sender.
  */
 
 const COLORS = {
@@ -47,8 +47,6 @@ export interface RenderedEmail {
 
 export function renderOtpEmail(purpose: OtpPurpose, code: string, ttlMinutes: number): RenderedEmail {
   const copy = COPY[purpose];
-  const site = SITE_URL.replace(/\/$/, "");
-  const host = site.replace(/^https?:\/\//, "");
   const year = new Date().getFullYear();
   const digits = code
     .split("")
@@ -68,7 +66,6 @@ export function renderOtpEmail(purpose: OtpPurpose, code: string, ttlMinutes: nu
 <title>${copy.subject}</title>
 </head>
 <body style="margin:0;padding:0;background:${COLORS.page};-webkit-text-size-adjust:100%">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">كودك هو ${code} — صالح لمدة ${ttlMinutes} دقيقة.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${COLORS.page}">
 <tr><td align="center" style="padding:32px 12px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${COLORS.card};border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(1,42,34,0.08)">
@@ -87,12 +84,12 @@ export function renderOtpEmail(purpose: OtpPurpose, code: string, ttlMinutes: nu
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" dir="ltr"><tr>${digits}</tr></table>
     </td></tr>
     <tr><td align="center" style="padding:6px 32px 28px;font-family:${FONT};font-size:13px;color:${COLORS.muted}">
-      ⏱ الكود صالح لمدة <strong style="color:${COLORS.ink}">${ttlMinutes} دقيقة</strong> ويُستخدم مرة واحدة فقط.
+      الكود صالح لمدة <strong style="color:${COLORS.ink}">${ttlMinutes} دقيقة</strong> ويُستخدم مرة واحدة فقط.
     </td></tr>
     <tr><td style="padding:0 32px 30px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fbf6ea;border-right:4px solid ${COLORS.gold};border-radius:10px">
         <tr><td dir="rtl" style="padding:14px 16px;font-family:${FONT};font-size:13px;line-height:1.9;color:${COLORS.ink};text-align:right">
-          <strong>🔒 للحفاظ على أمان حسابك:</strong> لا تشارك هذا الكود مع أي شخص، فريق المنارة لن يطلبه منك أبدًا.
+          <strong>للحفاظ على أمان حسابك:</strong> لا تشارك هذا الكود مع أي شخص، فريق المنارة لن يطلبه منك أبدًا.
           إن لم تطلب هذا الكود فتجاهل الرسالة، ولن يتغيّر شيء في حسابك.
         </td></tr>
       </table>
@@ -105,7 +102,7 @@ export function renderOtpEmail(purpose: OtpPurpose, code: string, ttlMinutes: nu
   </table>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
     <tr><td align="center" style="padding:20px 16px 0;font-family:${FONT};font-size:12px;line-height:1.9;color:${COLORS.muted}">
-      <a href="${site}" style="color:${COLORS.header};text-decoration:none;font-weight:bold">${host}</a><br>
+      <strong style="color:${COLORS.header}">المنارة — قرآن وعلم وذكر</strong><br>
       هذه رسالة تلقائية، يُرجى عدم الرد عليها.<br>
       © ${year} المنارة — جميع الحقوق محفوظة
     </td></tr>
@@ -128,8 +125,6 @@ export function renderOtpEmail(purpose: OtpPurpose, code: string, ttlMinutes: nu
     `الكود صالح لمدة ${ttlMinutes} دقيقة ويُستخدم مرة واحدة فقط.`,
     "لا تشارك هذا الكود مع أي شخص، فريق المنارة لن يطلبه منك أبدًا.",
     "إن لم تطلب هذا الكود فتجاهل الرسالة.",
-    "",
-    site,
   ].join("\n");
 
   return { subject: copy.subject, html, text };

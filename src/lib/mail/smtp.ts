@@ -67,6 +67,8 @@ function buildMessage(from: string, fromName: string, message: MailMessage): str
     `Subject: ${encodedWord(message.subject)}`,
     `Date: ${new Date().toUTCString()}`,
     `Message-ID: <${randomUUID()}@${domain}>`,
+    // RFC 3834: marks the mail as machine-sent, as legitimate transactional mail does.
+    "Auto-Submitted: auto-generated",
     "MIME-Version: 1.0",
     ...mimeBody(message),
   ].join("\r\n");
