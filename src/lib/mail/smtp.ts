@@ -5,13 +5,16 @@ import { connect, type TLSSocket } from "node:tls";
 /**
  * Minimal SMTP client over implicit TLS (port 465) using only Node built-ins. Enough for
  * transactional mail through Gmail: EHLO → AUTH PLAIN → MAIL/RCPT/DATA. The body is sent base64
- * encoded, so no line can start with "." and dot-stuffing is never needed.
+ * encoded and MIME boundaries start with "--", so no line can start with "." and dot-stuffing is
+ * never needed.
  */
 
 export interface MailMessage {
   to: string;
   subject: string;
   html: string;
+  /** Plain-text alternative; sent as multipart/alternative when present (better deliverability). */
+  text?: string;
 }
 
 const TIMEOUT_MS = 15_000;
@@ -34,9 +37,30 @@ export const isMailConfigured = () => Boolean(process.env.SMTP_USER && process.e
 const b64 = (value: string) => Buffer.from(value, "utf8").toString("base64");
 const encodedWord = (value: string) => `=?UTF-8?B?${b64(value)}?=`;
 
+const b64Lines = (value: string) => b64(value).replace(/.{1,76}/g, "$&\r\n");
+
+function mimeBody(message: MailMessage): string[] {
+  const part = (type: string, content: string) => [
+    `Content-Type: ${type}; charset=UTF-8`,
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64Lines(content),
+  ];
+  if (!message.text) return part("text/html", message.html);
+  const boundary = `=_${randomUUID()}`;
+  return [
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    "",
+    `--${boundary}`,
+    ...part("text/plain", message.text),
+    `--${boundary}`,
+    ...part("text/html", message.html),
+    `--${boundary}--`,
+  ];
+}
+
 function buildMessage(from: string, fromName: string, message: MailMessage): string {
   const domain = from.split("@")[1] ?? "localhost";
-  const body = b64(message.html).replace(/.{1,76}/g, "$&\r\n");
   return [
     `From: ${encodedWord(fromName)} <${from}>`,
     `To: <${message.to}>`,
@@ -44,10 +68,7 @@ function buildMessage(from: string, fromName: string, message: MailMessage): str
     `Date: ${new Date().toUTCString()}`,
     `Message-ID: <${randomUUID()}@${domain}>`,
     "MIME-Version: 1.0",
-    "Content-Type: text/html; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
-    "",
-    body,
+    ...mimeBody(message),
   ].join("\r\n");
 }
 

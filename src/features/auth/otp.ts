@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { OtpPurpose } from "@/lib/supabase/database.types";
+import { renderOtpEmail } from "@/lib/mail/otpEmail";
 import { sendMail } from "@/lib/mail/smtp";
 
 /**
@@ -20,26 +21,6 @@ function hashCode(email: string, purpose: OtpPurpose, code: string): string {
   const secret = process.env.OTP_SECRET ?? process.env.SUPABASE_SECRET_KEY;
   if (!secret) throw new Error("OTP_SECRET is not configured");
   return createHmac("sha256", secret).update(`${purpose}:${email}:${code}`).digest("hex");
-}
-
-const SUBJECTS: Record<OtpPurpose, string> = {
-  signup: "كود تأكيد حسابك في المنارة",
-  recovery: "كود استعادة كلمة المرور",
-  email: "كود الدخول إلى المنارة",
-};
-const LEADS: Record<OtpPurpose, string> = {
-  signup: "استخدم هذا الكود لتأكيد حسابك:",
-  recovery: "استخدم هذا الكود لاستعادة كلمة المرور:",
-  email: "استخدم هذا الكود لتسجيل الدخول:",
-};
-
-function emailHtml(purpose: OtpPurpose, code: string): string {
-  return `<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;text-align:right;color:#183d34">
-  <h2 style="color:#003e32">المنارة</h2>
-  <p>${LEADS[purpose]}</p>
-  <p style="font-size:32px;font-weight:bold;letter-spacing:6px;direction:ltr;text-align:center;color:#005544">${code}</p>
-  <p>الكود صالح لمدة ${CODE_TTL_MINUTES} دقيقة. إن لم تطلبه فتجاهل هذه الرسالة.</p>
-</div>`;
 }
 
 /** Creates (or replaces) the code for this email + purpose and emails it. */
@@ -63,7 +44,7 @@ export async function issueOtp(email: string, purpose: OtpPurpose): Promise<Issu
   if (error) throw error;
 
   try {
-    await sendMail({ to: email, subject: SUBJECTS[purpose], html: emailHtml(purpose, code) });
+    await sendMail({ to: email, ...renderOtpEmail(purpose, code, CODE_TTL_MINUTES) });
     return { ok: true };
   } catch (sendError) {
     console.error("OTP email failed", sendError);
