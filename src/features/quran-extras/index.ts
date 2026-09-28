@@ -7,3 +7,4 @@ export * from "./duas/duasData";
 export * from "./duas/DuasList";
 export * from "./topics/topicsData";
 export * from "./topics/TopicsAndQA";
+export * from "./QuranExtrasHub";

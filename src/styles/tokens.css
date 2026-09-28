@@ -1,39 +1,40 @@
 :root {
-  color-scheme: dark;
-  /* Twister Crepes & Pizza — dark-luxury cinematic brand palette (single theme, no light mode). */
-  --ds-color-canvas: #0f0f0f;
-  --ds-color-surface: #171412;
-  --ds-color-surface-subtle: #1f1a17;
-  --ds-color-surface-raised: #221c19;
-  --ds-color-text: #ffffff;
-  --ds-color-text-muted: #b9aea6;
-  --ds-color-border: #322a25;
+  color-scheme: light;
+  /* Eslam Platform (Al-Manara) — emerald/gold/ivory Islamic-library brand palette, light theme. */
+  --ds-color-canvas: #fbf8f1;
+  --ds-color-surface: #ffffff;
+  --ds-color-surface-subtle: #f1eee4;
+  --ds-color-surface-raised: #ffffff;
+  --ds-color-text: #183d34;
+  --ds-color-text-muted: #68766e;
+  --ds-color-border: #e5e6dc;
 
-  --ds-color-primary: #d62828;
-  --ds-color-primary-hover: #b71f1f;
-  --ds-color-primary-container: #391414;
+  --ds-color-primary: #005544;
+  --ds-color-primary-hover: #003e32;
+  --ds-color-primary-container: #dceae5;
   --ds-color-on-primary: #ffffff;
 
-  --ds-color-accent: #f4b400;
-  --ds-color-accent-hover: #ffc72c;
-  --ds-color-accent-muted: #c99a2e;
-  --ds-color-accent-container: #3a2e0c;
-  --ds-color-on-accent-container: #f4c945;
+  --ds-color-accent: #cda23e;
+  --ds-color-accent-hover: #b78a2e;
+  --ds-color-accent-muted: #e8d7a6;
+  --ds-color-accent-container: #f7efdc;
+  --ds-color-on-accent-container: #5c4415;
   /* Solid gold surfaces (buttons/badges) need a dark foreground — white on gold fails contrast. */
-  --ds-color-on-accent-solid: #1a1400;
+  --ds-color-on-accent-solid: #183d34;
 
   --ds-color-whatsapp: #25d366;
   --ds-color-on-whatsapp: #062f16;
 
-  --ds-color-success: #3dab5c;
-  --ds-color-warning: #e8a33d;
-  --ds-color-danger: #ff5252;
-  --ds-color-info: #4ea1d6;
-  --ds-color-focus: #f4b400;
-  --ds-color-overlay: rgb(0 0 0 / 72%);
+  --ds-color-success: #1f7a46;
+  --ds-color-warning: #9c6b12;
+  --ds-color-danger: #b3261e;
+  --ds-color-info: #2563a8;
+  --ds-color-focus: #005544;
+  --ds-color-overlay: rgb(24 61 52 / 55%);
 
-  --ds-glow-primary: 0 0 32px rgb(214 40 40 / 45%);
-  --ds-glow-accent: 0 0 32px rgb(244 180 0 / 40%);
+  /* Restrained elevation, not neon glow — an Islamic-library identity avoids cinematic bloom. */
+  --ds-glow-primary: 0 2px 10px rgb(0 85 68 / 16%);
+  --ds-glow-accent: 0 2px 10px rgb(205 162 62 / 22%);
 
   --ds-font-ui: "Cairo", "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
   --ds-font-reading: "Cairo", "Segoe UI", "Noto Sans Arabic", system-ui, sans-serif;
@@ -64,8 +65,8 @@
   --ds-radius-lg: 0.75rem;
   --ds-radius-xl: 1rem;
   --ds-radius-pill: 999px;
-  --ds-shadow-raised: 0 1px 2px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 32%);
-  --ds-shadow-overlay: 0 16px 36px rgb(0 0 0 / 56%);
+  --ds-shadow-raised: 0 1px 2px rgb(24 61 52 / 8%), 0 1px 3px rgb(24 61 52 / 6%);
+  --ds-shadow-overlay: 0 16px 36px rgb(24 61 52 / 18%);
   --ds-duration-fast: 120ms;
   --ds-duration-normal: 180ms;
   --ds-duration-slow: 220ms;

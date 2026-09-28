@@ -5,23 +5,21 @@ import type { Route } from "next";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "./BrandLogo";
-import { twisterFontVariables } from "@/lib/fonts";
+import { siteFontVariables } from "@/lib/fonts";
 import { cn } from "@/lib/cn";
-import "./twister-shell.css";
+import "./site-shell.css";
 
 export interface SiteHeaderNavItem {
   href: string;
   label: string;
 }
 
-/** CPY-NAV (docs/ux/states-and-microcopy.md): the 6 primary nav destinations, in order. */
+/** The primary nav destinations, in order. Pages may override via the `navItems` prop. */
 export const defaultSiteHeaderNavItems: readonly SiteHeaderNavItem[] = [
   { href: "/", label: "الرئيسية" },
-  { href: "/menu", label: "المنيو" },
-  { href: "/offers", label: "العروض" },
-  { href: "/#zones", label: "المناطق" },
-  { href: "/reviews", label: "تقييمات" },
-  { href: "/contact", label: "اتصل بنا" },
+  { href: "/quran", label: "القرآن الكريم" },
+  { href: "/quran/kids", label: "تعليم الأطفال" },
+  { href: "/quran/more", label: "الأدعية ومواقيت الصلاة" },
 ];
 
 export interface SiteHeaderProps {
@@ -29,18 +27,23 @@ export interface SiteHeaderProps {
   /** CPY-CTA-ORDER. */
   ctaLabel?: string;
   ctaHref?: string;
-  /** Feature-owned cart trigger/badge — this shell never imports cart logic itself. */
+  /** Optional trigger/badge slot owned by the caller — this shell never imports feature logic itself. */
   cartSlot?: ReactNode;
-  /** @deprecated legacy Al-Manara prop kept only so existing quran/landing call sites still typecheck. */
+  /** Reserved for a future signed-in variant of the header; currently unused by the shell itself. */
   isAuthenticated?: boolean;
 }
 
 /**
- * Twister storefront header (LAY-A): brand + 6 nav links + "اطلب الآن" CTA + cart slot, collapsing
- * to a hamburger + full-height RTL drawer under 1024px (docs/ux/information-architecture.md).
- * Feature-agnostic: no `src/features/**` import, driven entirely by props/slots.
+ * Site header: brand + nav links + a single CTA, collapsing to a hamburger + full-height RTL
+ * drawer under 1024px. Feature-agnostic: no `src/features/**` import, driven entirely by
+ * props/slots.
  */
-export function SiteHeader({ navItems = defaultSiteHeaderNavItems, ctaLabel = "اطلب الآن", ctaHref = "/menu", cartSlot }: SiteHeaderProps) {
+export function SiteHeader({
+  navItems = defaultSiteHeaderNavItems,
+  ctaLabel = "ابدأ التعلّم",
+  ctaHref = "/quran",
+  cartSlot,
+}: SiteHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -58,29 +61,29 @@ export function SiteHeader({ navItems = defaultSiteHeaderNavItems, ctaLabel = "�
   }, [menuOpen]);
 
   return (
-    <header className={cn("tw-header", twisterFontVariables)}>
-      <Link className="tw-header__brand" href="/" aria-label="توستر كريبس آند بيتزا — الرئيسية">
+    <header className={cn("site-header", siteFontVariables)}>
+      <Link className="site-header__brand" href="/" aria-label="المنارة — الرئيسية">
         <BrandLogo />
       </Link>
 
-      <nav className="tw-header__nav" aria-label="التنقل الأساسي">
+      <nav className="site-header__nav" aria-label="التنقل الأساسي">
         {navItems.map((item) => (
-          <Link key={item.href} href={item.href as Route} className="tw-header__nav-link">
+          <Link key={item.href} href={item.href as Route} className="site-header__nav-link">
             {item.label}
           </Link>
         ))}
       </nav>
 
-      <div className="tw-header__actions">
+      <div className="site-header__actions">
         {cartSlot}
-        <Link href={ctaHref as Route} className="tw-header__cta">
+        <Link href={ctaHref as Route} className="site-header__cta">
           {ctaLabel}
         </Link>
         <button
           type="button"
-          className="tw-header__menu-button"
+          className="site-header__menu-button"
           aria-expanded={menuOpen}
-          aria-controls="tw-mobile-nav"
+          aria-controls="site-mobile-nav"
           onClick={() => setMenuOpen((open) => !open)}
         >
           {menuOpen ? <X aria-hidden /> : <Menu aria-hidden />}
@@ -89,11 +92,11 @@ export function SiteHeader({ navItems = defaultSiteHeaderNavItems, ctaLabel = "�
       </div>
 
       {menuOpen && (
-        <button type="button" className="tw-header__scrim" aria-hidden="true" tabIndex={-1} onClick={() => setMenuOpen(false)} />
+        <button type="button" className="site-header__scrim" aria-hidden="true" tabIndex={-1} onClick={() => setMenuOpen(false)} />
       )}
       <div
-        id="tw-mobile-nav"
-        className="tw-header__drawer"
+        id="site-mobile-nav"
+        className="site-header__drawer"
         data-open={menuOpen || undefined}
         role="dialog"
         aria-modal="true"
@@ -101,13 +104,13 @@ export function SiteHeader({ navItems = defaultSiteHeaderNavItems, ctaLabel = "�
       >
         <nav aria-label="التنقل — نسخة الموبايل">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href as Route} className="tw-header__drawer-link" onClick={() => setMenuOpen(false)}>
+            <Link key={item.href} href={item.href as Route} className="site-header__drawer-link" onClick={() => setMenuOpen(false)}>
               {item.label}
             </Link>
           ))}
         </nav>
         {cartSlot}
-        <Link href={ctaHref as Route} className="tw-header__cta tw-header__cta--drawer" onClick={() => setMenuOpen(false)}>
+        <Link href={ctaHref as Route} className="site-header__cta site-header__cta--drawer" onClick={() => setMenuOpen(false)}>
           {ctaLabel}
         </Link>
       </div>

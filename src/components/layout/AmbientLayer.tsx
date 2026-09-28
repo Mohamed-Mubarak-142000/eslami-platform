@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAmbientMotionAllowed } from "@/lib/motion";
-import "./twister-shell.css";
+import "./site-shell.css";
 
 interface Particle {
   id: number;
@@ -52,11 +52,11 @@ export function AmbientLayer({ particleCount = 14 }: AmbientLayerProps) {
   if (!allowed || particles.length === 0) return null;
 
   return (
-    <div className="tw-ambient-layer" aria-hidden="true">
+    <div className="site-ambient-layer" aria-hidden="true">
       {particles.map((particle) => (
         <span
           key={particle.id}
-          className="tw-ambient-layer__particle"
+          className="site-ambient-layer__particle"
           style={{
             insetInlineStart: particle.insetInlineStart,
             insetBlockStart: particle.insetBlockStart,
@@ -89,5 +89,5 @@ export function CursorGlow() {
 
   if (!allowed) return null;
 
-  return <div ref={ref} className="tw-cursor-glow" aria-hidden="true" style={{ opacity: 0 }} />;
+  return <div ref={ref} className="site-cursor-glow" aria-hidden="true" style={{ opacity: 0 }} />;
 }

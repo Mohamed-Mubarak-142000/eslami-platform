@@ -11,10 +11,14 @@ export function SurahProgressCard({ surah, memorizedCount }: { surah: Surah; mem
     <Link href={`/quran/kids/progress/${surah.id}` as Route} className="quran-kids-surah-card">
       <span className="quran-surah__number">{surah.id}</span>
       <span className="quran-kids-surah-card__progress">
-        <span className="quran-read-card__name">{surah.name}</span>
-        <span className="quran-kids-surah-card__bar"><span style={{ inlineSize: `${percent}%` }} /></span>
+        <span className="quran-kids-surah-card__name">{surah.name}</span>
+        <span className="quran-kids-surah-card__bar">
+          <span style={{ inlineSize: `${percent}%` }} />
+        </span>
       </span>
-      <span className="quran-tag">{memorizedCount}/{total}</span>
+      <span className="quran-tag">
+        {memorizedCount}/{total}
+      </span>
     </Link>
   );
 }

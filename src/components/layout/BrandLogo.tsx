@@ -9,16 +9,16 @@ export interface BrandLogoProps {
 }
 
 /**
- * business-facts.md: the real Twister logo file is missing, so this renders a text/monogram
- * fallback (never a fabricated logo image) until the restaurant owner supplies real brand art.
+ * The real Al-Manara logo asset hasn't been supplied yet, so this renders a text/monogram
+ * fallback (never a fabricated logo image) until real brand art is provided.
  */
 export function BrandLogo({ className, showName = true }: BrandLogoProps) {
   return (
     <span className={cn("brand-logo", className)}>
       <span className="brand-logo__mark" aria-hidden="true">
-        T
+        م
       </span>
-      {showName && <span className="brand-logo__name">توستر</span>}
+      {showName && <span className="brand-logo__name">المنارة</span>}
     </span>
   );
 }

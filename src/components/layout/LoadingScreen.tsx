@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { twisterFontVariables } from "@/lib/fonts";
+import { siteFontVariables } from "@/lib/fonts";
 import { cn } from "@/lib/cn";
-import "./twister-shell.css";
+import "./site-shell.css";
 
-const storageKey = "twister-loading-shown";
+const storageKey = "eslam-platform-loading-shown";
 const displayMs = 1100;
 const noopSubscribe = () => () => {};
 
@@ -22,12 +22,10 @@ export interface LoadingScreenProps {
 }
 
 /**
- * Twister loading screen (motion-choreography.md): a spinning-pizza mark shown once per browser
- * session, capped at ~1.2s, never blocking longer than that. Superseding role of the legacy
- * `SplashScreen` for new Twister routes — `SplashScreen` itself stays untouched for the existing
- * Al-Manara root layout so nothing there breaks before the reverse sweep.
+ * Shared loading screen (motion-choreography.md): a mark shown once per browser session, capped
+ * at ~1.2s, never blocking longer than that.
  */
-export function LoadingScreen({ label = "بنجهزلك المنيو…" }: LoadingScreenProps) {
+export function LoadingScreen({ label = "لحظات ونبدأ…" }: LoadingScreenProps) {
   /** Resolves to the real session-storage read only after hydration, avoiding an SSR mismatch. */
   const notShownYet = useSyncExternalStore(noopSubscribe, readNotShownYet, () => false);
   const [dismissed, setDismissed] = useState(false);
@@ -51,10 +49,10 @@ export function LoadingScreen({ label = "بنجهزلك المنيو…" }: Load
   if (!visible) return null;
 
   return (
-    <div className={cn("tw-loading-screen", twisterFontVariables)} role="presentation" aria-hidden="true">
-      <div className="tw-loading-screen__stage">
-        <span className="tw-loading-screen__pizza" />
-        <p className="tw-loading-screen__label">{label}</p>
+    <div className={cn("site-loading-screen", siteFontVariables)} role="presentation" aria-hidden="true">
+      <div className="site-loading-screen__stage">
+        <span className="site-loading-screen__mark" />
+        <p className="site-loading-screen__label">{label}</p>
       </div>
     </div>
   );

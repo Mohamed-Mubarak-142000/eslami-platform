@@ -2,8 +2,8 @@ import { Alexandria, Cairo } from "next/font/google";
 
 /**
  * Loads Cairo/Alexandria via `next/font` and exposes them as CSS variables. Applying
- * `twisterFontVariables` on any ancestor element makes `--font-cairo`/`--font-alexandria`
- * resolve for that subtree; `src/components/layout/twister-shell.css` binds the design-system's
+ * `siteFontVariables` on any ancestor element makes `--font-cairo`/`--font-alexandria`
+ * resolve for that subtree; `src/components/layout/site-shell.css` binds the design-system's
  * `--ds-font-ui`/`--ds-font-heading` tokens to these variables (design-system-agent intentionally
  * left the actual font loading to foundation — see its handoff's decisions).
  */
@@ -21,5 +21,5 @@ export const alexandria = Alexandria({
   display: "swap",
 });
 
-/** Apply on a root-ish wrapper (each Twister shell component applies this defensively). */
-export const twisterFontVariables = `${cairo.variable} ${alexandria.variable}`;
+/** Apply on a root-ish wrapper (each shell component applies this defensively). */
+export const siteFontVariables = `${cairo.variable} ${alexandria.variable}`;

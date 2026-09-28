@@ -18,13 +18,17 @@ export function QuranReadIndex({ surahs }: { surahs: Surah[] }) {
   const filteredSurahs = useMemo(() => {
     const query = search.trim();
     if (!query) return surahs;
+    const numericQuery = Number(query);
+    if (Number.isInteger(numericQuery)) return surahs.filter((surah) => surah.id === numericQuery);
     return surahs.filter((surah) => surah.name.includes(query));
   }, [surahs, search]);
 
   return (
     <main id="quran-main" className="quran-page">
       <motion.section className="quran-intro" {...reveal} viewport={{ once: true, amount: 0.3 }}>
-        <span className="landing-kicker"><BookOpenCheck size={17} aria-hidden /> قراءة</span>
+        <span className="landing-kicker">
+          <BookOpenCheck size={17} aria-hidden /> قراءة
+        </span>
         <h1>قراءة القرآن الكريم</h1>
         <p>تصفّح المصحف الشريف سورة سورة، بالرسم العثماني وأرقام الآيات.</p>
       </motion.section>
@@ -39,10 +43,10 @@ export function QuranReadIndex({ surahs }: { surahs: Surah[] }) {
       <div className="quran-filters">
         <label className="quran-search">
           <Search aria-hidden />
-          <span className="sr-only">ابحث عن سورة</span>
+          <span className="sr-only">ابحث عن سورة بالاسم أو الرقم</span>
           <input
             type="search"
-            placeholder="ابحث عن سورة..."
+            placeholder="ابحث بالاسم أو الرقم..."
             value={search}
             onChange={(event) => setSearch(event.currentTarget.value)}
           />

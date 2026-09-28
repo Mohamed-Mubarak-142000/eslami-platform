@@ -20,6 +20,7 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState("");
   const [completedOnce, setCompletedOnce] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const currentAyah = ayahs[currentIndex];
   const audioUrl = useMemo(() => (currentAyah ? buildAyahAudioUrl(currentAyah.number) : null), [currentAyah]);
@@ -28,10 +29,20 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
     const audio = audioRef.current;
     if (!audio || !audioUrl) return;
     setError("");
-    audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    setLoading(true);
+    audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false))
+      .finally(() => setLoading(false));
   }, [audioUrl]);
 
-  useEffect(() => () => { audioRef.current?.pause(); }, []);
+  useEffect(
+    () => () => {
+      audioRef.current?.pause();
+    },
+    [],
+  );
 
   function playAyahAt(index: number) {
     if (index < 0 || index >= ayahs.length) return;
@@ -46,11 +57,14 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
       setPlaying(false);
       return;
     }
+    setLoading(true);
     try {
       await audio.play();
       setPlaying(true);
     } catch {
       setPlaying(false);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -66,15 +80,21 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
 
   return (
     <main id="quran-main" className="quran-page">
-      <Link href="/quran/kids/listen" className="quran-back"><ArrowRight aria-hidden /> اختيار سورة أخرى</Link>
+      <Link href="/quran/kids/listen" className="quran-back">
+        <ArrowRight aria-hidden /> اختيار سورة أخرى
+      </Link>
 
       <section className="quran-reciter-header">
-        <span className="quran-reciter-header__avatar" aria-hidden><Play size={26} /></span>
+        <span className="quran-reciter-header__avatar" aria-hidden>
+          <Play size={26} />
+        </span>
         <div>
           <span className="landing-kicker">استمع وردد</span>
           <h1>{surah.name}</h1>
           <div className="quran-reciter-header__meta">
-            <span className="quran-tag">{currentIndex + 1}/{ayahs.length} آية</span>
+            <span className="quran-tag">
+              {currentIndex + 1}/{ayahs.length} آية
+            </span>
           </div>
         </div>
       </section>
@@ -92,25 +112,60 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
           <div
             key={ayah.number}
             className={`quran-kids-listen-ayah${index === currentIndex ? " quran-kids-listen-ayah--active" : ""}`}
+            role="button"
+            tabIndex={0}
+            aria-pressed={index === currentIndex}
             onClick={() => playAyahAt(index)}
+            onKeyDown={(event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                playAyahAt(index);
+              }
+            }}
           >
-            <span>{ayah.text} <span className="quran-ayah-number" aria-hidden>﴿{ayah.numberInSurah}﴾</span></span>
+            <span>
+              {ayah.text}{" "}
+              <span className="quran-ayah-number" aria-hidden>
+                ﴿{ayah.numberInSurah}﴾
+              </span>
+            </span>
             {index === currentIndex && (
               <span className="quran-kids-listen-ayah__controls">
-                <button type="button" onClick={(event) => { event.stopPropagation(); togglePlayback(); }}>
+                <button
+                  type="button"
+                  disabled={loading}
+                  aria-busy={loading}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    togglePlayback();
+                  }}
+                >
                   {playing ? <Pause size={14} /> : <Play size={14} />} {playing ? "إيقاف" : "تشغيل"}
                 </button>
                 <button
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
+                    if (audioRef.current) {
+                      audioRef.current.currentTime = 0;
+                      audioRef.current
+                        .play()
+                        .then(() => setPlaying(true))
+                        .catch(() => setPlaying(false));
+                    }
                   }}
                 >
                   <Repeat size={14} /> أعد الآية
                 </button>
                 {index < ayahs.length - 1 && (
-                  <button type="button" onClick={(event) => { event.stopPropagation(); playAyahAt(index + 1); }}>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      playAyahAt(index + 1);
+                    }}
+                  >
                     <SkipForward size={14} /> الآية التالية
                   </button>
                 )}
@@ -126,9 +181,14 @@ export function QuranKidsListen({ surah, ayahs }: { surah: Surah; ayahs: Ayah[] 
         preload="none"
         onEnded={handleEnded}
         onPause={() => setPlaying(false)}
-        onError={() => { setPlaying(false); setError("تعذر تشغيل هذه الآية الآن. حاول مرة أخرى أو انتقل للآية التالية."); }}
+        onError={() => {
+          setPlaying(false);
+          setError("تعذر تشغيل هذه الآية الآن. حاول مرة أخرى أو انتقل للآية التالية.");
+        }}
       />
-      <p className="quran-empty" role="status" aria-live="polite">{error}</p>
+      <p className="quran-empty" role="status" aria-live="polite">
+        {error}
+      </p>
       {completedOnce && <p className="quran-empty">أحسنت! أكملت هذه السورة 🎉</p>}
 
       {currentAyah && <ReciteRecorder key={`${surah.id}-${currentAyah.numberInSurah}`} />}

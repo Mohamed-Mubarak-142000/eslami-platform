@@ -4,26 +4,10 @@ import { useReducedMotion } from "framer-motion";
 import { useEffect, useSyncExternalStore, type RefObject } from "react";
 
 /**
- * Twister-specific motion helpers, added alongside the existing Al-Manara `MotionFoundation`/
- * `useAuthBrandTimeline` exports (docs/ux/motion-choreography.md). Motion here is always a
- * progressive enhancement: nothing in these hooks blocks content from rendering.
+ * Scroll-reveal and pointer/motion-preference helpers, added alongside the existing
+ * `MotionFoundation`/`useAuthBrandTimeline` exports (docs/ux/motion-choreography.md). Motion here
+ * is always a progressive enhancement: nothing in these hooks blocks content from rendering.
  */
-
-/** `docs/ux/motion-choreography.md`'s hero timeline beats, kept as pure data for feature-ui-agent. */
-export interface HeroTimelineStep {
-  id: "curtain" | "logo-reveal" | "headline" | "food-spotlight" | "cta-and-badge";
-  startSeconds: number;
-  durationSeconds: number;
-  description: string;
-}
-
-export const heroTimelineSteps: readonly HeroTimelineStep[] = [
-  { id: "curtain", startSeconds: 0, durationSeconds: 0.6, description: "طبقتان (يمين/يسار RTL) تنسحبان للخارج" },
-  { id: "logo-reveal", startSeconds: 0.4, durationSeconds: 0.5, description: "الشعار يظهر بـscale+fade من المنتصف" },
-  { id: "headline", startSeconds: 0.7, durationSeconds: 0.4, description: "عنوان عربي كبير يظهر بحركة صعود خفيفة" },
-  { id: "food-spotlight", startSeconds: 0.9, durationSeconds: 0.6, description: "صورة الطبق تظهر بإضاءة/glow متصاعدة" },
-  { id: "cta-and-badge", startSeconds: 1.2, durationSeconds: 0.3, description: "زر اطلب الآن وشارة العرض يظهران آخرًا" },
-];
 
 function getCoarsePointerSnapshot(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;

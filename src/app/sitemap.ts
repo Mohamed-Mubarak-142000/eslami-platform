@@ -12,6 +12,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/quran/kids/quiz",
     "/quran/kids/progress",
     "/quran/read",
+    "/quran/more",
+    "/quran/prayer-times",
+    "/quran/hijri",
+    "/quran/duas",
+    "/quran/topics",
   ];
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,

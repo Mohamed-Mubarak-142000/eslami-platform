@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
-import { twisterFontVariables } from "@/lib/fonts";
+import { siteFontVariables } from "@/lib/fonts";
 import { cn } from "@/lib/cn";
-import "./twister-shell.css";
+import "./site-shell.css";
 
 export interface PageTransitionProps {
   children: ReactNode;
@@ -21,14 +21,14 @@ export function PageTransition({ children, transitionKey }: PageTransitionProps)
   const prefersReducedMotion = useReducedMotion();
 
   if (prefersReducedMotion) {
-    return <div className={cn("tw-page-transition", twisterFontVariables)}>{children}</div>;
+    return <div className={cn("site-page-transition", siteFontVariables)}>{children}</div>;
   }
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={transitionKey}
-        className={cn("tw-page-transition", twisterFontVariables)}
+        className={cn("site-page-transition", siteFontVariables)}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}

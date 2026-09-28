@@ -71,7 +71,9 @@ export function ParentGate({ children }: { children: ReactNode }) {
   return (
     <main id="quran-main" className="quran-page">
       <section className="quran-parent-gate">
-        <span className="quran-parent-gate__icon" aria-hidden>{pinExists ? <Lock size={26} /> : <ShieldCheck size={26} />}</span>
+        <span className="quran-parent-gate__icon" aria-hidden>
+          {pinExists ? <Lock size={26} /> : <ShieldCheck size={26} />}
+        </span>
         <h1>{pinExists ? "لوحة الأهل" : "أنشئ رمز دخول للوحة الأهل"}</h1>
         <p>
           {pinExists
@@ -87,6 +89,10 @@ export function ParentGate({ children }: { children: ReactNode }) {
               inputMode="numeric"
               autoComplete="off"
               placeholder="رمز من ٤ أرقام"
+              maxLength={6}
+              pattern="\d{4,6}"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "parent-gate-error" : undefined}
               value={pin}
               onChange={(event) => setPin(event.currentTarget.value)}
             />
@@ -99,13 +105,23 @@ export function ParentGate({ children }: { children: ReactNode }) {
                 inputMode="numeric"
                 autoComplete="off"
                 placeholder="أعد كتابة الرمز"
+                maxLength={6}
+                pattern="\d{4,6}"
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? "parent-gate-error" : undefined}
                 value={confirmPin}
                 onChange={(event) => setConfirmPin(event.currentTarget.value)}
               />
             </label>
           )}
-          {error && <p className="quran-empty" role="alert">{error}</p>}
-          <button type="submit" className="quran-parent-gate__submit">{pinExists ? "دخول" : "حفظ الرمز والمتابعة"}</button>
+          {error && (
+            <p id="parent-gate-error" className="quran-empty" role="alert">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="quran-parent-gate__submit">
+            {pinExists ? "دخول" : "حفظ الرمز والمتابعة"}
+          </button>
         </form>
 
         {pinExists && (

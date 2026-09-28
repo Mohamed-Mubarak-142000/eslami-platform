@@ -17,7 +17,9 @@ export function QuranKidsListenPicker({ surahs }: { surahs: Surah[] }) {
   return (
     <main id="quran-main" className="quran-page">
       <motion.section className="quran-intro" {...reveal} viewport={{ once: true, amount: 0.3 }}>
-        <span className="landing-kicker"><PenLine size={17} aria-hidden /> استمع وردد</span>
+        <span className="landing-kicker">
+          <PenLine size={17} aria-hidden /> استمع وردد
+        </span>
         <h1>استمع وردد</h1>
         <p>اختر سورة لتستمع لكل آية بمفردها مع تظليلها، ثم رددها بصوتك.</p>
       </motion.section>
@@ -26,7 +28,7 @@ export function QuranKidsListenPicker({ surahs }: { surahs: Surah[] }) {
         {surahs.map((surah) => (
           <Link key={surah.id} href={`/quran/kids/listen/${surah.id}` as Route} className="quran-kids-surah-card">
             <span className="quran-surah__number">{surah.id}</span>
-            <span className="quran-read-card__name">{surah.name}</span>
+            <span className="quran-kids-surah-card__name">{surah.name}</span>
             {completed.has(surah.id) && <CheckCircle2 size={18} color="#2f9e44" aria-label="مكتملة" />}
           </Link>
         ))}

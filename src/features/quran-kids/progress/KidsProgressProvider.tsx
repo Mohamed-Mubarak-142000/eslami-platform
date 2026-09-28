@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useState, useSyncExternalStore, type ReactNode } from "react";
 import { DEFAULT_KIDS_PROGRESS, type KidsProgressState } from "./progressTypes";
 import { loadKidsProgress, saveKidsProgress } from "./progressStorage";
 import { computeUnlockedBadgeIds } from "./badges";
@@ -9,29 +9,32 @@ import { advanceReviewSchedule, isSurahFullyMemorized, startReviewSchedule } fro
 
 type Listener = () => void;
 
-let cachedState: KidsProgressState | null = null;
-let listeners: Listener[] = [];
-
-function getSnapshot(): KidsProgressState {
-  if (cachedState === null) cachedState = loadKidsProgress();
-  return cachedState;
-}
-
 function getServerSnapshot(): KidsProgressState {
   return DEFAULT_KIDS_PROGRESS;
 }
 
-function subscribe(listener: Listener): () => void {
-  listeners = [...listeners, listener];
-  return () => {
-    listeners = listeners.filter((item) => item !== listener);
-  };
-}
+/** Per-provider store — instantiated once per `KidsProgressProvider` mount, never shared at module scope. */
+function createProgressStore() {
+  let cachedState: KidsProgressState | null = null;
+  let listeners: Listener[] = [];
 
-function commit(next: KidsProgressState) {
-  cachedState = next;
-  saveKidsProgress(next);
-  for (const listener of listeners) listener();
+  return {
+    getSnapshot(): KidsProgressState {
+      if (cachedState === null) cachedState = loadKidsProgress();
+      return cachedState;
+    },
+    subscribe(listener: Listener): () => void {
+      listeners = [...listeners, listener];
+      return () => {
+        listeners = listeners.filter((item) => item !== listener);
+      };
+    },
+    commit(next: KidsProgressState) {
+      cachedState = next;
+      saveKidsProgress(next);
+      for (const listener of listeners) listener();
+    },
+  };
 }
 
 function withRecomputedBadges(state: KidsProgressState): KidsProgressState {
@@ -61,10 +64,11 @@ interface KidsProgressContextValue {
 const KidsProgressContext = createContext<KidsProgressContextValue | null>(null);
 
 export function KidsProgressProvider({ children }: { children: ReactNode }) {
-  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [store] = useState(() => createProgressStore());
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, getServerSnapshot);
 
   function setAyahMemorized(surahId: number, numberInSurah: number, memorized: boolean) {
-    const current = getSnapshot();
+    const current = store.getSnapshot();
     const currentList = current.memorizedAyahsBySurah[surahId] ?? [];
     const nextList = toggleAyah(currentList, numberInSurah, memorized);
     const nextMemorized = { ...current.memorizedAyahsBySurah, [surahId]: nextList };
@@ -77,20 +81,22 @@ export function KidsProgressProvider({ children }: { children: ReactNode }) {
         ? { ...current.reviewSchedule, [surahId]: startReviewSchedule() }
         : current.reviewSchedule;
 
-    commit(withRecomputedBadges({ ...nextState, reviewSchedule }));
+    store.commit(withRecomputedBadges({ ...nextState, reviewSchedule }));
   }
 
   function markSurahReviewed(surahId: number) {
-    const current = getSnapshot();
+    const current = store.getSnapshot();
     const existing = current.reviewSchedule[surahId];
     if (!existing) return;
-    commit(withRecomputedBadges({ ...current, reviewSchedule: { ...current.reviewSchedule, [surahId]: advanceReviewSchedule(existing) } }));
+    store.commit(
+      withRecomputedBadges({ ...current, reviewSchedule: { ...current.reviewSchedule, [surahId]: advanceReviewSchedule(existing) } }),
+    );
   }
 
   function recordQuizResult(correct: number, total: number) {
-    const current = getSnapshot();
+    const current = store.getSnapshot();
     const scorePercent = total > 0 ? Math.round((correct / total) * 100) : 0;
-    commit(
+    store.commit(
       withRecomputedBadges({
         ...current,
         quizStats: {
@@ -105,8 +111,8 @@ export function KidsProgressProvider({ children }: { children: ReactNode }) {
   }
 
   function recordMatchGameCompletion(kind: "tajweed" | "letters") {
-    const current = getSnapshot();
-    commit(
+    const current = store.getSnapshot();
+    store.commit(
       withRecomputedBadges({
         ...current,
         matchStats: {
@@ -119,20 +125,28 @@ export function KidsProgressProvider({ children }: { children: ReactNode }) {
   }
 
   function recordListenCompletion(surahId: number) {
-    const current = getSnapshot();
+    const current = store.getSnapshot();
     const surahsCompleted = current.listenStats.surahsCompleted.includes(surahId)
       ? current.listenStats.surahsCompleted
       : [...current.listenStats.surahsCompleted, surahId];
-    commit(withRecomputedBadges({ ...current, listenStats: { surahsCompleted, lastPlayedAt: new Date().toISOString() } }));
+    store.commit(withRecomputedBadges({ ...current, listenStats: { surahsCompleted, lastPlayedAt: new Date().toISOString() } }));
   }
 
   function resetProgress() {
-    commit(DEFAULT_KIDS_PROGRESS);
+    store.commit(DEFAULT_KIDS_PROGRESS);
   }
 
   return (
     <KidsProgressContext.Provider
-      value={{ state, setAyahMemorized, recordQuizResult, recordMatchGameCompletion, recordListenCompletion, markSurahReviewed, resetProgress }}
+      value={{
+        state,
+        setAyahMemorized,
+        recordQuizResult,
+        recordMatchGameCompletion,
+        recordListenCompletion,
+        markSurahReviewed,
+        resetProgress,
+      }}
     >
       {children}
     </KidsProgressContext.Provider>

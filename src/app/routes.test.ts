@@ -21,5 +21,12 @@ describe("route integration smoke", () => {
     "quran/kids/progress/[surahNumber]/page.tsx",
     "quran/read/page.tsx",
     "quran/read/[surahNumber]/page.tsx",
-  ])("ships the P0 route %s", route => { expect(readFileSync(resolve(app, route), "utf8").length).toBeGreaterThan(20); });
+    "quran/more/page.tsx",
+    "quran/prayer-times/page.tsx",
+    "quran/hijri/page.tsx",
+    "quran/duas/page.tsx",
+    "quran/topics/page.tsx",
+  ])("ships the P0 route %s", (route) => {
+    expect(readFileSync(resolve(app, route), "utf8").length).toBeGreaterThan(20);
+  });
 });

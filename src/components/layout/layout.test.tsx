@@ -8,10 +8,10 @@ import { StickyWhatsAppButton } from "./StickyWhatsAppButton";
 afterEach(cleanup);
 
 describe("SiteHeader", () => {
-  it("renders the 6 primary nav items plus the order CTA", () => {
+  it("renders the primary nav items plus the default CTA", () => {
     render(<SiteHeader />);
     for (const item of defaultSiteHeaderNavItems) expect(screen.getAllByRole("link", { name: item.label }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: "اطلب الآن" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "ابدأ التعلّم" }).length).toBeGreaterThan(0);
   });
 
   it("opens and closes the mobile drawer", () => {
@@ -34,15 +34,15 @@ describe("SiteHeader", () => {
 });
 
 describe("SiteFooter", () => {
-  it("links WhatsApp with the given number and shows the placeholder-data badge by default", () => {
-    render(<SiteFooter whatsappNumber="201000000000" />);
-    expect(screen.getByRole("link", { name: /تواصل عبر واتساب/ })).toHaveAttribute("href", "https://wa.me/201000000000");
-    expect(screen.getByText("بيانات توضيحية — لسه مش نهائية")).toBeInTheDocument();
+  it("renders the brand, nav links, and copyright with no fabricated contact info", () => {
+    render(<SiteFooter />);
+    for (const item of defaultSiteHeaderNavItems) expect(screen.getAllByRole("link", { name: item.label }).length).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()} المنارة`))).toBeInTheDocument();
   });
 
-  it("hides the placeholder badge once business info is verified", () => {
-    render(<SiteFooter isBusinessInfoVerified />);
-    expect(screen.queryByText("بيانات توضيحية — لسه مش نهائية")).not.toBeInTheDocument();
+  it("accepts a custom tagline", () => {
+    render(<SiteFooter tagline="نص تجريبي" />);
+    expect(screen.getByText("نص تجريبي")).toBeInTheDocument();
   });
 });
 
@@ -64,12 +64,12 @@ describe("StickyWhatsAppButton", () => {
 describe("AdminShell", () => {
   it("renders exactly one <main> landmark and the persistent local-data notice", () => {
     render(
-      <AdminShell activeHref="/admin/products" title="المنتجات">
+      <AdminShell navItems={[{ href: "/admin/courses", label: "الدورات" }]} activeHref="/admin/courses" title="الدورات">
         <p>محتوى الصفحة</p>
       </AdminShell>,
     );
     expect(screen.getAllByRole("main")).toHaveLength(1);
-    expect(screen.getByText("الأرقام والطلبات هنا محلية على هذا المتصفح فقط، مش قاعدة بيانات مركزية")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "المنتجات" })[0]).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("البيانات هنا محلية على هذا المتصفح فقط، مش قاعدة بيانات مركزية")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "الدورات" })[0]).toHaveAttribute("aria-current", "page");
   });
 });
