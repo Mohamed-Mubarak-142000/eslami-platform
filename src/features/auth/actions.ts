@@ -1,7 +1,7 @@
 "use server";
 
 import type { Route } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -102,13 +102,26 @@ export async function emailCodeLoginAction(_: FormState | undefined, formData: F
   redirect(verifyUrl(parsed.data.email, "email", safeNext(formData.get("next"))));
 }
 
+/**
+ * The origin the visitor is actually on (Vercel sets x-forwarded-host/proto). Used for OAuth
+ * return links so a wrong NEXT_PUBLIC_SITE_URL can't send people to another host; Supabase still
+ * only honors origins in its Redirect URLs allow-list.
+ */
+async function requestOrigin(): Promise<string> {
+  const list = await headers();
+  const host = list.get("x-forwarded-host") ?? list.get("host");
+  if (!host) return SITE_URL;
+  const proto = list.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
 export async function googleSignInAction(formData: FormData): Promise<void> {
   if (!isSupabaseConfigured) redirect("/login?error=not-configured");
   const next = safeNext(formData.get("next"));
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}` },
+    options: { redirectTo: `${await requestOrigin()}/auth/callback?next=${encodeURIComponent(next)}` },
   });
   if (error || !data.url) redirect("/login?error=google");
   redirect(data.url as Route);
