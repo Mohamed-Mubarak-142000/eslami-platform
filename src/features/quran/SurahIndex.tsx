@@ -52,7 +52,7 @@ export function SurahIndex({ surahs }: { surahs: IndexSurah[] }) {
         </Link>
       )}
 
-      <div className="sticky top-18 z-20 -mx-4 mb-8 border-b border-line bg-ivory/90 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
+      <div className="sticky top-16 sm:top-18 z-20 -mx-4 mb-8 border-b border-line bg-ivory/90 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <label className="relative flex-1">
             <span className="sr-only">ابحث عن سورة بالاسم أو الرقم</span>

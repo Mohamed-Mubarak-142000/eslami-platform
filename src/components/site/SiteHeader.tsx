@@ -2,17 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, isActivePath } from "./nav";
 
+const noopSubscribe = () => () => {};
+
 export function SiteHeader() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  // Remember which page the menu was opened on, so navigating closes it without an effect.
+  const [openedOn, setOpenedOn] = useState<string | null>(null);
+  const open = openedOn === pathname;
   const [scrolled, setScrolled] = useState(false);
+  const isClient = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -23,15 +36,41 @@ export function SiteHeader() {
 
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
+    const html = document.documentElement;
+    const previous = { html: html.style.overflow, body: document.body.style.overflow };
+    // Locking <html> as well as <body> is what actually stops background scroll on iOS Safari.
+    html.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    closeRef.current?.focus();
+    const toggle = toggleRef.current;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenedOn(null);
+        return;
+      }
+      if (event.key !== "Tab" || !drawerRef.current) return;
+      const focusable = drawerRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])");
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = previous;
+      html.style.overflow = previous.html;
+      document.body.style.overflow = previous.body;
       window.removeEventListener("keydown", onKey);
+      toggle?.focus();
     };
   }, [open]);
+
+  const close = () => setOpenedOn(null);
 
   return (
     <header
@@ -46,11 +85,11 @@ export function SiteHeader() {
       >
         انتقل إلى المحتوى
       </a>
-      <div className="mx-auto flex h-18 max-w-7xl items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:h-18 sm:px-6">
         <Logo />
 
-        <nav aria-label="التنقل الرئيسي" className="ms-auto hidden xl:block">
-          <ul className="flex items-center gap-1">
+        <nav aria-label="التنقل الرئيسي" className="ms-auto hidden lg:block">
+          <ul className="flex items-center gap-0.5 xl:gap-1">
             {NAV_ITEMS.map((item) => {
               const active = isActivePath(pathname, item.href);
               return (
@@ -59,7 +98,7 @@ export function SiteHeader() {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative block rounded-full px-3.5 py-2 text-[0.95rem] font-semibold transition-colors",
+                      "relative block rounded-full px-2.5 py-2 text-sm font-semibold transition-colors xl:px-3.5 xl:text-[0.95rem]",
                       active ? "text-emerald-deep" : "text-muted hover:text-ink",
                     )}
                   >
@@ -79,91 +118,106 @@ export function SiteHeader() {
         </nav>
 
         <button
+          ref={toggleRef}
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => setOpenedOn(pathname)}
           aria-expanded={open}
           aria-controls="mobile-nav"
-          className="ms-auto grid size-11 place-items-center rounded-full border border-line bg-white text-ink xl:hidden"
+          className="ms-auto grid size-11 place-items-center rounded-full border border-line bg-white text-ink shadow-soft active:scale-95 lg:hidden"
         >
           <Menu className="size-5" aria-hidden />
           <span className="sr-only">فتح القائمة</span>
         </button>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.button
-              type="button"
-              aria-hidden
-              tabIndex={-1}
-              className="fixed inset-0 z-40 bg-emerald-night/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-            />
-            <motion.nav
-              id="mobile-nav"
-              aria-label="القائمة"
-              className="fixed inset-y-0 right-0 z-50 flex w-[min(86vw,22rem)] flex-col bg-ivory shadow-lift"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 34 }}
-            >
-              <div className="flex items-center justify-between border-b border-line px-5 py-4">
-                <Logo />
-                <button
+      {/* Portaled to <body>: the header's backdrop-filter would otherwise trap this "fixed" drawer
+          inside the header on some browsers, and its z-index would sit under toasts/players. */}
+      {isClient &&
+        createPortal(
+          <AnimatePresence>
+            {open && (
+              <div className="fixed inset-0 z-[80] lg:hidden">
+                <motion.button
                   type="button"
-                  onClick={() => setOpen(false)}
-                  className="grid size-10 place-items-center rounded-full hover:bg-emerald-mist"
+                  aria-hidden
+                  tabIndex={-1}
+                  className="absolute inset-0 bg-emerald-night/55 backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={close}
+                />
+                <motion.nav
+                  ref={drawerRef}
+                  id="mobile-nav"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="القائمة"
+                  className="absolute inset-y-0 right-0 flex h-dvh w-[min(88vw,22rem)] flex-col overscroll-contain bg-ivory shadow-lift"
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", stiffness: 320, damping: 34 }}
+                  style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
                 >
-                  <X className="size-5" aria-hidden />
-                  <span className="sr-only">إغلاق القائمة</span>
-                </button>
-              </div>
-              <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-                {NAV_ITEMS.map((item, index) => {
-                  const active = isActivePath(pathname, item.href);
-                  const Icon = item.icon;
-                  return (
-                    <motion.li
-                      key={item.href}
-                      initial={{ opacity: 0, x: 24 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.04 * index }}
+                  <div className="flex items-center justify-between border-b border-line px-5 py-4">
+                    <Logo />
+                    <button
+                      ref={closeRef}
+                      type="button"
+                      onClick={close}
+                      className="grid size-11 place-items-center rounded-full hover:bg-emerald-mist"
                     >
-                      <Link
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                          "flex items-center gap-3 rounded-2xl p-3 transition-colors",
-                          active ? "bg-emerald text-white" : "hover:bg-emerald-mist",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "grid size-10 place-items-center rounded-xl",
-                            active ? "bg-white/15" : "bg-gold-mist text-gold-deep",
-                          )}
+                      <X className="size-5" aria-hidden />
+                      <span className="sr-only">إغلاق القائمة</span>
+                    </button>
+                  </div>
+                  <ul className="flex-1 space-y-1 overflow-y-auto overscroll-contain p-3">
+                    {NAV_ITEMS.map((item, index) => {
+                      const active = isActivePath(pathname, item.href);
+                      const Icon = item.icon;
+                      return (
+                        <motion.li
+                          key={item.href}
+                          initial={{ opacity: 0, x: 24 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.035 * index }}
                         >
-                          <Icon className="size-5" aria-hidden />
-                        </span>
-                        <span>
-                          <span className="block font-bold">{item.label}</span>
-                          <span className={cn("block text-xs", active ? "text-white/75" : "text-muted")}>{item.description}</span>
-                        </span>
-                      </Link>
-                    </motion.li>
-                  );
-                })}
-              </ul>
-            </motion.nav>
-          </>
+                          <Link
+                            href={item.href}
+                            onClick={close}
+                            aria-current={active ? "page" : undefined}
+                            className={cn(
+                              "flex min-h-14 items-center gap-3 rounded-2xl p-3 transition-colors",
+                              active ? "bg-emerald text-white" : "hover:bg-emerald-mist active:bg-emerald-mist",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "grid size-10 shrink-0 place-items-center rounded-xl",
+                                active ? "bg-white/15" : "bg-gold-mist text-gold-deep",
+                              )}
+                            >
+                              <Icon className="size-5" aria-hidden />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block font-bold">{item.label}</span>
+                              <span className={cn("block truncate text-xs", active ? "text-white/75" : "text-muted")}>
+                                {item.description}
+                              </span>
+                            </span>
+                          </Link>
+                        </motion.li>
+                      );
+                    })}
+                  </ul>
+                  <p className="border-t border-line px-5 py-4 text-center text-xs text-muted">المنارة — قرآن · علم · ذكر</p>
+                </motion.nav>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </header>
   );
 }
