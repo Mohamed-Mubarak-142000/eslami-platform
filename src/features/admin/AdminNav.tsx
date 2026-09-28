@@ -3,13 +3,14 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { Award, LayoutDashboard, Users } from "lucide-react";
+import { Award, Clapperboard, LayoutDashboard, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const TABS: { href: Route; label: string; icon: typeof Users }[] = [
   { href: "/admin", label: "نظرة عامة", icon: LayoutDashboard },
   { href: "/admin/users", label: "المستخدمون", icon: Users },
   { href: "/admin/certificates", label: "الشهادات", icon: Award },
+  { href: "/admin/stories", label: "قصص الأطفال", icon: Clapperboard },
 ];
 
 export function AdminNav() {

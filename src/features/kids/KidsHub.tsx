@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { Award, BookOpen, Flame, Headphones, Puzzle, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Award, BookOpen, Clapperboard, Flame, Headphones, Puzzle, ShieldCheck, Sparkles, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { gsap, useGSAP, FULL_MOTION } from "@/lib/gsap";
 import { toArabicDigits } from "@/lib/arabic";
@@ -33,6 +33,14 @@ const CARDS: HubCard[] = [
     shadow: "#0b7a44",
   },
   { href: "/kids/games", title: "الألعاب", description: "حروف وتجويد وترتيب الآيات", icon: Puzzle, color: "#f5b92e", shadow: "#c98f10" },
+  {
+    href: "/kids/stories",
+    title: "قصص الأنبياء",
+    description: "قصص كرتونية نتعلّم منها",
+    icon: Clapperboard,
+    color: "#7a5af5",
+    shadow: "#5a3ed1",
+  },
   { href: "/kids/quiz", title: "اختبر نفسك", description: "أسئلة ممتعة عن السور", icon: Sparkles, color: "#e84a67", shadow: "#b92f49" },
   {
     href: "/kids/listen",

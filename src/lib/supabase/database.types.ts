@@ -118,6 +118,22 @@ export type EmailOtpRow = {
   created_at: Timestamp;
   expires_at: Timestamp;
 };
+export type KidsStoryRow = {
+  id: string;
+  title: string;
+  prophet: string | null;
+  youtube_id: string;
+  summary: string;
+  lesson: string;
+  sort_order: number;
+  published: boolean;
+  created_at: Timestamp;
+};
+export type StoryViewRow = {
+  learner_id: string;
+  story_id: string;
+  watched_at: Timestamp;
+};
 export type ExamAnswerKeyRow = {
   attempt_id: string;
   key: unknown;
@@ -163,6 +179,11 @@ export type Database = {
         Optional<ExamAttemptRow, "id" | "answers" | "score" | "status" | "started_at" | "submitted_at">
       >;
       exam_answer_keys: TableDef<ExamAnswerKeyRow, ExamAnswerKeyRow>;
+      kids_stories: TableDef<
+        KidsStoryRow,
+        Optional<KidsStoryRow, "id" | "prophet" | "summary" | "lesson" | "sort_order" | "published" | "created_at">
+      >;
+      story_views: TableDef<StoryViewRow, Optional<StoryViewRow, "watched_at">>;
       email_otps: TableDef<EmailOtpRow, Optional<EmailOtpRow, "attempts" | "created_at">>;
       certificates: TableDef<CertificateRow, Optional<CertificateRow, "id" | "exam_attempt_id" | "issued_at" | "revoked_at">>;
     };

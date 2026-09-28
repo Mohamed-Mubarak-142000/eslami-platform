@@ -10,7 +10,7 @@ import type { AppRole, AppSettingsRow } from "@/lib/supabase/database.types";
 import { setCertificateRevokedAction, setUserDisabledAction, setUserRoleAction, updateExamSettingsAction } from "./actions";
 
 /** A small button that runs an admin action and shows its outcome inline. */
-function ActionButton({ label, run, danger }: { label: string; run: () => Promise<FormState>; danger?: boolean }) {
+export function ActionButton({ label, run, danger }: { label: string; run: () => Promise<FormState>; danger?: boolean }) {
   const [pending, start] = useTransition();
   const [result, setResult] = useState<FormState>();
   return (
