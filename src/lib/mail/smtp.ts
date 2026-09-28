@@ -28,7 +28,7 @@ function smtpConfig() {
     port: Number(process.env.SMTP_PORT ?? 465),
     user,
     pass,
-    fromName: process.env.MAIL_FROM_NAME ?? "المنارة",
+    fromName: process.env.MAIL_FROM_NAME ?? "Mohamed Mubarak",
   };
 }
 
