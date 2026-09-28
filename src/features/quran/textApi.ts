@@ -2,6 +2,10 @@ export interface Ayah {
   number: number;
   numberInSurah: number;
   text: string;
+  page: number;
+  juz: number;
+  hizbQuarter: number;
+  sajda: boolean;
 }
 
 export interface TafsirAyah {
@@ -13,17 +17,56 @@ interface RawAyah {
   number: number;
   numberInSurah: number;
   text: string;
+  page: number;
+  juz: number;
+  hizbQuarter: number;
+  sajda: boolean | { id: number };
 }
 
-const TEXT_BASE_URL = "https://api.alquran.cloud/v1/surah";
+const BASE_URL = "https://api.alquran.cloud/v1";
 const TAFSIR_EDITION = "ar.muyassar";
-const TEXT_REVALIDATE_SECONDS = 60 * 60 * 24 * 30;
+const REVALIDATE = 60 * 60 * 24 * 30;
 // Built from verified codepoints (not typed by hand) because Arabic combining marks
 // (shadda U+0651 before fatha U+064E) are easy to silently transpose when copy-pasted.
 export const BASMALA = String.fromCodePoint(
-  0x628, 0x650, 0x633, 0x652, 0x645, 0x650, 0x20, 0x671, 0x644, 0x644, 0x651, 0x64e, 0x647, 0x650, 0x20,
-  0x671, 0x644, 0x631, 0x651, 0x64e, 0x62d, 0x652, 0x645, 0x64e, 0x670, 0x646, 0x650, 0x20, 0x671, 0x644,
-  0x631, 0x651, 0x64e, 0x62d, 0x650, 0x64a, 0x645, 0x650,
+  0x628,
+  0x650,
+  0x633,
+  0x652,
+  0x645,
+  0x650,
+  0x20,
+  0x671,
+  0x644,
+  0x644,
+  0x651,
+  0x64e,
+  0x647,
+  0x650,
+  0x20,
+  0x671,
+  0x644,
+  0x631,
+  0x651,
+  0x64e,
+  0x62d,
+  0x652,
+  0x645,
+  0x64e,
+  0x670,
+  0x646,
+  0x650,
+  0x20,
+  0x671,
+  0x644,
+  0x631,
+  0x651,
+  0x64e,
+  0x62d,
+  0x650,
+  0x64a,
+  0x645,
+  0x650,
 );
 const SURAHS_WITHOUT_SEPARATE_BASMALA = new Set([1, 9]);
 
@@ -33,17 +76,23 @@ function stripLeadingBom(text: string): string {
 
 export async function getSurahAyahs(surahNumber: number): Promise<{ basmala: string | null; ayahs: Ayah[] }> {
   try {
-    const response = await fetch(`${TEXT_BASE_URL}/${surahNumber}/quran-uthmani`, { next: { revalidate: TEXT_REVALIDATE_SECONDS } });
+    const response = await fetch(`${BASE_URL}/surah/${surahNumber}/quran-uthmani`, { next: { revalidate: REVALIDATE } });
     if (!response.ok) return { basmala: null, ayahs: [] };
     const data = (await response.json()) as { data: { ayahs: RawAyah[] } };
-    const ayahs = data.data.ayahs.map((ayah) => ({ number: ayah.number, numberInSurah: ayah.numberInSurah, text: stripLeadingBom(ayah.text) }));
+    const ayahs: Ayah[] = data.data.ayahs.map((ayah) => ({
+      number: ayah.number,
+      numberInSurah: ayah.numberInSurah,
+      text: stripLeadingBom(ayah.text),
+      page: ayah.page,
+      juz: ayah.juz,
+      hizbQuarter: ayah.hizbQuarter,
+      sajda: ayah.sajda !== false,
+    }));
 
     if (!SURAHS_WITHOUT_SEPARATE_BASMALA.has(surahNumber) && ayahs[0]?.text.startsWith(BASMALA)) {
       const [first, ...rest] = ayahs;
-      const remainder = first!.text.slice(BASMALA.length).trim();
-      return { basmala: BASMALA, ayahs: [{ ...first!, text: remainder }, ...rest] };
+      return { basmala: BASMALA, ayahs: [{ ...first!, text: first!.text.slice(BASMALA.length).trim() }, ...rest] };
     }
-
     return { basmala: null, ayahs };
   } catch {
     return { basmala: null, ayahs: [] };
@@ -52,11 +101,60 @@ export async function getSurahAyahs(surahNumber: number): Promise<{ basmala: str
 
 export async function getSurahTafsir(surahNumber: number): Promise<TafsirAyah[]> {
   try {
-    const response = await fetch(`${TEXT_BASE_URL}/${surahNumber}/${TAFSIR_EDITION}`, { next: { revalidate: TEXT_REVALIDATE_SECONDS } });
+    const response = await fetch(`${BASE_URL}/surah/${surahNumber}/${TAFSIR_EDITION}`, { next: { revalidate: REVALIDATE } });
     if (!response.ok) return [];
-    const data = (await response.json()) as { data: { ayahs: RawAyah[] } };
+    const data = (await response.json()) as { data: { ayahs: { numberInSurah: number; text: string }[] } };
     return data.data.ayahs.map((ayah) => ({ numberInSurah: ayah.numberInSurah, text: stripLeadingBom(ayah.text) }));
   } catch {
     return [];
   }
+}
+
+export interface SurahMeta {
+  number: number;
+  ayahCount: number;
+  meccan: boolean;
+  juzStart: number;
+}
+
+/** Ayah counts, revelation type, and the juz each surah starts in — one cached request. */
+export async function getQuranMeta(): Promise<SurahMeta[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/meta`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return [];
+    const data = (await response.json()) as {
+      data: {
+        surahs: { references: { number: number; numberOfAyahs: number; revelationType: string }[] };
+        juzs: { references: { surah: number; ayah: number }[] };
+      };
+    };
+    const juzStarts = data.data.juzs.references;
+    return data.data.surahs.references.map((surah) => {
+      let juzStart = 1;
+      juzStarts.forEach((start, index) => {
+        if (start.surah < surah.number || (start.surah === surah.number && start.ayah === 1)) juzStart = index + 1;
+      });
+      return { number: surah.number, ayahCount: surah.numberOfAyahs, meccan: surah.revelationType === "Meccan", juzStart };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export interface MushafPage {
+  page: number;
+  juz: number;
+  hizbQuarter: number;
+  ayahs: Ayah[];
+}
+
+/** Groups a surah's ayahs by their Madani mushaf page number. */
+export function groupByMushafPage(ayahs: Ayah[]): MushafPage[] {
+  const pages: MushafPage[] = [];
+  for (const ayah of ayahs) {
+    const last = pages[pages.length - 1];
+    if (last && last.page === ayah.page) last.ayahs.push(ayah);
+    else pages.push({ page: ayah.page, juz: ayah.juz, hizbQuarter: ayah.hizbQuarter, ayahs: [ayah] });
+  }
+  return pages;
 }

@@ -1,25 +1,23 @@
-import { Alexandria, Cairo } from "next/font/google";
+import { Alexandria, Amiri_Quran, Baloo_Bhaijaan_2, Cairo } from "next/font/google";
 
-/**
- * Loads Cairo/Alexandria via `next/font` and exposes them as CSS variables. Applying
- * `siteFontVariables` on any ancestor element makes `--font-cairo`/`--font-alexandria`
- * resolve for that subtree; `src/components/layout/site-shell.css` binds the design-system's
- * `--ds-font-ui`/`--ds-font-heading` tokens to these variables (design-system-agent intentionally
- * left the actual font loading to foundation — see its handoff's decisions).
- */
 export const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-cairo",
   display: "swap",
 });
-
 export const alexandria = Alexandria({
   subsets: ["arabic", "latin"],
   weight: ["500", "600", "700", "800"],
   variable: "--font-alexandria",
   display: "swap",
 });
+export const amiriQuran = Amiri_Quran({ subsets: ["arabic"], weight: "400", variable: "--font-amiri-quran", display: "swap" });
+export const baloo = Baloo_Bhaijaan_2({
+  subsets: ["arabic", "latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-baloo",
+  display: "swap",
+});
 
-/** Apply on a root-ish wrapper (each shell component applies this defensively). */
-export const siteFontVariables = `${cairo.variable} ${alexandria.variable}`;
+export const fontVariables = [cairo.variable, alexandria.variable, amiriQuran.variable, baloo.variable].join(" ");

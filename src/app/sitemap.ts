@@ -1,26 +1,30 @@
 import type { MetadataRoute } from "next";
 
+const ROUTES = [
+  "",
+  "/quran",
+  "/listen",
+  "/radio",
+  "/prayer-times",
+  "/calendar",
+  "/adhkar",
+  "/kids",
+  "/kids/learn",
+  "/kids/listen",
+  "/kids/games",
+  "/kids/games/letters",
+  "/kids/games/tajweed",
+  "/kids/games/arrange",
+  "/kids/quiz",
+  "/kids/progress",
+];
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://basira.example";
-  const routes = [
-    "",
-    "/quran",
-    "/quran/kids",
-    "/quran/kids/audio",
-    "/quran/kids/listen",
-    "/quran/kids/match",
-    "/quran/kids/quiz",
-    "/quran/kids/progress",
-    "/quran/read",
-    "/quran/more",
-    "/quran/prayer-times",
-    "/quran/hijri",
-    "/quran/duas",
-    "/quran/topics",
-  ];
-  return routes.map((route) => ({
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://al-manara.example";
+  const surahs = Array.from({ length: 114 }, (_, index) => `/quran/${index + 1}`);
+  return [...ROUTES, ...surahs].map((route) => ({
     url: `${baseUrl}${route}`,
     changeFrequency: route === "" ? "daily" : "weekly",
-    priority: route === "" ? 1 : 0.8,
+    priority: route === "" ? 1 : 0.7,
   }));
 }

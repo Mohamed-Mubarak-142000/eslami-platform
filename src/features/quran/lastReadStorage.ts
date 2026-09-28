@@ -1,51 +1,50 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
 import { z } from "zod";
 
-const STORAGE_KEY = "al-manara:quran-last-read:v1";
+const STORAGE_KEY = "al-manara:quran-last-read:v2";
 
 const lastReadSchema = z.object({
   surahId: z.number().int().min(1).max(114),
   surahName: z.string(),
+  page: z.number().int().min(1).max(604),
   updatedAt: z.string(),
 });
 
 export type LastRead = z.infer<typeof lastReadSchema>;
 
-export function loadLastRead(): LastRead | null {
-  if (typeof window === "undefined") return null;
+let cached: LastRead | null | undefined;
+const listeners = new Set<() => void>();
+
+function read(): LastRead | null {
+  if (cached !== undefined) return cached;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = lastReadSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : null;
+    const parsed = raw ? lastReadSchema.safeParse(JSON.parse(raw)) : null;
+    cached = parsed?.success ? parsed.data : null;
   } catch {
-    return null;
+    cached = null;
   }
+  return cached;
 }
 
-export function saveLastRead(surahId: number, surahName: string): void {
-  if (typeof window === "undefined") return;
+export function saveLastRead(entry: Omit<LastRead, "updatedAt">): void {
+  const next: LastRead = { ...entry, updatedAt: new Date().toISOString() };
+  cached = next;
   try {
-    const entry: LastRead = { surahId, surahName, updatedAt: new Date().toISOString() };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entry));
-    cachedSnapshot = entry;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   } catch {
-    // Storage full or unavailable (private browsing) — resume simply won't be offered.
+    // Storage unavailable (private browsing) — resume simply won't be offered next visit.
   }
+  listeners.forEach((notify) => notify());
 }
 
-// Cached singleton snapshot so `useSyncExternalStore` (no cross-tab subscription needed —
-// this only changes when this same session saves a new value) can return a stable reference.
-let cachedSnapshot: LastRead | null | undefined;
-
-export function getLastReadSnapshot(): LastRead | null {
-  if (cachedSnapshot === undefined) cachedSnapshot = loadLastRead();
-  return cachedSnapshot;
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
-export function getServerLastReadSnapshot(): LastRead | null {
-  return null;
-}
-
-export function subscribeLastRead(): () => void {
-  return () => {};
+export function useLastRead(): LastRead | null {
+  return useSyncExternalStore(subscribe, read, () => null);
 }
