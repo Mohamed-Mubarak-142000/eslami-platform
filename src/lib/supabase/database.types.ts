@@ -109,6 +109,15 @@ export type ExamAttemptRow = {
   expires_at: Timestamp;
   submitted_at: Timestamp | null;
 };
+export type OtpPurpose = "signup" | "recovery" | "email";
+export type EmailOtpRow = {
+  email: string;
+  purpose: OtpPurpose;
+  code_hash: string;
+  attempts: number;
+  created_at: Timestamp;
+  expires_at: Timestamp;
+};
 export type ExamAnswerKeyRow = {
   attempt_id: string;
   key: unknown;
@@ -154,6 +163,7 @@ export type Database = {
         Optional<ExamAttemptRow, "id" | "answers" | "score" | "status" | "started_at" | "submitted_at">
       >;
       exam_answer_keys: TableDef<ExamAnswerKeyRow, ExamAnswerKeyRow>;
+      email_otps: TableDef<EmailOtpRow, Optional<EmailOtpRow, "attempts" | "created_at">>;
       certificates: TableDef<CertificateRow, Optional<CertificateRow, "id" | "exam_attempt_id" | "issued_at" | "revoked_at">>;
     };
     Views: { [_ in never]: never };

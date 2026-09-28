@@ -21,3 +21,15 @@ export function authErrorMessage(error: { code?: string | undefined; message?: s
 }
 
 export const NOT_CONFIGURED = "الحسابات غير مفعّلة على هذا الخادم بعد.";
+
+const OTP_MESSAGES = {
+  invalid: "الكود غير صحيح، تأكد منه وحاول مرة أخرى.",
+  expired: "انتهت صلاحية الكود، اطلب كودًا جديدًا.",
+  too_many: "محاولات خاطئة كثيرة، اطلب كودًا جديدًا.",
+  cooldown: "أرسلنا كودًا منذ قليل، انتظر دقيقة ثم اطلب كودًا جديدًا.",
+  send_failed: "تعذّر إرسال الإيميل الآن، حاول مرة أخرى بعد قليل.",
+} as const;
+
+export function otpErrorMessage(reason: keyof typeof OTP_MESSAGES): string {
+  return OTP_MESSAGES[reason];
+}

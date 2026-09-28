@@ -3,9 +3,11 @@
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SITE_URL, isSupabaseConfigured } from "@/lib/supabase/env";
-import { NOT_CONFIGURED, authErrorMessage } from "./errors";
+import { NOT_CONFIGURED, authErrorMessage, otpErrorMessage } from "./errors";
+import { consumeOtp, issueOtp } from "./otp";
 
 export interface FormState {
   error?: string;
@@ -32,6 +34,20 @@ function fieldErrors(error: z.ZodError): Record<string, string> {
   return result;
 }
 
+async function findUserId(address: string): Promise<string | null> {
+  const { data } = await createSupabaseAdminClient().from("profiles").select("id").eq("email", address).maybeSingle();
+  return data?.id ?? null;
+}
+
+/** Signs the user in after our own code check: a server-generated magic-link token, never emailed. */
+async function startSession(address: string): Promise<FormState | null> {
+  const { data, error } = await createSupabaseAdminClient().auth.admin.generateLink({ type: "magiclink", email: address });
+  if (error || !data.properties?.hashed_token) return { error: authErrorMessage(error) };
+  const supabase = await createSupabaseServerClient();
+  const { error: sessionError } = await supabase.auth.verifyOtp({ type: "email", token_hash: data.properties.hashed_token });
+  return sessionError ? { error: authErrorMessage(sessionError) } : null;
+}
+
 function verifyUrl(address: string, type: OtpType, next?: string): Route {
   const params = new URLSearchParams({ email: address, type });
   if (next) params.set("next", next);
@@ -46,15 +62,16 @@ export async function registerAction(_: FormState | undefined, formData: FormDat
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signUp({
+  // Created unconfirmed and without Supabase's mailer; our own code confirms it in verifyOtpAction.
+  const { error } = await createSupabaseAdminClient().auth.admin.createUser({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: { data: { full_name: parsed.data.fullName }, emailRedirectTo: `${SITE_URL}/auth/callback` },
+    email_confirm: false,
+    user_metadata: { full_name: parsed.data.fullName },
   });
   if (error) return { error: authErrorMessage(error) };
-  // Supabase returns a user with no identities when the email already exists (anti-enumeration).
-  if (data.user && data.user.identities?.length === 0) return { error: authErrorMessage({ code: "user_already_exists" }) };
+  const sent = await issueOtp(parsed.data.email, "signup");
+  if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason) };
   redirect(verifyUrl(parsed.data.email, "signup"));
 }
 
@@ -66,7 +83,7 @@ export async function loginAction(_: FormState | undefined, formData: FormData):
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error?.code === "email_not_confirmed") {
-    await supabase.auth.resend({ type: "signup", email: parsed.data.email });
+    await issueOtp(parsed.data.email, "signup");
     redirect(verifyUrl(parsed.data.email, "signup", safeNext(formData.get("next"))));
   }
   if (error) return { error: authErrorMessage(error) };
@@ -77,9 +94,9 @@ export async function emailCodeLoginAction(_: FormState | undefined, formData: F
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const parsed = z.object({ email }).safeParse({ email: formData.get("email") });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithOtp({ email: parsed.data.email, options: { shouldCreateUser: false } });
-  if (error) return { error: authErrorMessage(error) };
+  if (!(await findUserId(parsed.data.email))) return { error: authErrorMessage({ code: "user_not_found" }) };
+  const sent = await issueOtp(parsed.data.email, "email");
+  if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason) };
   redirect(verifyUrl(parsed.data.email, "email", safeNext(formData.get("next"))));
 }
 
@@ -109,9 +126,16 @@ export async function verifyOtpAction(_: FormState | undefined, formData: FormDa
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
 
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.verifyOtp({ email: parsed.data.email, token: parsed.data.token, type: parsed.data.type });
-  if (error) return { error: authErrorMessage(error) };
+  const checked = await consumeOtp(parsed.data.email, parsed.data.type, parsed.data.token);
+  if (!checked.ok) return { error: otpErrorMessage(checked.reason) };
+  const userId = await findUserId(parsed.data.email);
+  if (!userId) return { error: otpErrorMessage("invalid") };
+  if (parsed.data.type === "signup") {
+    const { error } = await createSupabaseAdminClient().auth.admin.updateUserById(userId, { email_confirm: true });
+    if (error) return { error: authErrorMessage(error) };
+  }
+  const failed = await startSession(parsed.data.email);
+  if (failed) return failed;
   redirect(parsed.data.type === "recovery" ? "/reset-password" : safeNext(formData.get("next")));
 }
 
@@ -119,14 +143,11 @@ export async function resendOtpAction(address: string, type: OtpType): Promise<F
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const parsed = email.safeParse(address);
   if (!parsed.success) return { error: "بريد غير صحيح" };
-  const supabase = await createSupabaseServerClient();
-  const { error } =
-    type === "signup"
-      ? await supabase.auth.resend({ type: "signup", email: parsed.data })
-      : type === "recovery"
-        ? await supabase.auth.resetPasswordForEmail(parsed.data)
-        : await supabase.auth.signInWithOtp({ email: parsed.data, options: { shouldCreateUser: false } });
-  if (error) return { error: authErrorMessage(error) };
+  // Unknown emails get the same answer, so the button can't be used to probe for accounts.
+  if (await findUserId(parsed.data)) {
+    const sent = await issueOtp(parsed.data, type);
+    if (!sent.ok) return { error: otpErrorMessage(sent.reason) };
+  }
   return { message: "أرسلنا كودًا جديدًا إلى بريدك." };
 }
 
@@ -134,10 +155,11 @@ export async function forgotPasswordAction(_: FormState | undefined, formData: F
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const parsed = z.object({ email }).safeParse({ email: formData.get("email") });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email);
   // Same response whether or not the account exists, so the form can't be used to probe emails.
-  if (error && error.code !== "user_not_found") return { error: authErrorMessage(error) };
+  if (await findUserId(parsed.data.email)) {
+    const sent = await issueOtp(parsed.data.email, "recovery");
+    if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason) };
+  }
   redirect(verifyUrl(parsed.data.email, "recovery"));
 }
 

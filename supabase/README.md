@@ -14,41 +14,28 @@ Apply `migrations/20260928000001_init.sql` once. Use either:
 - Site URL: the production origin (for example `https://your-domain`).
 - Redirect URLs: `http://localhost:3000/auth/callback` and `https://your-domain/auth/callback`.
 
-## 3. Auth → Email templates (6-digit codes)
+## 3. Email codes (OTP)
 
-The app verifies codes with `verifyOtp`, so each template must show `{{ .Token }}`, not a link.
+The app sends its own 6-digit codes (signup, password reset, code sign-in) over SMTP from
+`src/lib/mail/smtp.ts` — Supabase's mailer and email templates are not used. Codes are stored
+only as HMAC hashes in `public.email_otps` (migration `20260928000002_email_otps.sql`), expire
+after 15 minutes, allow 5 attempts, and can be resent once a minute.
 
-| Template       | Subject                    |
-| -------------- | -------------------------- |
-| Confirm signup | كود تأكيد حسابك في المنارة |
-| Reset password | كود استعادة كلمة المرور    |
-| Magic link     | كود الدخول إلى المنارة     |
+Set in `.env.local` and in Vercel → Settings → Environment Variables:
 
-Body (same for all three, adjust the first line):
+- `SMTP_USER` — the Gmail address that sends the codes.
+- `SMTP_PASS` — a Gmail **App Password** (Google Account → Security → 2-Step Verification →
+  App passwords), not the account password.
 
-```html
-<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;text-align:right">
-  <h2>المنارة</h2>
-  <p>استخدم هذا الكود لإكمال العملية:</p>
-  <p style="font-size:32px;font-weight:bold;letter-spacing:6px;direction:ltr;text-align:center">{{ .Token }}</p>
-  <p>الكود صالح لمدة ساعة. إن لم تطلبه فتجاهل هذه الرسالة.</p>
-</div>
-```
+Gmail allows about 500 emails a day from a personal account.
 
-Also set Auth → Providers → Email → "Email OTP length" to **6**.
-
-## 4. Custom SMTP (required for production)
-
-The built-in mailer only sends a few emails per hour. Set Auth → SMTP settings with a provider
-such as Resend (host `smtp.resend.com`, port 465, user `resend`, password = API key).
-
-## 5. Google sign-in
+## 4. Google sign-in
 
 Google Cloud Console → OAuth client (Web). Authorized redirect URI:
 `https://vdxxiiafwniikiitwzth.supabase.co/auth/v1/callback`. Paste the client ID and secret in
 Auth → Providers → Google.
 
-## 6. First admin
+## 5. First admin
 
 After registering your own account, run once in the SQL Editor:
 
