@@ -12,6 +12,8 @@ import type { Ayah } from "@/features/quran/textApi";
 import { splitAyahWords } from "@/features/kids/games/arrangeGameLogic";
 import { ReciteRecorder } from "@/features/kids/ReciteRecorder";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
+import { getDueReviews } from "@/features/kids/progress/reviewSchedule";
+import { getSurahAyahCount } from "@/features/kids/progress/surahAyahCounts";
 import { useActiveLearner } from "@/features/account/AccountProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -72,6 +74,7 @@ export function TasmeeSession({ surah, ayahs }: { surah: { id: number; name: str
   const [hintFirstWord, setHintFirstWord] = useState(false);
   const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [markedMemorized, setMarkedMemorized] = useState(false);
+  const [countedAsReview, setCountedAsReview] = useState(false);
   const currentRef = useRef<HTMLLIElement>(null);
 
   const currentIndex = items.findIndex((item) => item.mark === null);
@@ -106,7 +109,15 @@ export function TasmeeSession({ surah, ayahs }: { surah: { id: number; name: str
   function mark(index: number, value: Mark) {
     const next = items.map((item, i) => (i === index ? { ...item, mark: value, revealed: item.words.length } : item));
     setItems(next);
-    if (next.every((item) => item.mark !== null)) void save(next);
+    if (next.every((item) => item.mark !== null)) {
+      void save(next);
+      const wholeSurah = next.length === getSurahAyahCount(surah.id);
+      const isDue = getDueReviews(progress.state.reviewSchedule).some((entry) => entry.surahId === surah.id);
+      if (wholeSurah && isDue && next.every((item) => item.mark === "correct")) {
+        progress.markSurahReviewed(surah.id);
+        setCountedAsReview(true);
+      }
+    }
   }
 
   function restart(onlyMistakes: boolean) {
@@ -114,6 +125,7 @@ export function TasmeeSession({ surah, ayahs }: { surah: { id: number; name: str
     setItems(initialState(subset.length > 0 ? subset : ayahs));
     setSaved("idle");
     setMarkedMemorized(false);
+    setCountedAsReview(false);
   }
 
   const answered = correct.length + mistakes.length;
@@ -258,6 +270,7 @@ export function TasmeeSession({ surah, ayahs }: { surah: { id: number; name: str
               راجع الآيات: {mistakes.map((item) => toArabicDigits(item.ayah.numberInSurah)).join("، ")}
             </p>
           )}
+          {countedAsReview && <p className="mt-3 text-sm font-bold text-gold-soft">سُجّلت مراجعة السورة لليوم ✓</p>}
           <p className="mt-3 text-xs text-white/60">
             {learner
               ? saved === "saving"

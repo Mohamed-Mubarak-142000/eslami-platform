@@ -18,7 +18,7 @@ export async function setUserDisabledAction(userId: string, disabled: boolean): 
   if (error) return { error: FAILED };
   // Also ban at the auth level so existing sessions can't refresh and new sign-ins fail.
   await createSupabaseAdminClient().auth.admin.updateUserById(userId, { ban_duration: disabled ? "876000h" : "none" });
-  revalidatePath("/admin/users");
+  revalidatePath("/admin/users", "layout");
   return { message: disabled ? "أُوقف الحساب." : "أُعيد تفعيل الحساب." };
 }
 
@@ -29,7 +29,7 @@ export async function setUserRoleAction(userId: string, role: AppRole): Promise<
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("profiles").update({ role }).eq("id", userId);
   if (error) return { error: FAILED };
-  revalidatePath("/admin/users");
+  revalidatePath("/admin/users", "layout");
   return { message: role === "admin" ? "أصبح مديرًا." : "أصبح مستخدمًا عاديًا." };
 }
 

@@ -3,6 +3,7 @@ import { getSurahAyahCount } from "./surahAyahCounts";
 
 // Spaced-repetition intervals in days (SM-2-lite: fixed schedule, no ease factor).
 const REVIEW_INTERVALS_DAYS = [1, 3, 7, 16, 35];
+export const REVIEW_STAGE_COUNT = REVIEW_INTERVALS_DAYS.length;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function addDays(date: Date, days: number): string {

@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import Link from "next/link";
+import type { Metadata, Route } from "next";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
@@ -69,7 +70,9 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
                 <tr key={profile.id} className={cn(profile.disabled && "bg-rose/5")}>
                   <td className="px-4 py-3">
                     <p className="font-bold">
-                      {profile.full_name || "—"}
+                      <Link href={`/admin/users/${profile.id}` as Route} className="hover:text-emerald hover:underline">
+                        {profile.full_name || "—"}
+                      </Link>
                       {profile.role === "admin" && (
                         <span className="ms-2 rounded-full bg-gold-mist px-2 py-0.5 text-[0.7rem] text-gold-deep">مدير</span>
                       )}

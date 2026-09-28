@@ -17,6 +17,7 @@ import { useNow } from "@/features/time/useNow";
 import type { ExamStatus, GameKind } from "@/lib/supabase/database.types";
 import { countMemorizedInJuz, type JuzRange } from "./juz";
 import { formatArabicDate } from "./format";
+import { ReviewToday } from "./ReviewToday";
 
 const TOTAL_AYAHS = 6236;
 
@@ -162,6 +163,8 @@ export function DashboardView({ juzRanges, surahNames, certificates, attempts, g
         <Stat icon={Award} label="شهادة أجزاء" value={toArabicDigits(activeCertificates.length)} tone="bg-gold-mist text-gold-deep" />
         <Stat icon={Sparkles} label="شارة" value={toArabicDigits(state.unlockedBadgeIds.length)} tone="bg-sky/10 text-sky" />
       </section>
+
+      <ReviewToday surahNames={surahNames} />
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-4xl bg-emerald-deep p-6 text-white shadow-lift">
