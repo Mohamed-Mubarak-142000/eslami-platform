@@ -7,7 +7,13 @@ import { buttonClass } from "@/components/ui/button";
 import { Field, FormAlert, SubmitButton } from "@/features/auth/ui/AuthFields";
 import type { FormState } from "@/features/auth/actions";
 import type { AppRole, AppSettingsRow } from "@/lib/supabase/database.types";
-import { setCertificateRevokedAction, setUserDisabledAction, setUserRoleAction, updateExamSettingsAction } from "./actions";
+import {
+  deleteUserAction,
+  setCertificateRevokedAction,
+  setUserDisabledAction,
+  setUserRoleAction,
+  updateExamSettingsAction,
+} from "./actions";
 
 /** A small button that runs an admin action and shows its outcome inline. */
 export function ActionButton({ label, run, danger }: { label: string; run: () => Promise<FormState>; danger?: boolean }) {
@@ -37,6 +43,17 @@ export function UserControls({ userId, disabled, role, self }: { userId: string;
         label={role === "admin" ? "إزالة الإدارة" : "تعيين مديرًا"}
         run={() => setUserRoleAction(userId, role === "admin" ? "user" : "admin")}
       />
+      {role !== "admin" && (
+        <ActionButton
+          label="حذف"
+          danger
+          run={() =>
+            window.confirm("حذف الحساب نهائيًا؟ سيُحذف معه أطفاله وتقدّمهم واختباراتهم وشهاداتهم، ولا يمكن التراجع.")
+              ? deleteUserAction(userId)
+              : Promise.resolve({})
+          }
+        />
+      )}
     </div>
   );
 }

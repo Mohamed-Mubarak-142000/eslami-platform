@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/features/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -20,6 +21,25 @@ export async function setUserDisabledAction(userId: string, disabled: boolean): 
   await createSupabaseAdminClient().auth.admin.updateUserById(userId, { ban_duration: disabled ? "876000h" : "none" });
   revalidatePath("/admin/users", "layout");
   return { message: disabled ? "أُوقف الحساب." : "أُعيد تفعيل الحساب." };
+}
+
+/**
+ * Permanently deletes an account: the auth user, and through cascades its profile, children,
+ * progress, exam attempts and certificates. Admins must be demoted first, so one click can't
+ * remove another administrator.
+ */
+export async function deleteUserAction(userId: string): Promise<FormState> {
+  const session = await requireAdmin();
+  if (!z.string().uuid().safeParse(userId).success) return { error: FAILED };
+  if (userId === session.userId) return { error: "لا يمكنك حذف حسابك من هنا." };
+  const supabase = await createSupabaseServerClient();
+  const { data: target } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (!target) return { error: "الحساب غير موجود." };
+  if (target.role === "admin") return { error: "أزِل صلاحية الإدارة أولًا ثم احذف الحساب." };
+  const { error } = await createSupabaseAdminClient().auth.admin.deleteUser(userId);
+  if (error) return { error: FAILED };
+  revalidatePath("/admin", "layout");
+  redirect("/admin/users");
 }
 
 export async function setUserRoleAction(userId: string, role: AppRole): Promise<FormState> {
