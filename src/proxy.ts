@@ -6,8 +6,9 @@ const AUTH_ONLY_FOR_GUESTS = ["/login", "/register"];
 
 // Optimistic checks only — every protected page and action verifies the session again on the server.
 export async function proxy(request: NextRequest) {
-  const { response, userId } = await updateSession(request);
   const path = request.nextUrl.pathname;
+  // Sending a "signed-in" visitor away from /login must rest on a real user, not just a token.
+  const { response, userId } = await updateSession(request, { verify: AUTH_ONLY_FOR_GUESTS.includes(path) });
 
   if (!userId && PROTECTED.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
     const url = request.nextUrl.clone();
