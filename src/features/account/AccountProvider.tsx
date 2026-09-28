@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { AppRole, LearnerRow } from "@/lib/supabase/database.types";
@@ -56,6 +56,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<AccountState>(isSupabaseConfigured ? { status: "loading" } : { status: "disabled" });
   const [version, setVersion] = useState(0);
+  const pathname = usePathname();
+  const userIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -101,6 +103,22 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       listener.subscription.unsubscribe();
     };
   }, [version]);
+
+  useEffect(() => {
+    userIdRef.current = state.status === "signed-in" ? state.account.id : state.status === "signed-out" ? null : undefined;
+  }, [state]);
+
+  useEffect(() => {
+    // Sign-in/out done by a server action sets cookies on the server and navigates without a reload,
+    // so this browser client never gets an auth event. Re-read the (cookie) session on every
+    // navigation — local, no network — and reload the account when the user changed.
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => {
+      const known = userIdRef.current;
+      if (known !== undefined && known !== (data.session?.user.id ?? null)) setVersion((value) => value + 1);
+    });
+  }, [pathname]);
 
   function setActiveLearner(learnerId: string) {
     if (state.status !== "signed-in") return;
