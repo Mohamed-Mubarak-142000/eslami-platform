@@ -10,11 +10,15 @@ import { cn } from "@/lib/cn";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, isActivePath } from "./nav";
 import { AccountMenu } from "@/features/auth/ui/AccountMenu";
+import { useAccount } from "@/features/account/AccountProvider";
 
 const noopSubscribe = () => () => {};
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const account = useAccount();
+  const childSelected = account.status === "signed-in" && account.activeLearner.kind === "child";
+  const navItems = NAV_ITEMS.filter((item) => !item.kidsOnly || childSelected);
   // Remember which page the menu was opened on, so navigating closes it without an effect.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;
@@ -91,7 +95,7 @@ export function SiteHeader() {
 
         <nav aria-label="التنقل الرئيسي" className="ms-auto hidden lg:block">
           <ul className="flex items-center gap-0.5 xl:gap-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = isActivePath(pathname, item.href);
               return (
                 <li key={item.href}>
@@ -178,7 +182,7 @@ export function SiteHeader() {
                     </button>
                   </div>
                   <ul className="flex-1 space-y-1 overflow-y-auto overscroll-contain p-3">
-                    {NAV_ITEMS.map((item, index) => {
+                    {navItems.map((item, index) => {
                       const active = isActivePath(pathname, item.href);
                       const Icon = item.icon;
                       return (

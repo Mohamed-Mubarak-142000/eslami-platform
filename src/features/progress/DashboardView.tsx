@@ -18,6 +18,7 @@ import type { ExamStatus, GameKind } from "@/lib/supabase/database.types";
 import { countMemorizedInJuz, type JuzRange } from "./juz";
 import { formatArabicDate } from "./format";
 import { ReviewToday } from "./ReviewToday";
+import { KidsCorner } from "./KidsCorner";
 
 const TOTAL_AYAHS = 6236;
 
@@ -165,6 +166,8 @@ export function DashboardView({ juzRanges, surahNames, certificates, attempts, g
       </section>
 
       <ReviewToday surahNames={surahNames} />
+
+      <KidsCorner />
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-4xl bg-emerald-deep p-6 text-white shadow-lift">

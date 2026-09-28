@@ -7,6 +7,8 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   description: string;
+  /** Only shown while a signed-in account has one of its children selected. */
+  kidsOnly?: boolean;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
@@ -14,7 +16,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/quran", label: "المصحف", icon: BookOpen, description: "اقرأ القرآن الكريم في مصحف مصفّح" },
   { href: "/listen", label: "الاستماع", icon: Headphones, description: "تلاوات لأكثر من مئتي قارئ" },
   { href: "/radio", label: "الإذاعة", icon: Radio, description: "إذاعة القرآن الكريم بث مباشر" },
-  { href: "/kids", label: "الأطفال", icon: Trees, description: "حديقة القرآن للأطفال" },
+  { href: "/kids", label: "الأطفال", icon: Trees, description: "حديقة القرآن للأطفال", kidsOnly: true },
   { href: "/prayer-times", label: "المواقيت", icon: Clock, description: "مواقيت الصلاة واتجاه القبلة" },
   { href: "/calendar", label: "التقويم", icon: CalendarDays, description: "التقويم الهجري والميلادي" },
   { href: "/adhkar", label: "الأذكار", icon: Sparkles, description: "أذكار وأدعية يومك" },
