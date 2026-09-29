@@ -1,12 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Download, Share, SquarePlus, X } from "lucide-react";
+import { Check, Copy, Download, Ellipsis, ExternalLink, Share, SquarePlus, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
-import { promptInstall, registerServiceWorker, useInstallMode } from "./install-store";
+import {
+  dismissInstallArrival,
+  installLink,
+  isIOS,
+  isIOSChrome,
+  openInBrowser,
+  promptInstall,
+  registerServiceWorker,
+  useInstallArrival,
+  useInstallMode,
+  type InstallMode,
+} from "./install-store";
 
 type Props = {
   /** "compact" is the header pill; "block" is the full-width row in the mobile drawer. */
@@ -15,22 +26,31 @@ type Props = {
   onDone?: () => void;
 };
 
-/** Shown only where installing is actually possible: Chromium's prompt, or iOS "Add to Home Screen" steps. */
+/** Shown only where installing is possible, or where one step (leaving an in-app browser) makes it possible. */
 export function InstallAppButton({ variant = "compact", className, onDone }: Props) {
   const mode = useInstallMode();
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(registerServiceWorker, []);
+
+  // Arriving from our "open in browser" link: show the steps straight away. Only the header
+  // instance does this, so the drawer's copy never opens a second dialog.
+  const arrived = useInstallArrival() && variant === "compact" && (mode === "ios" || mode === "prompt");
+  const open = helpOpen || arrived;
+  const close = () => {
+    setHelpOpen(false);
+    dismissInstallArrival();
+  };
 
   if (mode === "installed" || mode === "unsupported") return null;
 
   const onClick = async () => {
-    if (mode === "ios") {
-      setShowIosHelp(true);
+    if (mode === "prompt") {
+      await promptInstall();
+      onDone?.();
       return;
     }
-    await promptInstall();
-    onDone?.();
+    setHelpOpen(true);
   };
 
   return (
@@ -39,24 +59,31 @@ export function InstallAppButton({ variant = "compact", className, onDone }: Pro
         type="button"
         onClick={onClick}
         aria-label="ثبّت التطبيق"
-        className={
-          variant === "block"
-            ? buttonClass("gold", "md", cn("w-full", className))
-            : buttonClass("outline", "sm", cn("shadow-soft", className))
-        }
+        className={variant === "block" ? buttonClass("gold", "md", cn("w-full", className)) : buttonClass("gold", "sm", className)}
       >
         <Download aria-hidden />
         <span className={variant === "compact" ? "hidden sm:inline" : undefined}>ثبّت التطبيق</span>
       </button>
       {createPortal(
-        <AnimatePresence>{showIosHelp && <IosInstallHelp onClose={() => setShowIosHelp(false)} />}</AnimatePresence>,
+        <AnimatePresence>
+          {open && (
+            <InstallDialog
+              mode={mode}
+              onClose={close}
+              onInstalled={() => {
+                close();
+                onDone?.();
+              }}
+            />
+          )}
+        </AnimatePresence>,
         document.body,
       )}
     </>
   );
 }
 
-function IosInstallHelp({ onClose }: { onClose: () => void }) {
+function InstallDialog({ mode, onClose, onInstalled }: { mode: InstallMode; onClose: () => void; onInstalled: () => void }) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -78,7 +105,7 @@ function IosInstallHelp({ onClose }: { onClose: () => void }) {
       <motion.div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="ios-install-title"
+        aria-labelledby="install-title"
         className="relative m-3 w-full max-w-sm rounded-3xl bg-ivory p-6 shadow-lift"
         style={{ marginBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         initial={{ y: 40, opacity: 0 }}
@@ -94,24 +121,95 @@ function IosInstallHelp({ onClose }: { onClose: () => void }) {
           <X className="size-5" aria-hidden />
           <span className="sr-only">إغلاق</span>
         </button>
-        <h2 id="ios-install-title" className="text-lg font-bold text-ink">
-          ثبّت المنارة على جهازك
-        </h2>
-        <ol className="mt-4 space-y-3 text-sm text-ink">
-          <li className="flex items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gold-mist text-gold-deep">
-              <Share className="size-5" aria-hidden />
-            </span>
-            اضغط زر المشاركة في شريط Safari
-          </li>
-          <li className="flex items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gold-mist text-gold-deep">
-              <SquarePlus className="size-5" aria-hidden />
-            </span>
-            اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة»
-          </li>
-        </ol>
+        {mode === "in-app" ? <OpenInBrowser /> : mode === "prompt" ? <PromptNow onInstalled={onInstalled} /> : <IosSteps />}
       </motion.div>
     </div>
+  );
+}
+
+function Title({ children }: { children: ReactNode }) {
+  return (
+    <h2 id="install-title" className="pe-10 text-lg font-bold text-ink">
+      {children}
+    </h2>
+  );
+}
+
+function Step({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <li className="flex items-center gap-3">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gold-mist text-gold-deep [&_svg]:size-5">{icon}</span>
+      <span>{children}</span>
+    </li>
+  );
+}
+
+/** Facebook, Instagram and friends can't add to the home screen, so first hop to the real browser. */
+function OpenInBrowser() {
+  const [copied, setCopied] = useState(false);
+  const browser = isIOS() ? "Safari" : "Chrome";
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(installLink());
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <>
+      <Title>افتح المنارة في {browser} أولًا</Title>
+      <p className="mt-2 text-sm text-muted">
+        أنت تتصفح من داخل تطبيق آخر، والتثبيت يعمل من المتصفح فقط. بعد الفتح ستظهر لك خطوات التثبيت مباشرة.
+      </p>
+      <button type="button" onClick={openInBrowser} className={buttonClass("gold", "md", "mt-5 w-full")}>
+        <ExternalLink aria-hidden />
+        افتح في {browser}
+      </button>
+      <button type="button" onClick={copy} className={buttonClass("outline", "md", "mt-2 w-full")}>
+        {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+        {copied ? "تم نسخ الرابط — الصقه في المتصفح" : "انسخ الرابط"}
+      </button>
+      <p className="mt-4 flex items-center gap-2 text-xs text-muted">
+        <Ellipsis className="size-4 shrink-0" aria-hidden />
+        لم يفتح؟ اضغط ⋯ أعلى الشاشة ثم «فتح في المتصفح».
+      </p>
+    </>
+  );
+}
+
+function IosSteps() {
+  const where = isIOSChrome() ? "بجانب شريط العنوان في الأعلى" : "في شريط Safari أسفل الشاشة";
+  return (
+    <>
+      <Title>ثبّت المنارة على جهازك</Title>
+      <ol className="mt-4 space-y-3 text-sm text-ink">
+        <Step icon={<Share aria-hidden />}>اضغط زر المشاركة {where}</Step>
+        <Step icon={<SquarePlus aria-hidden />}>اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة»</Step>
+      </ol>
+    </>
+  );
+}
+
+/** Chromium only lets the install dialog open from a tap, so arriving visitors get one button to press. */
+function PromptNow({ onInstalled }: { onInstalled: () => void }) {
+  return (
+    <>
+      <Title>ثبّت المنارة على جهازك</Title>
+      <p className="mt-2 text-sm text-muted">افتح المنارة من الشاشة الرئيسية كأي تطبيق، بدون متجر تطبيقات.</p>
+      <button
+        type="button"
+        onClick={async () => {
+          await promptInstall();
+          onInstalled();
+        }}
+        className={buttonClass("gold", "md", "mt-5 w-full")}
+      >
+        <Download aria-hidden />
+        ثبّت الآن
+      </button>
+    </>
   );
 }
