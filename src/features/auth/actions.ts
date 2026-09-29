@@ -183,11 +183,16 @@ export async function resetPasswordAction(_: FormState | undefined, formData: Fo
   redirect("/dashboard?password=updated");
 }
 
-export async function signOutAction(): Promise<void> {
+/** Clears the session cookies on the server; the caller decides where to go next. */
+export async function endSessionAction(): Promise<void> {
   if (isSupabaseConfigured) {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut({ scope: "local" });
   }
   (await cookies()).delete(ACTIVE_LEARNER_COOKIE);
+}
+
+export async function signOutAction(): Promise<void> {
+  await endSessionAction();
   redirect("/");
 }
