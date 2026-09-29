@@ -7,6 +7,12 @@ const AUTH_ONLY_FOR_GUESTS = ["/login", "/register"];
 // Optimistic checks only — every protected page and action verifies the session again on the server.
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  // Supabase sends the OAuth code to the bare Site URL when our redirect isn't in its allow-list.
+  if (path === "/" && request.nextUrl.searchParams.has("code")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
   // Sending a "signed-in" visitor away from /login must rest on a real user, not just a token.
   const { response, userId } = await updateSession(request, { verify: AUTH_ONLY_FOR_GUESTS.includes(path) });
 

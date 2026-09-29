@@ -16,7 +16,7 @@ import {
   type OtpType,
 } from "../actions";
 import { Field, FormAlert, OrDivider, SubmitButton } from "./AuthFields";
-import { GoogleButton } from "./GoogleButton";
+import { SocialButtons } from "./SocialButtons";
 
 function Heading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -94,7 +94,7 @@ export function LoginForm({ next, notice }: { next?: string | undefined; notice?
   return (
     <div>
       <Heading title="تسجيل الدخول" subtitle="أهلًا بعودتك — تابع رحلتك مع القرآن." />
-      <GoogleButton next={next} />
+      <SocialButtons next={next} />
       <OrDivider />
       <div role="tablist" aria-label="طريقة الدخول" className="mb-5 grid grid-cols-2 rounded-full border border-line bg-white p-1">
         {(
@@ -131,7 +131,7 @@ export function RegisterForm() {
   return (
     <div>
       <Heading title="إنشاء حساب" subtitle="مجاني تمامًا — احفظ تقدّمك وتقدّم أطفالك واحصل على شهادات الأجزاء." />
-      <GoogleButton />
+      <SocialButtons />
       <OrDivider />
       <form action={action} className="space-y-4" noValidate>
         <FormAlert error={state?.error} />

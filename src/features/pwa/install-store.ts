@@ -1,6 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { isIOS, isInAppBrowser, openInRealBrowser } from "@/lib/browser";
+
+export { isIOS };
 
 /** Chromium's install prompt event; not in the DOM typings yet. */
 interface BeforeInstallPromptEvent extends Event {
@@ -49,17 +52,6 @@ function isStandalone(): boolean {
   return window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
-export function isIOS(): boolean {
-  // iPadOS reports itself as a Mac, so also check for touch.
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-}
-
-function isInAppBrowser(): boolean {
-  return /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|Line\/|Snapchat|TikTok|musical_ly|BytedanceWebview|Twitter|LinkedInApp/i.test(
-    navigator.userAgent,
-  );
-}
-
 /** Chrome on iOS puts the share button next to the address bar rather than in the bottom toolbar. */
 export function isIOSChrome(): boolean {
   return /CriOS/.test(navigator.userAgent);
@@ -105,15 +97,7 @@ export function installLink(): string {
 
 /** Leaves the in-app webview for the phone's real browser, landing on the same page with the install steps open. */
 export function openInBrowser() {
-  const link = installLink();
-  const rest = link.replace(/^https?:\/\//, "");
-  if (isIOS()) {
-    // iOS 17+ hands this scheme to Safari; older versions ignore it and the manual steps remain.
-    window.location.href = `x-safari-https://${rest}`;
-  } else {
-    // Android: ask for Chrome, and fall back to the plain link if it isn't installed.
-    window.location.href = `intent://${rest}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(link)};end`;
-  }
+  openInRealBrowser(installLink());
 }
 
 /** Opens the browser's own install dialog. Resolves true when the visitor accepts. */
