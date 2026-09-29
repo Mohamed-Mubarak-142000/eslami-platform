@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description:
     "اقرأ القرآن الكريم في مصحف مصفّح، استمع لأكثر من مئتي قارئ وإذاعة القرآن، تابع مواقيت الصلاة والتقويم الهجري، ورافق يومك بالأذكار — مع حديقة قرآنية ممتعة للأطفال.",
   applicationName: "المنارة",
+  appleWebApp: { capable: true, title: "المنارة", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
   keywords: ["القرآن الكريم", "مصحف", "تلاوات", "إذاعة القرآن", "مواقيت الصلاة", "التقويم الهجري", "أذكار", "تعليم القرآن للأطفال"],
   openGraph: { type: "website", locale: "ar_EG", siteName: "المنارة" },
   robots: { index: true, follow: true },

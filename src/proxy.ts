@@ -25,6 +25,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Skip static assets and images; everything else gets a refreshed session.
   matcher: [
-    "/((?!_next/static|_next/image|icon.svg|icons/|manifest.webmanifest|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|svg|webp|mp3)$).*)",
+    "/((?!_next/static|_next/image|icon.svg|icons/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|svg|webp|mp3)$).*)",
   ],
 };

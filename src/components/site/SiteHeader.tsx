@@ -11,6 +11,7 @@ import { Logo } from "./Logo";
 import { NAV_ITEMS, isActivePath } from "./nav";
 import { AccountMenu } from "@/features/auth/ui/AccountMenu";
 import { useAccount } from "@/features/account/AccountProvider";
+import { InstallAppButton } from "@/features/pwa/InstallAppButton";
 
 const noopSubscribe = () => () => {};
 
@@ -123,7 +124,8 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="ms-auto lg:ms-3">
+        <div className="ms-auto flex items-center gap-2 lg:ms-3">
+          <InstallAppButton />
           <AccountMenu />
         </div>
 
@@ -221,7 +223,10 @@ export function SiteHeader() {
                       );
                     })}
                   </ul>
-                  <p className="border-t border-line px-5 py-4 text-center text-xs text-muted">المنارة — قرآن · علم · ذكر</p>
+                  <div className="space-y-3 border-t border-line px-5 py-4">
+                    <InstallAppButton variant="block" onDone={close} />
+                    <p className="text-center text-xs text-muted">المنارة — قرآن · علم · ذكر</p>
+                  </div>
                 </motion.nav>
               </div>
             )}
