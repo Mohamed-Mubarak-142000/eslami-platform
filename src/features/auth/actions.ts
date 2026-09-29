@@ -15,6 +15,12 @@ export interface FormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   message?: string;
+  /** Non-secret values echoed back so the form keeps them after React resets it on submit. */
+  values?: Record<string, string>;
+}
+
+function echo(formData: FormData, ...names: string[]): Record<string, string> {
+  return Object.fromEntries(names.map((name) => [name, String(formData.get(name) ?? "")]));
 }
 
 const email = z.string().trim().toLowerCase().email("أدخل بريدًا إلكترونيًا صحيحًا");
@@ -62,25 +68,32 @@ export async function registerAction(_: FormState | undefined, formData: FormDat
     .object({ fullName: z.string().trim().min(2, "اكتب اسمك (حرفان على الأقل)").max(60), email, password, confirm: z.string() })
     .refine((value) => value.password === value.confirm, { path: ["confirm"], message: "كلمتا المرور غير متطابقتين" })
     .safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
+  const values = echo(formData, "fullName", "email");
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
   // Created unconfirmed and without Supabase's mailer; our own code confirms it in verifyOtpAction.
-  const { error } = await createSupabaseAdminClient().auth.admin.createUser({
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
     email: parsed.data.email,
     password: parsed.data.password,
     email_confirm: false,
     user_metadata: { full_name: parsed.data.fullName },
   });
-  if (error) return { error: authErrorMessage(error) };
+  if (error) return { error: authErrorMessage(error), values };
   const sent = await issueOtp(parsed.data.email, "signup");
-  if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason) };
+  if (!sent.ok && sent.reason === "send_failed") {
+    // Undo the account: otherwise the retry fails with "already registered" and no code ever arrives.
+    await admin.auth.admin.deleteUser(data.user.id);
+    return { error: otpErrorMessage(sent.reason), values };
+  }
   redirect(verifyUrl(parsed.data.email, "signup"));
 }
 
 export async function loginAction(_: FormState | undefined, formData: FormData): Promise<FormState> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const parsed = z.object({ email, password: z.string().min(1, "أدخل كلمة المرور") }).safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
+  const values = echo(formData, "email");
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
@@ -88,17 +101,18 @@ export async function loginAction(_: FormState | undefined, formData: FormData):
     await issueOtp(parsed.data.email, "signup");
     redirect(verifyUrl(parsed.data.email, "signup", safeNext(formData.get("next"))));
   }
-  if (error) return { error: authErrorMessage(error) };
+  if (error) return { error: authErrorMessage(error), values };
   redirect(safeNext(formData.get("next")));
 }
 
 export async function emailCodeLoginAction(_: FormState | undefined, formData: FormData): Promise<FormState> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const parsed = z.object({ email }).safeParse({ email: formData.get("email") });
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
-  if (!(await findUserId(parsed.data.email))) return { error: authErrorMessage({ code: "user_not_found" }) };
+  const values = echo(formData, "email");
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
+  if (!(await findUserId(parsed.data.email))) return { error: authErrorMessage({ code: "user_not_found" }), values };
   const sent = await issueOtp(parsed.data.email, "email");
-  if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason) };
+  if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason), values };
   redirect(verifyUrl(parsed.data.email, "email", safeNext(formData.get("next"))));
 }
 
@@ -169,11 +183,12 @@ export async function resendOtpAction(address: string, type: OtpType): Promise<F
 export async function forgotPasswordAction(_: FormState | undefined, formData: FormData): Promise<FormState> {
   if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
   const parsed = z.object({ email }).safeParse({ email: formData.get("email") });
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
+  const values = echo(formData, "email");
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
   // Same response whether or not the account exists, so the form can't be used to probe emails.
   if (await findUserId(parsed.data.email)) {
     const sent = await issueOtp(parsed.data.email, "recovery");
-    if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason) };
+    if (!sent.ok && sent.reason === "send_failed") return { error: otpErrorMessage(sent.reason), values };
   }
   redirect(verifyUrl(parsed.data.email, "recovery"));
 }

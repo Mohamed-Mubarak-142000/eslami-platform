@@ -41,6 +41,8 @@ function PasswordLogin({ next, notice }: { next?: string | undefined; notice?: s
         inputMode="email"
         dir="ltr"
         required
+        placeholder="name@example.com"
+        defaultValue={state?.values?.email}
         error={state?.fieldErrors?.email}
       />
       <Field
@@ -49,6 +51,7 @@ function PasswordLogin({ next, notice }: { next?: string | undefined; notice?: s
         type="password"
         autoComplete="current-password"
         required
+        placeholder="اكتب كلمة المرور"
         error={state?.fieldErrors?.password}
       />
       <div className="text-start">
@@ -75,6 +78,8 @@ function CodeLogin({ next }: { next?: string | undefined }) {
         inputMode="email"
         dir="ltr"
         required
+        placeholder="name@example.com"
+        defaultValue={state?.values?.email}
         error={state?.fieldErrors?.email}
         hint="سنرسل لك كودًا من ٦ أرقام للدخول بدون كلمة مرور."
       />
@@ -135,6 +140,8 @@ export function RegisterForm() {
           name="fullName"
           autoComplete="name"
           required
+          placeholder="مثال: أحمد محمد علي"
+          defaultValue={state?.values?.fullName}
           error={state?.fieldErrors?.fullName}
           hint="يظهر هذا الاسم على شهاداتك، ويمكنك تعديله لاحقًا."
         />
@@ -146,6 +153,8 @@ export function RegisterForm() {
           inputMode="email"
           dir="ltr"
           required
+          placeholder="name@example.com"
+          defaultValue={state?.values?.email}
           error={state?.fieldErrors?.email}
         />
         <Field
@@ -154,6 +163,7 @@ export function RegisterForm() {
           type="password"
           autoComplete="new-password"
           required
+          placeholder="اختر كلمة مرور قوية"
           error={state?.fieldErrors?.password}
           hint="٨ أحرف على الأقل."
         />
@@ -163,6 +173,7 @@ export function RegisterForm() {
           type="password"
           autoComplete="new-password"
           required
+          placeholder="أعد كتابة كلمة المرور"
           error={state?.fieldErrors?.confirm}
         />
         <SubmitButton>إنشاء الحساب</SubmitButton>
@@ -286,6 +297,8 @@ export function ForgotPasswordForm() {
           inputMode="email"
           dir="ltr"
           required
+          placeholder="name@example.com"
+          defaultValue={state?.values?.email}
           error={state?.fieldErrors?.email}
         />
         <SubmitButton>أرسل الكود</SubmitButton>
@@ -312,6 +325,7 @@ export function ResetPasswordForm() {
           type="password"
           autoComplete="new-password"
           required
+          placeholder="اختر كلمة مرور قوية"
           error={state?.fieldErrors?.password}
           hint="٨ أحرف على الأقل."
         />
@@ -321,6 +335,7 @@ export function ResetPasswordForm() {
           type="password"
           autoComplete="new-password"
           required
+          placeholder="أعد كتابة كلمة المرور"
           error={state?.fieldErrors?.confirm}
         />
         <SubmitButton>حفظ كلمة المرور</SubmitButton>
