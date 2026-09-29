@@ -1,12 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
-import { Award, KeyRound, Lock, Printer, RotateCcw, ShieldCheck } from "lucide-react";
+import { Award, ChevronLeft, Cloud, KeyRound, Lock, Printer, RotateCcw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import type { Surah } from "@/features/quran/api";
-import { StarMark } from "@/components/ui/Ornament";
-import { useNow } from "@/features/time/useNow";
+import { useActiveLearner } from "@/features/account/AccountProvider";
 import { kidsButton, kidsPanel } from "../ui/kidsStyles";
 import { useKidsProgress } from "./KidsProgressProvider";
 import {
@@ -17,7 +17,7 @@ import {
   setParentPin,
   verifyParentPin,
 } from "./parentPinStorage";
-import { isSurahFullyMemorized } from "./reviewSchedule";
+import { ActivityStrip, SurahCertificatePrint, completedSurahIds } from "./ReportParts";
 import { computeStars, countMemorizedAyahs } from "./stars";
 import { computeStreak } from "./streak";
 
@@ -127,17 +127,19 @@ export function ParentArea({ surahs }: { surahs: Surah[] }) {
 }
 
 function ParentDashboard({ surahs }: { surahs: Surah[] }) {
-  const { state, resetProgress } = useKidsProgress();
-  const [childName, setChildName] = useState("");
+  const { state, synced, resetProgress } = useKidsProgress();
+  const learner = useActiveLearner();
+  // Defaults to the selected child's name, which may arrive after this mounts.
+  const [typedName, setChildName] = useState<string | null>(null);
+  const childName = typedName ?? (learner?.kind === "child" ? learner.display_name : "");
   const [certificateSurah, setCertificateSurah] = useState<Surah | null>(null);
-  const completed = surahs.filter((surah) => isSurahFullyMemorized(state, surah.id));
-  const recentDays = new Set(state.activityDates);
-  const now = useNow();
-  const last14 = Array.from({ length: now ? 14 : 0 }, (_, i) => {
-    const date = new Date(now ?? 0);
-    date.setDate(date.getDate() - (13 - i));
-    return date.toISOString().slice(0, 10);
-  });
+  const done = new Set(completedSurahIds(state));
+  const completed = surahs.filter((surah) => done.has(surah.id));
+  // Signed in, progress lives in the account: resetting wipes it on every device, not just this one.
+  const owner = !synced ? null : learner?.kind === "child" ? `ملف ${learner.display_name}` : "حسابك";
+  const resetWarning = owner
+    ? `سيُمسح كل ما حُفظ في ${owner} من آيات محفوظة ونجوم وشارات، على كل الأجهزة، ولا يمكن التراجع. متأكد؟`
+    : "سيُمسح كل التقدّم على هذا الجهاز. متأكد؟";
 
   function print(surah: Surah) {
     setCertificateSurah(surah);
@@ -146,6 +148,19 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
 
   return (
     <div className="space-y-6 font-sans">
+      {owner && (
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-between gap-3 rounded-3xl border-2 border-emerald/20 bg-white p-4 font-bold text-emerald-deep shadow-soft hover:border-emerald/40"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Cloud className="size-5 text-emerald" aria-hidden />
+            التقدّم محفوظ في {owner}. تفاصيل الحفظ والاختبارات والشهادات كلها في «رحلتي».
+          </span>
+          <ChevronLeft className="size-5 shrink-0" aria-hidden />
+        </Link>
+      )}
+
       <div className={kidsPanel}>
         <h1 className="inline-flex items-center gap-2 font-kids text-3xl font-extrabold text-emerald-deep">
           <ShieldCheck className="size-8 text-emerald" aria-hidden /> لوحة الأهل
@@ -170,11 +185,7 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
           ))}
         </dl>
         <p className="mt-6 text-sm font-bold text-muted">النشاط في آخر ١٤ يومًا</p>
-        <div className="mt-2 flex gap-1.5" aria-label="أيام النشاط">
-          {last14.map((day) => (
-            <span key={day} title={day} className={cn("h-8 flex-1 rounded-lg", recentDays.has(day) ? "bg-[#12a15b]" : "bg-[#eef1ec]")} />
-          ))}
-        </div>
+        <ActivityStrip activityDates={state.activityDates} className="mt-2" />
       </div>
 
       <div className={kidsPanel}>
@@ -207,11 +218,15 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
 
       <div className={cn(kidsPanel, "border-2 border-dashed border-[#e84a67]/40")}>
         <h2 className="font-kids text-xl font-extrabold text-[#b92f49]">إعادة ضبط التقدّم</h2>
-        <p className="mt-1 text-sm text-muted">يمسح كل ما حُفظ من تقدّم ونجوم وشارات على هذا الجهاز.</p>
+        <p className="mt-1 text-sm text-muted">
+          {owner
+            ? `يمسح كل ما حُفظ في ${owner} من تقدّم ونجوم وشارات، على كل الأجهزة — بما فيها نسب الحفظ في «رحلتي».`
+            : "يمسح كل ما حُفظ من تقدّم ونجوم وشارات على هذا الجهاز."}
+        </p>
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("سيُمسح كل التقدّم على هذا الجهاز. متأكد؟")) resetProgress();
+            if (window.confirm(resetWarning)) resetProgress();
           }}
           className={kidsButton("rose", "mt-4 py-2 text-base")}
         >
@@ -219,20 +234,7 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
         </button>
       </div>
 
-      {certificateSurah && (
-        <section className="print-area hidden print:block" aria-hidden>
-          <div className="mx-auto flex min-h-[90vh] max-w-3xl flex-col items-center justify-center rounded-[2rem] border-[10px] border-double border-gold p-12 text-center">
-            <StarMark className="size-20 text-gold" />
-            <h1 className="mt-6 font-display text-5xl font-bold text-emerald-deep">شهادة إتمام حفظ</h1>
-            <p className="mt-8 text-2xl">يسرّ المنارة أن تهنّئ</p>
-            <p className="mt-3 font-display text-4xl font-bold text-gold-deep">{childName || "البطل الصغير"}</p>
-            <p className="mt-6 text-2xl">
-              بإتمام حفظ <span className="font-bold text-emerald-deep">سورة {certificateSurah.name}</span>
-            </p>
-            <p className="mt-10 text-lg text-muted">{now ? new Intl.DateTimeFormat("ar-EG", { dateStyle: "long" }).format(now) : ""}</p>
-          </div>
-        </section>
-      )}
+      {certificateSurah && <SurahCertificatePrint childName={childName} surahName={certificateSurah.name} />}
     </div>
   );
 }
