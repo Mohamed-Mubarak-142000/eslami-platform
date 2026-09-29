@@ -8,7 +8,7 @@ import { Award, BookOpenCheck, ChevronDown, GraduationCap, LogIn, LogOut, Settin
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
-import { signOutAction } from "../actions";
+import { endSessionAction } from "../actions";
 import { useAccount, useAccountContext, type AccountSummary } from "@/features/account/AccountProvider";
 
 const LINKS: { href: Route; label: string; icon: LucideIcon; admin?: boolean }[] = [
@@ -62,7 +62,10 @@ function SignOutButton() {
       onClick={() =>
         startSignOut(async () => {
           await signOut();
-          await signOutAction(); // clears the server cookies too, then redirects home
+          await endSessionAction(); // clears the server cookies too
+          // A full load rather than a client redirect: it drops every in-memory trace of the account
+          // (React state, the router's cached pages such as the dashboard) with no manual refresh.
+          window.location.replace("/");
         })
       }
       className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-rose hover:bg-rose/10 disabled:opacity-60"
