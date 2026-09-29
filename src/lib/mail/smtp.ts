@@ -15,6 +15,8 @@ export interface MailMessage {
   html: string;
   /** Plain-text alternative; sent as multipart/alternative when present (better deliverability). */
   text?: string;
+  /** Extra ASCII headers, e.g. List-Unsubscribe. */
+  headers?: Record<string, string>;
 }
 
 const TIMEOUT_MS = 15_000;
@@ -69,6 +71,7 @@ function buildMessage(from: string, fromName: string, message: MailMessage): str
     `Message-ID: <${randomUUID()}@${domain}>`,
     // RFC 3834: marks the mail as machine-sent, as legitimate transactional mail does.
     "Auto-Submitted: auto-generated",
+    ...Object.entries(message.headers ?? {}).map(([name, value]) => `${name}: ${value.replace(/[\r\n]+/g, " ")}`),
     "MIME-Version: 1.0",
     ...mimeBody(message),
   ].join("\r\n");
@@ -110,7 +113,8 @@ function replyReader(socket: TLSSocket) {
     });
 }
 
-export async function sendMail(message: MailMessage): Promise<void> {
+/** One authenticated SMTP connection that can deliver several messages in a row. */
+async function openSession() {
   const config = smtpConfig();
   const socket = connect({ host: config.host, port: config.port, servername: config.host });
   socket.setTimeout(TIMEOUT_MS, () => socket.destroy(new Error("SMTP timeout")));
@@ -119,17 +123,83 @@ export async function sendMail(message: MailMessage): Promise<void> {
     socket.write(`${line}\r\n`);
     return expect(code);
   };
+  let ended = false;
 
   try {
     await expect(220);
     await send("EHLO al-manara", 250);
     await send(`AUTH PLAIN ${Buffer.from(`\0${config.user}\0${config.pass}`, "utf8").toString("base64")}`, 235);
-    await send(`MAIL FROM:<${config.user}>`, 250);
-    await send(`RCPT TO:<${message.to}>`, 250);
-    await send("DATA", 354);
-    await send(`${buildMessage(config.user, config.fromName, message)}\r\n.`, 250);
-    socket.write("QUIT\r\n");
-  } finally {
+  } catch (error) {
     socket.end();
+    throw error;
   }
+
+  return {
+    async deliver(message: MailMessage) {
+      await send(`MAIL FROM:<${config.user}>`, 250);
+      await send(`RCPT TO:<${message.to}>`, 250);
+      await send("DATA", 354);
+      await send(`${buildMessage(config.user, config.fromName, message)}\r\n.`, 250);
+    },
+    /** Clears a half-finished transaction after a rejected recipient, keeping the connection. */
+    reset: () => send("RSET", 250),
+    get closed() {
+      return ended || socket.destroyed;
+    },
+    close() {
+      if (ended) return;
+      ended = true;
+      if (!socket.destroyed) socket.write("QUIT\r\n");
+      socket.end();
+    },
+  };
+}
+
+export async function sendMail(message: MailMessage): Promise<void> {
+  const session = await openSession();
+  try {
+    await session.deliver(message);
+  } finally {
+    session.close();
+  }
+}
+
+/** Gmail's "daily sending limit exceeded" (and similar quota) replies: nothing more will go out today. */
+export const isQuotaError = (error: unknown) => error instanceof Error && /\b5\.4\.5\b|\b4\.7\.28\b|sending limit/i.test(error.message);
+
+export interface BulkResult {
+  sent: number;
+  failed: string[];
+  /** Set when the provider refused further mail (quota); the remaining messages were not attempted. */
+  stoppedByQuota: boolean;
+}
+
+/**
+ * Sends messages one by one over a single connection (one login instead of one per message).
+ * A rejected recipient is skipped; a dropped connection is reopened; a quota reply stops the run.
+ */
+export async function sendBulkMail(messages: MailMessage[], onProgress?: (done: number) => void): Promise<BulkResult> {
+  const result: BulkResult = { sent: 0, failed: [], stoppedByQuota: false };
+  let session: Awaited<ReturnType<typeof openSession>> | null = null;
+  try {
+    for (const [index, message] of messages.entries()) {
+      try {
+        if (!session || session.closed) session = await openSession();
+        await session.deliver(message);
+        result.sent++;
+      } catch (error) {
+        result.failed.push(message.to);
+        if (isQuotaError(error)) {
+          result.stoppedByQuota = true;
+          result.failed.push(...messages.slice(index + 1).map((rest) => rest.to));
+          break;
+        }
+        await session?.reset().catch(() => session?.close());
+      }
+      onProgress?.(index + 1);
+    }
+  } finally {
+    session?.close();
+  }
+  return result;
 }

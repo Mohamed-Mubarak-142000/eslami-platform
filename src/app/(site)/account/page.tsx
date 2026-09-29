@@ -21,6 +21,7 @@ export default async function AccountPage() {
         fullName={profile.full_name}
         certificateName={profile.certificate_name}
         childLearners={learners.filter((learner) => learner.kind === "child")}
+        emailUpdates={profile.email_updates}
       />
     </>
   );

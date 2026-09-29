@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: AppSettingsRow = {
   exam_pass_percent: 80,
   exam_minutes: 30,
   retry_cooldown_hours: 24,
+  facebook_url: null,
   updated_at: new Date(0).toISOString(),
 };
 

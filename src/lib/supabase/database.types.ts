@@ -22,6 +22,7 @@ export type ProfileRow = {
   certificate_name: string;
   role: AppRole;
   disabled: boolean;
+  email_updates: boolean;
   created_at: Timestamp;
   updated_at: Timestamp;
 };
@@ -94,7 +95,19 @@ export type AppSettingsRow = {
   exam_pass_percent: number;
   exam_minutes: number;
   retry_cooldown_hours: number;
+  facebook_url: string | null;
   updated_at: Timestamp;
+};
+export type AnnouncementRow = {
+  id: string;
+  subject: string;
+  content: unknown;
+  sent_by: string | null;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  created_at: Timestamp;
+  finished_at: Timestamp | null;
 };
 export type ExamAttemptRow = {
   id: string;
@@ -159,7 +172,10 @@ export type Database = {
     Tables: {
       profiles: TableDef<
         ProfileRow,
-        Optional<ProfileRow, "email" | "full_name" | "certificate_name" | "role" | "disabled" | "created_at" | "updated_at">
+        Optional<
+          ProfileRow,
+          "email" | "full_name" | "certificate_name" | "role" | "disabled" | "email_updates" | "created_at" | "updated_at"
+        >
       >;
       learners: TableDef<LearnerRow, Optional<LearnerRow, "id" | "birth_year" | "created_at">>;
       memorized_ayahs: TableDef<MemorizedAyahRow, Optional<MemorizedAyahRow, "memorized_at">>;
@@ -185,6 +201,10 @@ export type Database = {
       >;
       story_views: TableDef<StoryViewRow, Optional<StoryViewRow, "watched_at">>;
       email_otps: TableDef<EmailOtpRow, Optional<EmailOtpRow, "attempts" | "created_at">>;
+      announcements: TableDef<
+        AnnouncementRow,
+        Optional<AnnouncementRow, "id" | "sent_by" | "recipient_count" | "sent_count" | "failed_count" | "created_at" | "finished_at">
+      >;
       certificates: TableDef<CertificateRow, Optional<CertificateRow, "id" | "exam_attempt_id" | "issued_at" | "revoked_at">>;
     };
     Views: { [_ in never]: never };

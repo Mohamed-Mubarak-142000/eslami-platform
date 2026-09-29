@@ -29,6 +29,10 @@ Set in `.env.local` and in Vercel → Settings → Environment Variables:
 
 Gmail allows about 500 emails a day from a personal account.
 
+Admin announcement emails (Admin → الرسائل) need `migrations/20260929000001_announcements.sql`: it adds
+`profiles.email_updates` (opt-out, default on), `app_settings.facebook_url`, and the `announcements` send log.
+One send is capped at 400 recipients to leave Gmail quota for sign-up codes.
+
 ## 4. Google sign-in
 
 Google Cloud Console → OAuth client (Web). Authorized redirect URI:
