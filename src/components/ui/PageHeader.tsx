@@ -33,10 +33,14 @@ export function PageHeader({ kicker, title, description, icon, actions, tone = "
   return (
     <header
       ref={ref}
-      className={cn("relative isolate overflow-hidden", dark ? "bg-emerald-deep text-white" : "bg-ivory-deep text-ink", className)}
+      // No overflow-hidden here: menus in `actions` (the learner switcher) must hang below the header.
+      // z-10 keeps them above the page content that follows; only the decoration is clipped.
+      className={cn("relative isolate z-10", dark ? "bg-emerald-deep text-white" : "bg-ivory-deep text-ink", className)}
     >
-      <div className={cn("absolute inset-0 -z-10", dark ? "pattern-stars-light" : "pattern-stars")} />
-      {dark && <div className="absolute -top-40 left-1/2 -z-10 size-[36rem] -translate-x-1/2 rounded-full bg-gold/15 blur-3xl" />}
+      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden>
+        <div className={cn("absolute inset-0", dark ? "pattern-stars-light" : "pattern-stars")} />
+        {dark && <div className="absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full bg-gold/15 blur-3xl" />}
+      </div>
       <div className="mx-auto max-w-6xl px-4 pb-14 pt-12 sm:px-6 md:pb-16 md:pt-16">
         <p
           data-ph
