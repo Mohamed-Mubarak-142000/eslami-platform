@@ -10,7 +10,7 @@ import { TasmeeSession } from "@/features/tasmee/TasmeeSession";
 
 export const metadata: Metadata = {
   title: "التسميع",
-  description: "سمّع لنفسك: تُخفى الآيات فتقرأ من حفظك، ثم تكشفها كلمةً كلمة وتصحّح نفسك.",
+  description: "سمّع لنفسك بصوتك: تُخفى الآيات فتقرأ من حفظك، وتظهر كل كلمة وأنت تقرؤها، ونوقفك عند الخطأ ونريك الصحيح.",
   alternates: { canonical: "/tasmee" },
 };
 
@@ -44,7 +44,7 @@ export default async function TasmeePage({ searchParams }: PageProps<"/tasmee">)
         kicker="التسميع"
         icon={<Mic className="size-4" aria-hidden />}
         title="سمّع لنفسك"
-        description="اختر سورة ومقطعًا، فتُخفى الآيات وتقرأ من حفظك، ثم تكشف كلمةً كلمة وتعلّم ما أصبت فيه وما تحتاج مراجعته."
+        description="اختر سورة ومقطعًا، ثم اقرأ من حفظك بصوتك: تظهر الآيات وأنت تقرؤها، وإن أخطأت نوقفك ونريك الصحيح لتكمل."
       />
       <div className="mx-auto max-w-4xl space-y-8 px-4 py-10 sm:px-6">
         <TasmeePicker
