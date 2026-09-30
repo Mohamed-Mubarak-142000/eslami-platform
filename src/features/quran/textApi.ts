@@ -183,6 +183,43 @@ export async function getJuzStarts(): Promise<AyahRef[]> {
   }
 }
 
+/** First ayah of each of the 604 Madani mushaf pages (index 0 = page 1), from the same cached /meta. */
+export async function getMushafPageStarts(): Promise<AyahRef[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/meta`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { data: { pages: { references: AyahRef[] } } };
+    const starts = data.data.pages.references.map(({ surah, ayah }) => ({ surah, ayah }));
+    return starts.length === 604 ? starts : [];
+  } catch {
+    return [];
+  }
+}
+
+export interface PageAyah {
+  surah: number;
+  numberInSurah: number;
+  juz: number;
+  text: string;
+}
+
+/** The ayahs printed on one mushaf page; the basmala prefix of first ayahs is removed. */
+export async function getPageAyahs(page: number): Promise<PageAyah[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/page/${page}/quran-uthmani`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { data: { ayahs: (RawAyah & { surah: { number: number } })[] } };
+    return data.data.ayahs.map((ayah) => {
+      let text = stripLeadingBom(ayah.text);
+      if (ayah.numberInSurah === 1 && !SURAHS_WITHOUT_SEPARATE_BASMALA.has(ayah.surah.number) && text.startsWith(BASMALA))
+        text = text.slice(BASMALA.length).trim();
+      return { surah: ayah.surah.number, numberInSurah: ayah.numberInSurah, juz: ayah.juz, text };
+    });
+  } catch {
+    return [];
+  }
+}
+
 export interface MushafPage {
   page: number;
   juz: number;

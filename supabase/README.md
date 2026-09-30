@@ -33,6 +33,10 @@ Admin announcement emails (Admin → الرسائل) need `migrations/2026092900
 `profiles.email_updates` (opt-out, default on), `app_settings.facebook_url`, and the `announcements` send log.
 One send is capped at 400 recipients to leave Gmail quota for sign-up codes.
 
+Memorization plans (/plan, "خطة الحفظ") need `migrations/20260930000001_memorization_plans.sql`: it adds
+`memorization_plans` (one active plan per learner, counted in half-page units) and `memorization_plan_log`
+(one row per plan, day and kind, for "done today" and the streak).
+
 ## 4. Google sign-in
 
 Google Cloud Console → OAuth client (Web). Authorized redirect URI:

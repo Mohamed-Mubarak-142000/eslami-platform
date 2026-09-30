@@ -18,6 +18,7 @@ import type { ExamStatus, GameKind } from "@/lib/supabase/database.types";
 import { countMemorizedInJuz, type JuzRange } from "./juz";
 import { formatArabicDate } from "./format";
 import { ReviewToday } from "./ReviewToday";
+import { PlanCard, type PlanSummary } from "@/features/plan/PlanCard";
 import { KidsCorner } from "./KidsCorner";
 
 const TOTAL_AYAHS = 6236;
@@ -71,6 +72,7 @@ interface DashboardViewProps {
   attempts: AttemptSummary[];
   games: GameSummary[];
   tasmee: TasmeeSummary[];
+  plan: PlanSummary | null;
   notice?: string | undefined;
 }
 
@@ -138,7 +140,7 @@ function JuzCard({
   );
 }
 
-export function DashboardView({ juzRanges, surahNames, certificates, attempts, games, tasmee, notice }: DashboardViewProps) {
+export function DashboardView({ juzRanges, surahNames, certificates, attempts, games, tasmee, plan, notice }: DashboardViewProps) {
   const { state, status } = useKidsProgress();
   const lastRead = useLastRead();
   const now = useNow();
@@ -164,6 +166,8 @@ export function DashboardView({ juzRanges, surahNames, certificates, attempts, g
         <Stat icon={Award} label="شهادة أجزاء" value={toArabicDigits(activeCertificates.length)} tone="bg-gold-mist text-gold-deep" />
         <Stat icon={Sparkles} label="شارة" value={toArabicDigits(state.unlockedBadgeIds.length)} tone="bg-sky/10 text-sky" />
       </section>
+
+      <PlanCard plan={plan} />
 
       <ReviewToday surahNames={surahNames} />
 

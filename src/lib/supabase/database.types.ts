@@ -147,6 +147,32 @@ export type StoryViewRow = {
   story_id: string;
   watched_at: Timestamp;
 };
+export type PlanStatus = "active" | "completed" | "archived";
+export type MemorizationPlanRow = {
+  id: string;
+  learner_id: string;
+  start_juz: number;
+  end_juz: number;
+  start_page: number;
+  end_page: number;
+  units_per_day: number;
+  far_review_pages: number;
+  progress_units: number;
+  review_cursor: number;
+  status: PlanStatus;
+  created_at: Timestamp;
+  completed_at: Timestamp | null;
+};
+export type PlanLogKind = "new" | "review";
+export type MemorizationPlanLogRow = {
+  plan_id: string;
+  learner_id: string;
+  day: string;
+  kind: PlanLogKind;
+  from_unit: number;
+  to_unit: number;
+  done_at: Timestamp;
+};
 export type ExamAnswerKeyRow = {
   attempt_id: string;
   key: unknown;
@@ -206,6 +232,14 @@ export type Database = {
         Optional<AnnouncementRow, "id" | "sent_by" | "recipient_count" | "sent_count" | "failed_count" | "created_at" | "finished_at">
       >;
       certificates: TableDef<CertificateRow, Optional<CertificateRow, "id" | "exam_attempt_id" | "issued_at" | "revoked_at">>;
+      memorization_plans: TableDef<
+        MemorizationPlanRow,
+        Optional<
+          MemorizationPlanRow,
+          "id" | "far_review_pages" | "progress_units" | "review_cursor" | "status" | "created_at" | "completed_at"
+        >
+      >;
+      memorization_plan_log: TableDef<MemorizationPlanLogRow, Optional<MemorizationPlanLogRow, "done_at">>;
     };
     Views: { [_ in never]: never };
     Functions: {

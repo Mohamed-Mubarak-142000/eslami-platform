@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Award, BookOpenCheck, ChevronDown, GraduationCap, LogIn, LogOut, Settings, Shield } from "lucide-react";
+import { Award, BookOpenCheck, CalendarRange, ChevronDown, GraduationCap, LogIn, LogOut, Settings, Shield } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useAccount, useAccountContext, type AccountSummary } from "@/features/a
 
 const LINKS: { href: Route; label: string; icon: LucideIcon; admin?: boolean }[] = [
   { href: "/dashboard", label: "رحلتي", icon: BookOpenCheck },
+  { href: "/plan", label: "خطة الحفظ", icon: CalendarRange },
   { href: "/exams", label: "اختبارات الأجزاء", icon: GraduationCap },
   { href: "/certificates/mine", label: "شهاداتي", icon: Award },
   { href: "/account", label: "حسابي", icon: Settings },

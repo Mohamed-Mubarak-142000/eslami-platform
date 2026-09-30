@@ -7,6 +7,8 @@ import { getJuzStarts } from "@/features/quran/textApi";
 import { getSurahs } from "@/features/quran/api";
 import { buildJuzRanges } from "@/features/progress/juz";
 import { DashboardView } from "@/features/progress/DashboardView";
+import { loadCurrentPlan, loggedOn } from "@/features/plan/data";
+import { planDay, totalUnits } from "@/features/plan/schedule";
 import { LearnerSwitcher } from "@/features/account/LearnerSwitcher";
 
 export const metadata: Metadata = { title: "رحلتي", robots: { index: false } };
@@ -16,7 +18,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   const supabase = await createSupabaseServerClient();
   const learnerId = activeLearner.id;
 
-  const [starts, surahs, certificates, attempts, games, tasmee] = await Promise.all([
+  const [starts, surahs, certificates, attempts, games, tasmee, current] = await Promise.all([
     getJuzStarts(),
     getSurahs(),
     supabase.from("certificates").select("juz, verification_code, issued_at, revoked_at").eq("learner_id", learnerId).order("juz"),
@@ -38,7 +40,18 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       .eq("learner_id", learnerId)
       .order("created_at", { ascending: false })
       .limit(5),
+    loadCurrentPlan(supabase, learnerId),
   ]);
+
+  const today = planDay();
+  const plan = current && {
+    status: current.plan.status === "completed" ? ("completed" as const) : ("active" as const),
+    pagesDone: current.plan.progress_units / 2,
+    totalPages: totalUnits(current.plan) / 2,
+    percent: Math.round((current.plan.progress_units / totalUnits(current.plan)) * 100),
+    newDone: loggedOn(current.log, today, "new") !== null,
+    reviewDone: loggedOn(current.log, today, "review") !== null,
+  };
 
   const name = activeLearner.kind === "self" ? profile.full_name : activeLearner.display_name;
   return (
@@ -57,6 +70,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
         attempts={attempts.data ?? []}
         games={games.data ?? []}
         tasmee={tasmee.data ?? []}
+        plan={plan}
         notice={params.password === "updated" ? "تم تعيين كلمة المرور الجديدة." : undefined}
       />
     </>
