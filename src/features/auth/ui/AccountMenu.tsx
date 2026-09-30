@@ -4,18 +4,15 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Award, BookOpenCheck, CalendarRange, ChevronDown, GraduationCap, LogIn, LogOut, Settings, Shield } from "lucide-react";
+import { ChevronDown, LogIn, LogOut, Settings, Shield } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
 import { endSessionAction } from "../actions";
 import { useAccount, useAccountContext, type AccountSummary } from "@/features/account/AccountProvider";
 
+// The learner's pages (رحلتي، الخطة، الاختبارات، الشهادات) live in the header's "رحلتي" dropdown.
 const LINKS: { href: Route; label: string; icon: LucideIcon; admin?: boolean }[] = [
-  { href: "/dashboard", label: "رحلتي", icon: BookOpenCheck },
-  { href: "/plan", label: "خطة الحفظ", icon: CalendarRange },
-  { href: "/exams", label: "اختبارات الأجزاء", icon: GraduationCap },
-  { href: "/certificates/mine", label: "شهاداتي", icon: Award },
   { href: "/account", label: "حسابي", icon: Settings },
   { href: "/admin", label: "لوحة الإدارة", icon: Shield, admin: true },
 ];
