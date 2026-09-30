@@ -3,16 +3,24 @@ import type { AyahRef } from "@/features/quran/textApi";
 import { loggedOn, type PlanWithLog } from "./data";
 import { resolveSegments } from "./portion";
 import {
-  daysLeft,
+  daysLabel,
   farPages,
+  farPool,
+  finishDay,
+  nextScheduledDay,
+  pagesLabel,
   planDay,
   recentRange,
+  sessionsLeft,
+  shiftDay,
   streak,
   surahAtPage,
   todayNewRange,
   totalUnits,
   unitsLabel,
   unitsToSegments,
+  weekday,
+  WEEKDAY_NAMES,
   type PageSegment,
 } from "./schedule";
 
@@ -28,21 +36,46 @@ export interface PortionPart extends PageLink {
   opening: string;
 }
 
+export interface DaySchedule {
+  /** Whether today is one of the chosen days. */
+  today: boolean;
+  label: string;
+  /** "غدًا" or a weekday name, for "your next session is …". */
+  next: string | null;
+}
+
 export interface TodayView {
+  kind: "memorize" | "review";
   status: "active" | "completed";
-  startJuz: number;
-  endJuz: number;
+  startJuz: number | null;
+  endJuz: number | null;
   totalPages: number;
   pagesDone: number;
   percent: number;
-  daysLeft: number;
+  /** YYYY-MM-DD of the expected last session, keeping to the chosen days. */
+  finishDay: string | null;
   streak: number;
   dailyLabel: string;
-  /** Null when the plan is finished; `parts` is null when the Quran API is unreachable. */
+  reviewLabel: string;
+  priorSurahs: string[];
+  /** Pages in the older-pages rotation, and how far into the current round it is. */
+  pool: { pages: number; position: number };
+  newDays: DaySchedule;
+  reviewDays: DaySchedule;
+  /** Null when there's nothing new to memorize; `parts` is null when the Quran API is unreachable. */
   newPortion: { done: boolean; parts: PortionPart[] | null } | null;
   recent: PageLink[];
   far: PageLink[];
   reviewDone: boolean;
+}
+
+function schedule(days: number[], today: string): DaySchedule {
+  const next = nextScheduledDay(days, shiftDay(today, 1));
+  return {
+    today: days.includes(weekday(today)),
+    label: daysLabel(days),
+    next: next === null ? null : next === shiftDay(today, 1) ? "غدًا" : `يوم ${WEEKDAY_NAMES[weekday(next)]}`,
+  };
 }
 
 export async function buildTodayView(
@@ -59,9 +92,9 @@ export async function buildTodayView(
     return { ...segment, surahName: name(surah), href: `/quran/${surah}?page=${segment.page}` };
   };
 
-  const range = plan.status === "active" ? todayNewRange(plan, newToday) : null;
+  const range = plan.status === "active" && plan.kind === "memorize" ? todayNewRange(plan, newToday) : null;
   let newPortion: TodayView["newPortion"] = null;
-  if (range) {
+  if (range && plan.start_juz !== null && plan.end_juz !== null) {
     const segments = unitsToSegments(plan, range);
     const resolved = await resolveSegments(segments, { start: plan.start_juz, end: plan.end_juz });
     newPortion = {
@@ -86,19 +119,29 @@ export async function buildTodayView(
   const recent = recentRange(plan, anchor);
   const total = totalUnits(plan);
 
+  const pool = farPool(plan, recent.from).length;
+  const memorize = plan.kind === "memorize";
+
   return {
+    kind: plan.kind,
     status: plan.status === "completed" ? "completed" : "active",
     startJuz: plan.start_juz,
     endJuz: plan.end_juz,
     totalPages: total / 2,
     pagesDone: plan.progress_units / 2,
-    percent: Math.round((plan.progress_units / total) * 100),
-    daysLeft: daysLeft(plan),
+    percent: total > 0 ? Math.round((plan.progress_units / total) * 100) : 0,
+    finishDay: memorize ? finishDay(sessionsLeft(plan), plan.new_days, today, newToday !== null) : null,
     streak: streak(
-      log.filter((row) => row.kind === "new").map((row) => row.day),
+      log.filter((row) => row.kind === (memorize ? "new" : "review")).map((row) => row.day),
       today,
+      memorize ? plan.new_days : plan.review_days,
     ),
     dailyLabel: unitsLabel(plan.units_per_day),
+    reviewLabel: pagesLabel(plan.far_review_pages),
+    priorSurahs: plan.prior_surahs.map(name),
+    pool: { pages: pool, position: pool === 0 ? 0 : cursor % pool },
+    newDays: schedule(plan.new_days, today),
+    reviewDays: schedule(plan.review_days, today),
     newPortion,
     recent: plan.status === "active" ? unitsToSegments(plan, recent).map(link) : [],
     far: plan.status === "active" ? farPages(plan, recent.from, cursor).map((page) => link({ page, half: "full" })) : [],

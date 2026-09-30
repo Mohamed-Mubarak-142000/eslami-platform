@@ -8,7 +8,7 @@ import { getSurahs } from "@/features/quran/api";
 import { buildJuzRanges } from "@/features/progress/juz";
 import { DashboardView } from "@/features/progress/DashboardView";
 import { loadCurrentPlan, loggedOn } from "@/features/plan/data";
-import { planDay, totalUnits } from "@/features/plan/schedule";
+import { planDay, totalUnits, weekday } from "@/features/plan/schedule";
 import { LearnerSwitcher } from "@/features/account/LearnerSwitcher";
 
 export const metadata: Metadata = { title: "رحلتي", robots: { index: false } };
@@ -44,13 +44,17 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   ]);
 
   const today = planDay();
+  const total = current ? totalUnits(current.plan) : 0;
   const plan = current && {
+    kind: current.plan.kind,
     status: current.plan.status === "completed" ? ("completed" as const) : ("active" as const),
     pagesDone: current.plan.progress_units / 2,
-    totalPages: totalUnits(current.plan) / 2,
-    percent: Math.round((current.plan.progress_units / totalUnits(current.plan)) * 100),
+    totalPages: total / 2,
+    percent: total > 0 ? Math.round((current.plan.progress_units / total) * 100) : 0,
     newDone: loggedOn(current.log, today, "new") !== null,
     reviewDone: loggedOn(current.log, today, "review") !== null,
+    newToday: current.plan.new_days.includes(weekday(today)),
+    reviewToday: current.plan.review_days.includes(weekday(today)),
   };
 
   const name = activeLearner.kind === "self" ? profile.full_name : activeLearner.display_name;

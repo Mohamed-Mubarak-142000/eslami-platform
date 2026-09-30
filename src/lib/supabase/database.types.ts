@@ -148,18 +148,26 @@ export type StoryViewRow = {
   watched_at: Timestamp;
 };
 export type PlanStatus = "active" | "completed" | "archived";
+export type PlanKind = "memorize" | "review";
 export type MemorizationPlanRow = {
   id: string;
   learner_id: string;
-  start_juz: number;
-  end_juz: number;
-  start_page: number;
-  end_page: number;
+  kind: PlanKind;
+  /** Null on review plans, which have no new-memorization range. */
+  start_juz: number | null;
+  end_juz: number | null;
+  start_page: number | null;
+  end_page: number | null;
   units_per_day: number;
   far_review_pages: number;
   progress_units: number;
   review_cursor: number;
   status: PlanStatus;
+  prior_surahs: number[];
+  prior_pages: number[];
+  /** Weekdays, 0 = Sunday … 6 = Saturday. */
+  new_days: number[];
+  review_days: number[];
   created_at: Timestamp;
   completed_at: Timestamp | null;
 };
@@ -236,7 +244,22 @@ export type Database = {
         MemorizationPlanRow,
         Optional<
           MemorizationPlanRow,
-          "id" | "far_review_pages" | "progress_units" | "review_cursor" | "status" | "created_at" | "completed_at"
+          | "id"
+          | "kind"
+          | "start_juz"
+          | "end_juz"
+          | "start_page"
+          | "end_page"
+          | "far_review_pages"
+          | "progress_units"
+          | "review_cursor"
+          | "status"
+          | "prior_surahs"
+          | "prior_pages"
+          | "new_days"
+          | "review_days"
+          | "created_at"
+          | "completed_at"
         >
       >;
       memorization_plan_log: TableDef<MemorizationPlanLogRow, Optional<MemorizationPlanLogRow, "done_at">>;
