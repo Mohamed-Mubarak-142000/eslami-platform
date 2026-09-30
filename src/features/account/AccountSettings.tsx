@@ -8,6 +8,7 @@ import { buttonClass } from "@/components/ui/button";
 import { Field, FormAlert, SubmitButton } from "@/features/auth/ui/AuthFields";
 import type { FormState } from "@/features/auth/actions";
 import type { LearnerRow } from "@/lib/supabase/database.types";
+import { useAccountContext } from "./AccountProvider";
 import { EmailUpdatesToggle } from "@/features/announcements/AnnouncementSettings";
 import {
   addChildAction,
@@ -81,9 +82,14 @@ function ProfileForm({ fullName, certificateName, email }: { fullName: string; c
 }
 
 function ChildForm({ child, onDone }: { child?: LearnerRow; onDone?: () => void }) {
+  const { refresh } = useAccountContext();
   const [state, action] = useForm(async (previous, formData) => {
     const result = await (child ? updateChildAction : addChildAction)(previous, formData);
-    if (!result.error && !result.fieldErrors) onDone?.();
+    if (!result.error && !result.fieldErrors) {
+      // The header's learner switcher reads the client-side account; reload it so the child shows at once.
+      refresh();
+      onDone?.();
+    }
     return result;
   });
   return (
@@ -113,6 +119,7 @@ function ChildForm({ child, onDone }: { child?: LearnerRow; onDone?: () => void 
 }
 
 function ChildRow({ child }: { child: LearnerRow }) {
+  const { refresh } = useAccountContext();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string>();
@@ -156,6 +163,7 @@ function ChildRow({ child }: { child: LearnerRow }) {
               startRemove(async () => {
                 const result = await removeChildAction(child.id);
                 if (result.error) setError(result.error);
+                else refresh();
                 setConfirming(false);
               })
             }
