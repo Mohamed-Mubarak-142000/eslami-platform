@@ -1,18 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Award, Gamepad2, Printer, Trees, UserPlus } from "lucide-react";
+import { Award, Gamepad2, GraduationCap, Trees, UserPlus } from "lucide-react";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { useAccountContext } from "@/features/account/AccountProvider";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
-import { ActivityStrip, SurahCertificatePrint, completedSurahIds } from "@/features/kids/progress/ReportParts";
+import { ActivityStrip, completedSurahIds } from "@/features/kids/progress/ReportParts";
 import { computeStars } from "@/features/kids/progress/stars";
 
 /** Entry to the kids garden from the dashboard: open it for the selected child, or pick / add one. */
-export function KidsCorner({ surahNames }: { surahNames: Record<number, string> }) {
+export function KidsCorner() {
   const { state, setActiveLearner } = useAccountContext();
   const router = useRouter();
   if (state.status !== "signed-in") return null;
@@ -71,31 +70,24 @@ export function KidsCorner({ surahNames }: { surahNames: Record<number, string> 
         </div>
       </div>
 
-      {activeLearner.kind === "child" && <ChildReport childName={activeLearner.display_name} surahNames={surahNames} />}
+      {activeLearner.kind === "child" && <ChildReport childName={activeLearner.display_name} />}
     </section>
   );
 }
 
 /** What the parent area shows, for the child selected in the dashboard. */
-function ChildReport({ childName, surahNames }: { childName: string; surahNames: Record<number, string> }) {
+function ChildReport({ childName }: { childName: string }) {
   const { state, status } = useKidsProgress();
-  const [printing, setPrinting] = useState<number | null>(null);
   if (status !== "ready") return null;
 
-  const completed = completedSurahIds(state);
   const games = state.matchStats.letterGamesCompleted + state.matchStats.tajweedGamesCompleted;
   const stats: [string, string][] = [
     ["نجمة", toArabicDigits(computeStars(state))],
-    ["سورة مكتملة", toArabicDigits(completed.length)],
+    ["سورة مكتملة", toArabicDigits(completedSurahIds(state).length)],
     ["مسابقة", toArabicDigits(state.quizStats.attempts)],
     ["أفضل نتيجة", `${toArabicDigits(state.quizStats.bestScorePercent)}٪`],
     ["لعبة حروف وتجويد", toArabicDigits(games)],
   ];
-
-  function print(surahId: number) {
-    setPrinting(surahId);
-    setTimeout(() => window.print(), 50);
-  }
 
   return (
     <div className="mt-6 space-y-5 border-t border-sky/20 pt-5">
@@ -113,24 +105,24 @@ function ChildReport({ childName, surahNames }: { childName: string; surahNames:
         <ActivityStrip activityDates={state.activityDates} className="mt-2" />
       </div>
 
-      <div>
-        <p className="flex items-center gap-1.5 text-sm font-bold text-muted">
-          <Award className="size-4 text-gold-deep" aria-hidden /> شهادات السور
+      {/* Certificates are per juz and only earned by passing its exam — never for a surah alone. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-gold/50 bg-gold-mist/60 p-4">
+        <p className="flex items-start gap-2 text-sm text-ink/80">
+          <Award className="mt-0.5 size-4 shrink-0 text-gold-deep" aria-hidden />
+          <span>
+            <span className="font-bold text-emerald-deep">شهادات الأجزاء:</span> حين يتمّ {childName} حفظ جزء كامل، يختبر فيه، وإذا اجتاز
+            الاختبار حصل على شهادته.
+          </span>
         </p>
-        {completed.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">عندما يتمّ {childName} حفظ سورة كاملة، تظهر هنا شهادتها للطباعة.</p>
-        ) : (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {completed.map((surahId) => (
-              <button key={surahId} type="button" onClick={() => print(surahId)} className={buttonClass("outline", "sm")}>
-                <Printer aria-hidden /> سورة {surahNames[surahId] ?? toArabicDigits(surahId)}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <Link href="/exams" className={buttonClass("primary", "sm")}>
+            <GraduationCap aria-hidden /> اختبارات الأجزاء
+          </Link>
+          <Link href="/certificates/mine" className={buttonClass("outline", "sm")}>
+            <Award aria-hidden /> الشهادات
+          </Link>
+        </div>
       </div>
-
-      {printing !== null && <SurahCertificatePrint childName={childName} surahName={surahNames[printing] ?? toArabicDigits(printing)} />}
     </div>
   );
 }

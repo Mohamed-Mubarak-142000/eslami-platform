@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { fontVariables } from "@/lib/fonts";
+import { SplashScreen } from "@/components/site/SplashScreen";
+import { SPLASH_BOOT_SCRIPT } from "@/components/site/splash";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -27,8 +29,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={fontVariables}>
+    // suppressHydrationWarning: the splash boot script may set data-splash on <html> before hydration.
+    <html lang="ar" dir="rtl" className={fontVariables} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT_SCRIPT }} />
+      </head>
       <body className="bg-ivory text-ink antialiased">
+        <SplashScreen />
         <Providers>{children}</Providers>
       </body>
     </html>

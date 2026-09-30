@@ -7,8 +7,32 @@ import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SITE_URL, isSupabaseConfigured } from "@/lib/supabase/env";
-import { Certificate, juzOrdinal } from "@/features/certificates/Certificate";
+import { Certificate, juzOrdinal, type JuzScope } from "@/features/certificates/Certificate";
 import { PrintButton } from "@/features/certificates/PrintButton";
+import { getSurahs } from "@/features/quran/api";
+import { getJuzStarts, getMushafPageStarts } from "@/features/quran/textApi";
+import { getSurahAyahCount } from "@/features/kids/progress/surahAyahCounts";
+import { buildJuzPages } from "@/features/plan/schedule";
+
+/** First and last ayah (and mushaf pages) of a juz, from the cached Quran metadata; null if unavailable. */
+async function juzScope(juz: number): Promise<JuzScope | null> {
+  const [starts, pageStarts, surahs] = await Promise.all([getJuzStarts(), getMushafPageStarts(), getSurahs()]);
+  const start = starts[juz - 1];
+  if (!start || surahs.length === 0) return null;
+  const next = starts[juz];
+  const end = !next
+    ? { surah: 114, ayah: getSurahAyahCount(114) }
+    : next.ayah === 1
+      ? { surah: next.surah - 1, ayah: getSurahAyahCount(next.surah - 1) }
+      : { surah: next.surah, ayah: next.ayah - 1 };
+  const name = (id: number) => surahs.find((surah) => surah.id === id)?.name ?? toArabicDigits(id);
+  const pages = buildJuzPages(starts, pageStarts)[juz - 1];
+  return {
+    from: { surah: name(start.surah), ayah: start.ayah },
+    to: { surah: name(end.surah), ayah: end.ayah },
+    pages: pages ? { start: pages.startPage, end: pages.endPage } : undefined,
+  };
+}
 
 const CODE_PATTERN = /^[A-Z2-9]{5}-[A-Z2-9]{5}$/;
 
@@ -35,6 +59,7 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
   const certificate = await findCertificate((await params).code);
   if (!certificate) notFound();
   const verifyUrl = `${SITE_URL}/certificates/${certificate.code}`;
+  const scope = await juzScope(certificate.juz);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-10 sm:px-6">
@@ -65,6 +90,7 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
         code={certificate.code}
         verifyUrl={verifyUrl}
         revoked={certificate.revoked}
+        scope={scope}
       />
 
       {!certificate.revoked && (

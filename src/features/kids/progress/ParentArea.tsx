@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
-import { Award, ChevronLeft, Cloud, KeyRound, Lock, Printer, RotateCcw, ShieldCheck } from "lucide-react";
+import { Award, ChevronLeft, Cloud, GraduationCap, KeyRound, Lock, RotateCcw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import type { Surah } from "@/features/quran/api";
@@ -17,7 +17,7 @@ import {
   setParentPin,
   verifyParentPin,
 } from "./parentPinStorage";
-import { ActivityStrip, SurahCertificatePrint, completedSurahIds } from "./ReportParts";
+import { ActivityStrip, completedSurahIds } from "./ReportParts";
 import { computeStars, countMemorizedAyahs } from "./stars";
 import { computeStreak } from "./streak";
 
@@ -129,10 +129,6 @@ export function ParentArea({ surahs }: { surahs: Surah[] }) {
 function ParentDashboard({ surahs }: { surahs: Surah[] }) {
   const { state, synced, resetProgress } = useKidsProgress();
   const learner = useActiveLearner();
-  // Defaults to the selected child's name, which may arrive after this mounts.
-  const [typedName, setChildName] = useState<string | null>(null);
-  const childName = typedName ?? (learner?.kind === "child" ? learner.display_name : "");
-  const [certificateSurah, setCertificateSurah] = useState<Surah | null>(null);
   const done = new Set(completedSurahIds(state));
   const completed = surahs.filter((surah) => done.has(surah.id));
   // Signed in, progress lives in the account: resetting wipes it on every device, not just this one.
@@ -140,11 +136,6 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
   const resetWarning = owner
     ? `سيُمسح كل ما حُفظ في ${owner} من آيات محفوظة ونجوم وشارات، على كل الأجهزة، ولا يمكن التراجع. متأكد؟`
     : "سيُمسح كل التقدّم على هذا الجهاز. متأكد؟";
-
-  function print(surah: Surah) {
-    setCertificateSurah(surah);
-    setTimeout(() => window.print(), 50);
-  }
 
   return (
     <div className="space-y-6 font-sans">
@@ -190,30 +181,20 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
 
       <div className={kidsPanel}>
         <h2 className="inline-flex items-center gap-2 font-kids text-2xl font-extrabold text-emerald-deep">
-          <Award className="size-7 text-gold" aria-hidden /> شهادات الإتمام
+          <Award className="size-7 text-gold" aria-hidden /> شهادات الأجزاء
         </h2>
-        {completed.length === 0 ? (
-          <p className="mt-3 text-muted">عندما يتمّ طفلك حفظ سورة كاملة، تظهر هنا شهادتها للطباعة.</p>
-        ) : (
-          <>
-            <label className="mt-4 block">
-              <span className="text-sm font-bold text-muted">اسم الطفل على الشهادة</span>
-              <input
-                value={childName}
-                onChange={(event) => setChildName(event.target.value)}
-                placeholder="مثال: عمر"
-                className="mt-1 h-12 w-full rounded-2xl border-2 border-line px-4 outline-none focus:border-emerald"
-              />
-            </label>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {completed.map((surah) => (
-                <button key={surah.id} type="button" onClick={() => print(surah)} className={kidsButton("gold", "py-2 text-base")}>
-                  <Printer aria-hidden /> سورة {surah.name}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        {/* Certificates are per juz and only earned by passing its exam — never for a surah alone. */}
+        <p className="mt-3 text-muted">
+          حين يتمّ طفلك حفظ جزء كامل، يختبر فيه من «اختبارات الأجزاء»، وإذا اجتاز الاختبار حصل على شهادة الجزء برقم تحقق.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/exams" className={kidsButton("gold", "py-2 text-base")}>
+            <GraduationCap aria-hidden /> اختبارات الأجزاء
+          </Link>
+          <Link href="/certificates/mine" className={kidsButton("sky", "py-2 text-base")}>
+            <Award aria-hidden /> الشهادات
+          </Link>
+        </div>
       </div>
 
       <div className={cn(kidsPanel, "border-2 border-dashed border-[#e84a67]/40")}>
@@ -233,8 +214,6 @@ function ParentDashboard({ surahs }: { surahs: Surah[] }) {
           <RotateCcw aria-hidden /> امسح التقدّم
         </button>
       </div>
-
-      {certificateSurah && <SurahCertificatePrint childName={childName} surahName={certificateSurah.name} />}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import { StarMark } from "@/components/ui/Ornament";
 import { useNow } from "@/features/time/useNow";
 import type { KidsProgressState } from "./progressTypes";
 import { isSurahFullyMemorized } from "./reviewSchedule";
@@ -29,24 +28,5 @@ export function ActivityStrip({ activityDates, className }: { activityDates: str
         <span key={day} title={day} className={cn("h-8 flex-1 rounded-lg", active.has(day) ? "bg-[#12a15b]" : "bg-[#eef1ec]")} />
       ))}
     </div>
-  );
-}
-
-/** Hidden on screen; the only thing on the page when printing (see `.print-area` in globals.css). */
-export function SurahCertificatePrint({ childName, surahName }: { childName: string; surahName: string }) {
-  const now = useNow();
-  return (
-    <section className="print-area hidden print:block" aria-hidden>
-      <div className="mx-auto flex min-h-[90vh] max-w-3xl flex-col items-center justify-center rounded-[2rem] border-[10px] border-double border-gold p-12 text-center">
-        <StarMark className="size-20 text-gold" />
-        <h1 className="mt-6 font-display text-5xl font-bold text-emerald-deep">شهادة إتمام حفظ</h1>
-        <p className="mt-8 text-2xl">يسرّ المنارة أن تهنّئ</p>
-        <p className="mt-3 font-display text-4xl font-bold text-gold-deep">{childName || "البطل الصغير"}</p>
-        <p className="mt-6 text-2xl">
-          بإتمام حفظ <span className="font-bold text-emerald-deep">سورة {surahName}</span>
-        </p>
-        <p className="mt-10 text-lg text-muted">{now ? new Intl.DateTimeFormat("ar-EG", { dateStyle: "long" }).format(now) : ""}</p>
-      </div>
-    </section>
   );
 }

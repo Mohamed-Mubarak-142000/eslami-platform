@@ -171,7 +171,7 @@ export function DashboardView({ juzRanges, surahNames, certificates, attempts, g
 
       <ReviewToday surahNames={surahNames} />
 
-      <KidsCorner surahNames={surahNames} />
+      <KidsCorner />
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-4xl bg-emerald-deep p-6 text-white shadow-lift">
