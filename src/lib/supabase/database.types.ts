@@ -164,6 +164,8 @@ export type MemorizationPlanRow = {
   review_cursor: number;
   status: PlanStatus;
   prior_surahs: number[];
+  /** Whole juz the learner already knew (a juz needn't align with surahs). */
+  prior_juz: number[];
   prior_pages: number[];
   /** Weekdays, 0 = Sunday … 6 = Saturday. */
   new_days: number[];
@@ -255,6 +257,7 @@ export type Database = {
           | "review_cursor"
           | "status"
           | "prior_surahs"
+          | "prior_juz"
           | "prior_pages"
           | "new_days"
           | "review_days"

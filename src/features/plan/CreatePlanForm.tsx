@@ -8,7 +8,7 @@ import { FormAlert, SubmitButton } from "@/features/auth/ui/AuthFields";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
 import { useNow } from "@/features/time/useNow";
 import { createPlanAction, type PlanFormState } from "./actions";
-import { SurahPicker, type PickerSurah } from "./SurahPicker";
+import { SurahPicker, type KnownSelection, type PickerJuz, type PickerSurah } from "./SurahPicker";
 import {
   ALL_DAYS,
   finishDay,
@@ -118,11 +118,13 @@ function KindOption({
 export function CreatePlanForm({
   juzPages,
   surahs,
+  juzList,
   surahPages,
   surahNames,
 }: {
   juzPages: JuzPages[];
   surahs: PickerSurah[];
+  juzList: PickerJuz[];
   /** First and last mushaf page of each surah, for the preview. */
   surahPages: Record<number, [number, number]>;
   surahNames: Record<number, string>;
@@ -139,7 +141,7 @@ export function CreatePlanForm({
   const [endJuz, setEndJuz] = useState(30);
   const [unitsPerDay, setUnitsPerDay] = useState(2);
   const [reviewPages, setReviewPages] = useState(3);
-  const [prior, setPrior] = useState<number[]>([]);
+  const [known, setKnown] = useState<KnownSelection>({ surahs: [], juz: [] });
   const [newDays, setNewDays] = useState<number[]>([...ALL_DAYS]);
   const [reviewDays, setReviewDays] = useState<number[]>([...ALL_DAYS]);
   const now = useNow();
@@ -152,8 +154,11 @@ export function CreatePlanForm({
   const finish = now ? finishDay(sessions, newDays, planDay(now), false) : null;
 
   const priorPages = new Set<number>();
-  for (const id of prior) {
-    const [first, last] = surahPages[id] ?? [0, -1];
+  const knownRanges = [
+    ...known.surahs.map((id): [number, number] => surahPages[id] ?? [0, -1]),
+    ...known.juz.map((juz): [number, number] => [juzPages[juz - 1]?.startPage ?? 0, juzPages[juz - 1]?.endPage ?? -1]),
+  ];
+  for (const [first, last] of knownRanges) {
     for (let page = first; page <= last; page++) {
       if (kind === "review" || !start || !end || page < start.startPage || page > end.endPage) priorPages.add(page);
     }
@@ -192,8 +197,8 @@ export function CreatePlanForm({
           current={kind}
           onSelect={setKind}
           icon={<Repeat className="size-5" aria-hidden />}
-          title="مراجعة محفوظي"
-          text="أحفظ سورًا من قبل وأريد تثبيتها بالمراجعة."
+          title="تثبيت الحفظ"
+          text="أحفظ سورًا أو أجزاءً من قبل وأريد تثبيتها بالمراجعة."
         />
       </fieldset>
 
@@ -248,7 +253,7 @@ export function CreatePlanForm({
               </select>
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-bold">مراجعة المحفوظ القديم في كل يوم مراجعة</span>
+              <span className="mb-1.5 block text-sm font-bold">مراجعة ما حفظته سابقًا في كل يوم مراجعة</span>
               <select name="farPages" defaultValue={2} className={fieldClass}>
                 {FAR_OPTIONS.map((count) => (
                   <option key={count} value={count}>
@@ -259,17 +264,15 @@ export function CreatePlanForm({
               <span className="mt-1 block text-xs text-muted">إلى جانب مراجعة ما حفظته في آخر ٥ أيام حفظ تلقائيًا.</span>
             </label>
             <div className="sm:col-span-2">
-              <span className="mb-1.5 block text-sm font-bold">سور تحفظها من قبل (اختياري)</span>
+              <span className="mb-1.5 block text-sm font-bold">أجزاء أو سور حفظتها من قبل (اختياري)</span>
               <SurahPicker
                 surahs={surahs}
-                name="priorSurahs"
-                selected={prior}
-                onChange={setPrior}
-                placeholder="اختر السور التي تحفظها لتدخل في المراجعة"
+                juzList={juzList}
+                value={known}
+                onChange={setKnown}
+                placeholder="اختر جزءًا كاملًا أو سورًا لتدخل في المراجعة"
               />
-              <span className="mt-1 block text-xs text-muted">
-                تدخل في مراجعة المحفوظ القديم من اليوم الأول، وتُحسب محفوظةً في «رحلتي».
-              </span>
+              <span className="mt-1 block text-xs text-muted">تدخل في مراجعة «البعيد» من اليوم الأول، وتُحسب محفوظةً في «رحلتي».</span>
             </div>
             <div className="sm:col-span-2">
               <DaysPicker name="newDays" label="أيام الحفظ" days={newDays} onChange={setNewDays} error={errors?.newDays} />
@@ -278,13 +281,13 @@ export function CreatePlanForm({
         ) : (
           <>
             <div className="sm:col-span-2">
-              <span className="mb-1.5 block text-sm font-bold">السور التي تحفظها</span>
+              <span className="mb-1.5 block text-sm font-bold">ما تحفظه من القرآن</span>
               <SurahPicker
                 surahs={surahs}
-                name="priorSurahs"
-                selected={prior}
-                onChange={setPrior}
-                placeholder="اختر السور، أو جزءًا كاملًا دفعة واحدة"
+                juzList={juzList}
+                value={known}
+                onChange={setKnown}
+                placeholder="اختر أجزاءً كاملة بضغطة، أو سورًا بعينها"
               />
               <FieldError message={errors?.priorSurahs} />
               <span className="mt-1 block text-xs text-muted">تُحسب محفوظةً في «رحلتي»، ويُفتح لك اختبار أجزائها.</span>
@@ -321,12 +324,12 @@ export function CreatePlanForm({
               ، فتختم إن شاء الله قرابة <strong>{FINISH_FORMAT.format(new Date(finish))}</strong> إن واظبت على أيامك
             </>
           )}
-          .{priorPages.size > 0 && ` ويدخل في المراجعة ${toArabicDigits(priorPages.size)} صفحة من محفوظك السابق.`}
+          .{priorPages.size > 0 && ` ويدخل في المراجعة ${toArabicDigits(priorPages.size)} صفحة مما حفظته سابقًا.`}
         </p>
       )}
       {kind === "review" && priorPages.size > 0 && (
         <p className="mt-6 rounded-2xl bg-emerald-mist p-4 text-sm leading-7 text-emerald-deep">
-          محفوظك {toArabicDigits(priorPages.size)} صفحة، تراجعه كاملًا كل <strong>{toArabicDigits(cycle)} يوم مراجعة</strong> ثم تبدأ دورة
+          ما تحفظه {toArabicDigits(priorPages.size)} صفحة، تختم مراجعته كل <strong>{toArabicDigits(cycle)} يوم مراجعة</strong> ثم تبدأ دورة
           جديدة.
         </p>
       )}

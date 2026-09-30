@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireSession } from "@/features/auth/session";
 import type { FormState } from "@/features/auth/actions";
 import { getSurahAyahCount } from "@/features/kids/progress/surahAyahCounts";
+import { buildJuzRanges, type JuzRange } from "@/features/progress/juz";
 import { getJuzStarts, getMushafPageStarts } from "@/features/quran/textApi";
 import { loadCurrentPlan, loggedOn } from "./data";
 import { resolveSegments, spansToAyahs } from "./portion";
@@ -45,6 +46,10 @@ const planSchema = z
       .array(z.coerce.number().int().min(1).max(114))
       .max(114)
       .transform((surahs) => [...new Set(surahs)].sort((a, b) => a - b)),
+    priorJuz: z
+      .array(z.coerce.number().int().min(1).max(30))
+      .max(30)
+      .transform((juz) => [...new Set(juz)].sort((a, b) => a - b)),
     newDays: daysSchema,
     reviewDays: daysSchema,
   })
@@ -54,11 +59,26 @@ const planSchema = z
       if (value.startJuz > value.endJuz) issue("endJuz", "جزء النهاية يأتي بعد جزء البداية");
       if (value.newDays.length === 0) issue("newDays", "اختر يومًا واحدًا على الأقل للحفظ");
     } else {
-      if (value.priorSurahs.length === 0) issue("priorSurahs", "اختر السور التي تحفظها لنراجعها معك");
+      if (value.priorSurahs.length === 0 && value.priorJuz.length === 0) issue("priorSurahs", PICK_PRIOR);
       if (value.farPages < 1) issue("farPages", "اختر عدد صفحات المراجعة");
       if (value.reviewDays.length === 0) issue("reviewDays", "اختر يومًا واحدًا على الأقل للمراجعة");
     }
   });
+
+const PICK_PRIOR = "اختر السور أو الأجزاء التي تحفظها لنراجعها معك";
+
+/** Every ayah of the given whole surahs and juz, per surah. */
+function knownAyahs(surahs: number[], juz: number[], juzRanges: JuzRange[]): { surah: number; ayahs: number[] }[] {
+  const bySurah = new Map<number, Set<number>>();
+  const add = (surah: number, from: number, to: number) => {
+    const set = bySurah.get(surah) ?? new Set<number>();
+    for (let ayah = from; ayah <= to; ayah++) set.add(ayah);
+    bySurah.set(surah, set);
+  };
+  for (const surah of surahs) add(surah, 1, getSurahAyahCount(surah));
+  for (const segment of juz.flatMap((number) => juzRanges[number - 1]?.segments ?? [])) add(segment.surah, segment.from, segment.to);
+  return [...bySurah].map(([surah, set]) => ({ surah, ayahs: [...set].sort((a, b) => a - b) }));
+}
 
 export interface PlanFormState extends FormState {
   /** Surahs the learner said they know, so the client marks them memorized in their progress. */
@@ -74,6 +94,7 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
     unitsPerDay: formData.get("unitsPerDay") ?? 2,
     farPages: formData.get("farPages"),
     priorSurahs: formData.getAll("priorSurahs"),
+    priorJuz: formData.getAll("priorJuz"),
     newDays: formData.getAll("newDays"),
     reviewDays: formData.getAll("reviewDays"),
   });
@@ -81,7 +102,7 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
     const issue = parsed.error.issues[0]!;
     return { fieldErrors: { [String(issue.path[0] ?? "form")]: issue.message } };
   }
-  const { kind, startJuz, endJuz, unitsPerDay, farPages, priorSurahs, newDays, reviewDays } = parsed.data;
+  const { kind, startJuz, endJuz, unitsPerDay, farPages, priorSurahs, priorJuz, newDays, reviewDays } = parsed.data;
 
   const [juzStarts, pageStarts] = await Promise.all([getJuzStarts(), getMushafPageStarts()]);
   const juzPages = buildJuzPages(juzStarts, pageStarts);
@@ -89,10 +110,14 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
 
   const range = kind === "memorize" ? { startPage: juzPages[startJuz - 1]!.startPage, endPage: juzPages[endJuz - 1]!.endPage } : null;
   // The plan's own pages come into review as they're memorized, so leave them out of the prior pool.
-  const priorPages = surahsToPages(pageStarts, priorSurahs, getSurahAyahCount).filter(
-    (page) => !range || page < range.startPage || page > range.endPage,
-  );
-  if (kind === "review" && priorPages.length === 0) return { fieldErrors: { priorSurahs: "اختر السور التي تحفظها لنراجعها معك" } };
+  const juzPrior = priorJuz.flatMap((juz) => {
+    const { startPage, endPage } = juzPages[juz - 1]!;
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  });
+  const priorPages = [...new Set([...surahsToPages(pageStarts, priorSurahs, getSurahAyahCount), ...juzPrior])]
+    .filter((page) => !range || page < range.startPage || page > range.endPage)
+    .sort((a, b) => a - b);
+  if (kind === "review" && priorPages.length === 0) return { fieldErrors: { priorSurahs: PICK_PRIOR } };
 
   const supabase = await createSupabaseServerClient();
   // A new plan replaces the current one; its log stays with the archived row.
@@ -113,6 +138,7 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
     units_per_day: unitsPerDay,
     far_review_pages: farPages,
     prior_surahs: priorSurahs,
+    prior_juz: priorJuz,
     prior_pages: priorPages,
     new_days: kind === "memorize" ? newDays : [],
     review_days: reviewDays,
@@ -121,7 +147,7 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
   revalidate();
   return {
     message: "أُنشئت خطتك، بالتوفيق!",
-    memorized: priorSurahs.map((surah) => ({ surah, ayahs: Array.from({ length: getSurahAyahCount(surah) }, (_, index) => index + 1) })),
+    memorized: knownAyahs(priorSurahs, priorJuz, buildJuzRanges(juzStarts)),
   };
 }
 

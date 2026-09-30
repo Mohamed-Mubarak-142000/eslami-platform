@@ -120,7 +120,7 @@ export function TodayWird({ view }: { view: TodayView }) {
                     ? `حفظ الجزء ${toArabicDigits(view.startJuz ?? 0)}`
                     : `حفظ الأجزاء ${toArabicDigits(view.startJuz ?? 0)}–${toArabicDigits(view.endJuz ?? 0)}`
                 } · ${view.dailyLabel} (${view.newDays.label})`
-              : `مراجعة محفوظك · ${view.reviewLabel} (${view.reviewDays.label})`}
+              : `تثبيت الحفظ · ${view.reviewLabel} (${view.reviewDays.label})`}
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-bold">
             <Flame className="size-4 text-gold-soft" aria-hidden /> {toArabicDigits(view.streak)}{" "}
@@ -147,11 +147,11 @@ export function TodayWird({ view }: { view: TodayView }) {
             `دورة المراجعة: صفحة ${toArabicDigits(view.pool.position + 1)} من ${toArabicDigits(view.pool.pages)}، وحين تتمّها تبدأ من جديد.`
           )}
         </p>
-        {view.priorSurahs.length > 0 && (
+        {view.known.length > 0 && (
           <p className="mt-2 text-sm leading-7 text-white/80">
-            {memorize ? "ومعها في المراجعة من محفوظك السابق: " : "السور: "}
-            {view.priorSurahs.slice(0, SHOWN_SURAHS).join("، ")}
-            {view.priorSurahs.length > SHOWN_SURAHS && ` و${toArabicDigits(view.priorSurahs.length - SHOWN_SURAHS)} سور أخرى`}
+            {memorize ? "ويدخل في المراجعة ما حفظته سابقًا: " : "تثبّت: "}
+            {view.known.slice(0, SHOWN_SURAHS).join("، ")}
+            {view.known.length > SHOWN_SURAHS && ` و${toArabicDigits(view.known.length - SHOWN_SURAHS)} أخرى`}
           </p>
         )}
       </section>
@@ -160,7 +160,7 @@ export function TodayWird({ view }: { view: TodayView }) {
         <section className="rounded-4xl border border-gold/60 bg-linear-to-br from-gold-mist to-white p-6 text-center shadow-soft">
           <Trophy className="mx-auto size-10 text-gold-deep" aria-hidden />
           <h2 className="mt-3 text-2xl font-bold text-emerald-deep">أتممت خطتك، بارك الله فيك!</h2>
-          <p className="mt-2 text-sm text-muted">ثبّت حفظك باختبار الجزء واحصل على شهادته، ثم ابدأ خطة جديدة أو خطة لمراجعة محفوظك.</p>
+          <p className="mt-2 text-sm text-muted">ثبّت حفظك باختبار الجزء واحصل على شهادته، ثم ابدأ خطة جديدة، أو خطة لتثبيت ما حفظت.</p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             {view.startJuz !== null && (
               <Link href={`/exams/${view.startJuz}` as Route} className={buttonClass("gold", "md")}>
@@ -241,7 +241,7 @@ export function TodayWird({ view }: { view: TodayView }) {
           >
             {!hasReview ? (
               <p className="mt-3 text-sm leading-7 text-muted">
-                لا مراجعة بعد — تبدأ بعد أول يوم حفظ بما حفظته، ثم نضيف صفحات من محفوظك القديم كلما زاد.
+                لا مراجعة بعد — تبدأ بعد أول يوم حفظ بما حفظته، ثم نضيف صفحات مما حفظته سابقًا كلما زاد.
               </p>
             ) : (
               <>
@@ -258,7 +258,7 @@ export function TodayWird({ view }: { view: TodayView }) {
                   <div className="mt-5">
                     <h3 className="flex items-center gap-2 font-bold text-ink">
                       <Repeat className="size-4 text-emerald" aria-hidden />{" "}
-                      {memorize ? "البعيد — من محفوظك القديم بالتناوب" : "صفحات اليوم من محفوظك"}
+                      {memorize ? "البعيد — مما حفظته سابقًا، بالتناوب" : "وِرد التثبيت اليوم"}
                     </h3>
                     <PageChips pages={view.far} />
                   </div>

@@ -7,6 +7,7 @@ import {
   farPages,
   farPool,
   finishDay,
+  juzLabel,
   nextScheduledDay,
   pagesLabel,
   planDay,
@@ -57,7 +58,8 @@ export interface TodayView {
   streak: number;
   dailyLabel: string;
   reviewLabel: string;
-  priorSurahs: string[];
+  /** What the learner knew before the plan: whole juz first, then surahs. */
+  known: string[];
   /** Pages in the older-pages rotation, and how far into the current round it is. */
   pool: { pages: number; position: number };
   newDays: DaySchedule;
@@ -138,7 +140,7 @@ export async function buildTodayView(
     ),
     dailyLabel: unitsLabel(plan.units_per_day),
     reviewLabel: pagesLabel(plan.far_review_pages),
-    priorSurahs: plan.prior_surahs.map(name),
+    known: [...plan.prior_juz.map(juzLabel), ...plan.prior_surahs.map((surah) => `سورة ${name(surah)}`)],
     pool: { pages: pool, position: pool === 0 ? 0 : cursor % pool },
     newDays: schedule(plan.new_days, today),
     reviewDays: schedule(plan.review_days, today),

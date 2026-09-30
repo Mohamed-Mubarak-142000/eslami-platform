@@ -38,7 +38,7 @@ export function PlanCard({ plan }: { plan: PlanSummary | null }) {
           <CalendarRange className="size-5" aria-hidden />
         </span>
         <div>
-          <h2 className="text-xl font-bold text-emerald-deep">{plan?.kind === "review" ? "خطة المراجعة" : "خطة الحفظ"}</h2>
+          <h2 className="text-xl font-bold text-emerald-deep">{plan?.kind === "review" ? "خطة التثبيت" : "خطة الحفظ"}</h2>
           <p className="mt-1 text-sm text-muted">
             {!plan
               ? "احفظ جديدًا أو راجع ما تحفظه، في الأيام التي تناسبك، ونخبرك كل يوم بوردك."

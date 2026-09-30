@@ -246,3 +246,12 @@ export function surahsToPages(pageStarts: AyahRef[], surahs: number[], ayahCount
   }
   return [...pages].sort((a, b) => a - b);
 }
+
+/** Popular names of the last juz, which most learners know them by. */
+const JUZ_NAMES: Record<number, string> = { 28: "جزء قد سمع", 29: "جزء تبارك", 30: "جزء عمّ" };
+
+/** "الجزء ٣٠ (جزء عمّ)", or just "الجزء ٥". */
+export function juzLabel(juz: number): string {
+  const name = JUZ_NAMES[juz];
+  return `الجزء ${toArabicDigits(juz)}${name ? ` (${name})` : ""}`;
+}
