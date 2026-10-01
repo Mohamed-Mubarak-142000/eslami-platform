@@ -19,6 +19,7 @@ import { countMemorizedInJuz, type JuzRange } from "./juz";
 import { formatArabicDate } from "./format";
 import { ReviewToday } from "./ReviewToday";
 import { PlanCard, type PlanSummary } from "@/features/plan/PlanCard";
+import { KhatmaCard, type KhatmaSummary } from "@/features/khatma/KhatmaCard";
 import { KidsCorner } from "./KidsCorner";
 
 const TOTAL_AYAHS = 6236;
@@ -73,6 +74,7 @@ interface DashboardViewProps {
   games: GameSummary[];
   tasmee: TasmeeSummary[];
   plan: PlanSummary | null;
+  khatma: KhatmaSummary | null;
   notice?: string | undefined;
 }
 
@@ -140,7 +142,7 @@ function JuzCard({
   );
 }
 
-export function DashboardView({ juzRanges, surahNames, certificates, attempts, games, tasmee, plan, notice }: DashboardViewProps) {
+export function DashboardView({ juzRanges, surahNames, certificates, attempts, games, tasmee, plan, khatma, notice }: DashboardViewProps) {
   const { state, status } = useKidsProgress();
   const lastRead = useLastRead();
   const now = useNow();
@@ -167,7 +169,10 @@ export function DashboardView({ juzRanges, surahNames, certificates, attempts, g
         <Stat icon={Sparkles} label="شارة" value={toArabicDigits(state.unlockedBadgeIds.length)} tone="bg-sky/10 text-sky" />
       </section>
 
-      <PlanCard plan={plan} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PlanCard plan={plan} />
+        <KhatmaCard khatma={khatma} />
+      </div>
 
       <ReviewToday surahNames={surahNames} />
 

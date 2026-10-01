@@ -8,18 +8,9 @@ import { FormAlert, SubmitButton } from "@/features/auth/ui/AuthFields";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
 import { useNow } from "@/features/time/useNow";
 import { createPlanAction, type PlanFormState } from "./actions";
+import { DaysPicker, FieldError } from "./FormBits";
 import { SurahPicker, type KnownSelection, type PickerJuz, type PickerSurah } from "./SurahPicker";
-import {
-  ALL_DAYS,
-  finishDay,
-  PAGES_PER_DAY_OPTIONS,
-  pagesLabel,
-  planDay,
-  unitsLabel,
-  WEEK_ORDER,
-  WEEKDAY_NAMES,
-  type JuzPages,
-} from "./schedule";
+import { ALL_DAYS, finishDay, PAGES_PER_DAY_OPTIONS, pagesLabel, planDay, unitsLabel, type JuzPages } from "./schedule";
 
 const fieldClass =
   "h-12 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink outline-none focus:border-emerald/50 focus:shadow-soft";
@@ -28,55 +19,6 @@ const REVIEW_OPTIONS = [1, 2, 3, 4, 5, 10, 20];
 const FINISH_FORMAT = new Intl.DateTimeFormat("ar-EG", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 type Kind = "memorize" | "review";
-
-function FieldError({ message }: { message?: string | undefined }) {
-  return message ? <span className="mt-1 block text-sm text-rose">{message}</span> : null;
-}
-
-function DaysPicker({
-  name,
-  label,
-  days,
-  onChange,
-  error,
-}: {
-  name: string;
-  label: string;
-  days: number[];
-  onChange: (days: number[]) => void;
-  error?: string | undefined;
-}) {
-  return (
-    <fieldset>
-      <legend className="mb-1.5 block text-sm font-bold">{label}</legend>
-      <div className="flex flex-wrap gap-1.5">
-        {WEEK_ORDER.map((day) => {
-          const on = days.includes(day);
-          return (
-            <label
-              key={day}
-              className={cn(
-                "cursor-pointer rounded-full border px-3 py-1.5 text-sm font-bold transition-colors has-focus-visible:ring-2 has-focus-visible:ring-gold",
-                on ? "border-emerald bg-emerald text-white" : "border-line bg-white text-muted hover:border-emerald/40",
-              )}
-            >
-              <input
-                type="checkbox"
-                name={name}
-                value={day}
-                checked={on}
-                onChange={(event) => onChange(event.target.checked ? [...days, day] : days.filter((value) => value !== day))}
-                className="sr-only"
-              />
-              {WEEKDAY_NAMES[day]}
-            </label>
-          );
-        })}
-      </div>
-      <FieldError message={error} />
-    </fieldset>
-  );
-}
 
 function KindOption({
   kind,

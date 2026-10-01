@@ -9,6 +9,8 @@ import { buildJuzRanges } from "@/features/progress/juz";
 import { DashboardView } from "@/features/progress/DashboardView";
 import { loadCurrentPlan, loggedOn } from "@/features/plan/data";
 import { planDay, totalUnits, weekday } from "@/features/plan/schedule";
+import { loadCurrentKhatma } from "@/features/khatma/data";
+import { TOTAL_AYAHS } from "@/features/khatma/schedule";
 import { LearnerSwitcher } from "@/features/account/LearnerSwitcher";
 
 export const metadata: Metadata = { title: "رحلتي", robots: { index: false } };
@@ -18,7 +20,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   const supabase = await createSupabaseServerClient();
   const learnerId = activeLearner.id;
 
-  const [starts, surahs, certificates, attempts, games, tasmee, current] = await Promise.all([
+  const [starts, surahs, certificates, attempts, games, tasmee, current, currentKhatma] = await Promise.all([
     getJuzStarts(),
     getSurahs(),
     supabase.from("certificates").select("juz, verification_code, issued_at, revoked_at").eq("learner_id", learnerId).order("juz"),
@@ -41,6 +43,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       .order("created_at", { ascending: false })
       .limit(5),
     loadCurrentPlan(supabase, learnerId),
+    loadCurrentKhatma(supabase, learnerId),
   ]);
 
   const today = planDay();
@@ -55,6 +58,13 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
     reviewDone: loggedOn(current.log, today, "review") !== null,
     newToday: current.plan.new_days.includes(weekday(today)),
     reviewToday: current.plan.review_days.includes(weekday(today)),
+  };
+
+  const khatma = currentKhatma && {
+    status: currentKhatma.khatma.status === "completed" ? ("completed" as const) : ("active" as const),
+    percent: Math.round((currentKhatma.khatma.position / TOTAL_AYAHS) * 100),
+    readToday: currentKhatma.log.some((row) => row.day === today),
+    readsToday: currentKhatma.khatma.days.includes(weekday(today)),
   };
 
   const name = activeLearner.kind === "self" ? profile.full_name : activeLearner.display_name;
@@ -75,6 +85,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
         games={games.data ?? []}
         tasmee={tasmee.data ?? []}
         plan={plan}
+        khatma={khatma}
         notice={params.password === "updated" ? "تم تعيين كلمة المرور الجديدة." : undefined}
       />
     </>

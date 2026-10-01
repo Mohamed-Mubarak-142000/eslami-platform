@@ -211,6 +211,20 @@ export async function getMushafPageStarts(): Promise<AyahRef[]> {
   }
 }
 
+/** First ayah of each of the 60 hizb (every fourth of the 240 hizb quarters), from /meta. */
+export async function getHizbStarts(): Promise<AyahRef[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/meta`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return [];
+    const data = (await response.json()) as { data: { hizbQuarters: { references: AyahRef[] } } };
+    const quarters = data.data.hizbQuarters.references;
+    if (quarters.length !== 240) return [];
+    return quarters.filter((_, index) => index % 4 === 0).map(({ surah, ayah }) => ({ surah, ayah }));
+  } catch {
+    return [];
+  }
+}
+
 export interface PageAyah {
   surah: number;
   numberInSurah: number;

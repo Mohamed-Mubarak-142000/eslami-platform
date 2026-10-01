@@ -183,6 +183,30 @@ export type MemorizationPlanLogRow = {
   to_unit: number;
   done_at: Timestamp;
 };
+export type KhatmaUnit = "pages" | "hizb" | "juz" | "surah";
+export type KhatmaRow = {
+  id: string;
+  learner_id: string;
+  unit: KhatmaUnit;
+  per_session: number;
+  mode: "amount" | "duration";
+  target_day: string | null;
+  /** Weekdays, 0 = Sunday … 6 = Saturday. */
+  days: number[];
+  /** Next ayah to read, 0-based across the mushaf (6236 = finished). */
+  position: number;
+  status: PlanStatus;
+  created_at: Timestamp;
+  completed_at: Timestamp | null;
+};
+export type KhatmaLogRow = {
+  khatma_id: string;
+  learner_id: string;
+  day: string;
+  from_ayah: number;
+  to_ayah: number;
+  done_at: Timestamp;
+};
 export type ExamAnswerKeyRow = {
   attempt_id: string;
   key: unknown;
@@ -266,6 +290,11 @@ export type Database = {
         >
       >;
       memorization_plan_log: TableDef<MemorizationPlanLogRow, Optional<MemorizationPlanLogRow, "done_at">>;
+      khatmas: TableDef<
+        KhatmaRow,
+        Optional<KhatmaRow, "id" | "mode" | "target_day" | "days" | "position" | "status" | "created_at" | "completed_at">
+      >;
+      khatma_log: TableDef<KhatmaLogRow, Optional<KhatmaLogRow, "done_at">>;
     };
     Views: { [_ in never]: never };
     Functions: {

@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import {
   Award,
+  BookMarked,
   BookOpen,
   BookOpenCheck,
   CalendarDays,
@@ -47,6 +48,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
 export const JOURNEY_ITEMS: readonly NavItem[] = [
   { href: "/dashboard", label: "رحلتي", icon: BookOpenCheck, description: "حفظك وتسميعك وإنجازاتك", signedInOnly: true },
   { href: "/plan", label: "خطة الحفظ", icon: CalendarRange, description: "وردك اليومي وخطتك", signedInOnly: true },
+  { href: "/khatma", label: "الختمة", icon: BookMarked, description: "اختم القرآن بوِرد يومي تختاره", signedInOnly: true },
   { href: "/exams", label: "اختبارات الأجزاء", icon: GraduationCap, description: "اختبر حفظك جزءًا جزءًا", signedInOnly: true },
   { href: "/certificates/mine", label: "شهاداتي", icon: Award, description: "شهادات الأجزاء التي أتممتها", signedInOnly: true },
 ];
