@@ -4,7 +4,9 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight, Minus, Palette, Plus, Settings2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, BookText, ChevronLeft, ChevronRight, Loader2, Minus, Palette, Pause, Play, Plus, Settings2, X } from "lucide-react";
+import { useAudio } from "@/features/audio/AudioProvider";
 import { gsap, useGSAP, FULL_MOTION, REDUCED_MOTION } from "@/lib/gsap";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
@@ -14,6 +16,7 @@ import { MushafFrame, SurahBanner } from "./MushafFrame";
 import { saveLastRead } from "./lastReadStorage";
 import { TAJWEED_RULES, type TajweedAyah } from "./tajweedApi";
 import type { Ayah, MushafPage, TafsirAyah } from "./textApi";
+import { RIWAYAT, RIWAYA_STORAGE_KEY, type RiwayaKey } from "./riwayat";
 
 type ReaderTheme = "light" | "sepia" | "night";
 
@@ -58,9 +61,111 @@ interface MushafReaderProps {
   initialMushafPage: number | null;
   previousSurah: SurahRef | null;
   nextSurah: SurahRef | null;
+  riwaya: { key: RiwayaKey; label: string; short: string };
+  /** The chosen riwaya's text couldn't load, so Hafs is shown. */
+  riwayaFailed: boolean;
+  /** A full-surah recitation in the chosen riwaya, when one exists. */
+  riwayaAudio: { reciter: string; src: string } | null;
 }
 
-export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMushafPage, previousSurah, nextSurah }: MushafReaderProps) {
+/**
+ * Shown for a riwaya other than Hafs: which one, that pages follow the Hafs mushaf, and a
+ * full-surah recitation in that riwaya (per-ayah audio exists only for Hafs).
+ */
+function RiwayaBar({
+  riwaya,
+  failed,
+  recitation,
+  surah,
+  audio,
+}: {
+  riwaya: { key: RiwayaKey; label: string };
+  failed: boolean;
+  recitation: { reciter: string; src: string } | null;
+  surah: SurahRef;
+  audio: ReturnType<typeof useAudio>;
+}) {
+  const id = `riwaya-${riwaya.key}-${surah.id}`;
+  const isThis = audio.isCurrent(id);
+  if (failed) {
+    return (
+      <p className="mb-5 rounded-2xl bg-rose/10 px-4 py-3 text-center text-sm font-bold text-rose">
+        تعذّر تحميل نص رواية {riwaya.label} الآن، فنعرض لك رواية حفص. حاول بعد قليل.
+      </p>
+    );
+  }
+  return (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-current/10 px-4 py-3 text-sm">
+      <p className="inline-flex items-center gap-2">
+        <BookText className="size-4 shrink-0 opacity-70" aria-hidden />
+        <span>
+          رواية <strong>{riwaya.label}</strong>
+          <span className="opacity-70"> · ترقيم الصفحات حسب مصحف المدينة برواية حفص</span>
+        </span>
+      </p>
+      {recitation && (
+        <button
+          type="button"
+          onClick={() =>
+            isThis
+              ? audio.toggle()
+              : audio.play({
+                  id,
+                  kind: "surah",
+                  title: `سورة ${surah.name} — رواية ${riwaya.label}`,
+                  subtitle: recitation.reciter,
+                  src: recitation.src,
+                  href: `/quran/${surah.id}?riwaya=${riwaya.key}`,
+                })
+          }
+          className="inline-flex items-center gap-1.5 rounded-full bg-emerald px-4 py-2 font-bold text-white hover:bg-emerald-deep"
+        >
+          {isThis && audio.loading ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : isThis && audio.playing ? (
+            <Pause className="size-4 fill-current" aria-hidden />
+          ) : (
+            <Play className="size-4 fill-current" aria-hidden />
+          )}
+          استمع للسورة بصوت {recitation.reciter}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function readStoredRiwaya(): string | null {
+  try {
+    return window.localStorage.getItem(RIWAYA_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function storeRiwaya(key: RiwayaKey) {
+  try {
+    window.localStorage.setItem(RIWAYA_STORAGE_KEY, key);
+  } catch {
+    // Storage unavailable: the choice still applies to this visit through the URL.
+  }
+}
+
+export function MushafReader({
+  surah,
+  basmala,
+  pages,
+  tafsir,
+  tajweed,
+  initialMushafPage,
+  previousSurah,
+  nextSurah,
+  riwaya,
+  riwayaFailed,
+  riwayaAudio,
+}: MushafReaderProps) {
+  const router = useRouter();
+  const audio = useAudio();
+  const hafs = riwaya.key === "hafs";
   const initialIndex = Math.max(
     0,
     pages.findIndex((page) => page.page === initialMushafPage),
@@ -78,6 +183,32 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
   const page = pages[index];
   const tafsirByAyah = useMemo(() => new Map(tafsir.map((entry) => [entry.numberInSurah, entry.text])), [tafsir]);
   const tajweedByAyah = useMemo(() => new Map(tajweed.map((entry) => [entry.numberInSurah, entry.segments])), [tajweed]);
+  // Tajweed colours are drawn on the Hafs text only.
+  const showTajweed = tajweedOn && hafs;
+
+  const riwayaHref = useCallback(
+    (key: RiwayaKey, mushafPage: number) => {
+      const params = new URLSearchParams({ page: String(mushafPage) });
+      if (key !== "hafs") params.set("riwaya", key);
+      return `/quran/${surah.id}?${params.toString()}` as Route;
+    },
+    [surah.id],
+  );
+
+  function chooseRiwaya(key: RiwayaKey, mushafPage: number) {
+    storeRiwaya(key);
+    setSettingsOpen(false);
+    router.push(riwayaHref(key, mushafPage));
+  }
+
+  // Opening a surah without ?riwaya= keeps the riwaya chosen last time.
+  const arrivalPage = pages[initialIndex]?.page;
+  useEffect(() => {
+    if (!hafs || arrivalPage === undefined || new URL(window.location.href).searchParams.has("riwaya")) return;
+    const stored = readStoredRiwaya();
+    const match = RIWAYAT.find((entry) => entry.key === stored && entry.key !== "hafs");
+    if (match) router.replace(riwayaHref(match.key, arrivalPage));
+  }, [hafs, arrivalPage, router, riwayaHref]);
 
   const go = useCallback(
     (delta: 1 | -1) => {
@@ -169,6 +300,7 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
             <h1 className="font-display text-lg font-bold">سورة {surah.name}</h1>
             <p className="text-xs opacity-70">
               {surah.meccan ? "مكية" : "مدنية"} · صفحة {toArabicDigits(page.page)} من المصحف
+              {!hafs && ` · رواية ${riwaya.short}`}
             </p>
           </div>
           <div className="relative">
@@ -189,7 +321,21 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
                   exit={{ opacity: 0, y: -8, scale: 0.97 }}
                   className="absolute left-0 top-12 w-72 rounded-3xl border border-line bg-white p-5 text-ink shadow-lift"
                 >
-                  <p className="text-xs font-bold text-muted">حجم الخط</p>
+                  <label className="block">
+                    <span className="text-xs font-bold text-muted">الرواية</span>
+                    <select
+                      value={riwaya.key}
+                      onChange={(event) => chooseRiwaya(event.target.value as RiwayaKey, page.page)}
+                      className="mt-2 h-11 w-full rounded-2xl border border-line bg-white px-3 text-sm font-bold text-ink outline-none focus:border-emerald/50"
+                    >
+                      {RIWAYAT.map((entry) => (
+                        <option key={entry.key} value={entry.key}>
+                          {entry.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="mt-5 text-xs font-bold text-muted">حجم الخط</p>
                   <div className="mt-2 flex items-center gap-3">
                     <button
                       type="button"
@@ -233,7 +379,7 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
                       </button>
                     ))}
                   </div>
-                  {tajweed.length > 0 && (
+                  {tajweed.length > 0 && hafs && (
                     <button
                       type="button"
                       aria-pressed={tajweedOn}
@@ -257,6 +403,9 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
       </header>
 
       <main id="main" className="mx-auto max-w-4xl px-3 pb-36 pt-6 sm:px-6 sm:pt-10">
+        {(!hafs || riwayaFailed) && (
+          <RiwayaBar riwaya={riwaya} failed={riwayaFailed} recitation={riwayaAudio} surah={surah} audio={audio} />
+        )}
         <motion.div
           ref={stageRef}
           className="[perspective:1600px]"
@@ -283,7 +432,7 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
               )}
               <p className="quran-text text-justify [text-align-last:center]" style={{ fontSize }}>
                 {page.ayahs.map((ayah) => {
-                  const segments = tajweedOn ? tajweedByAyah.get(ayah.numberInSurah) : undefined;
+                  const segments = showTajweed ? tajweedByAyah.get(ayah.numberInSurah) : undefined;
                   return (
                     <span key={ayah.number}>
                       <span
@@ -326,7 +475,7 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
             </MushafFrame>
           </div>
         </motion.div>
-        {tajweedOn && (
+        {showTajweed && (
           <ul className="mt-6 flex flex-wrap justify-center gap-2 text-xs" aria-label="دليل ألوان التجويد">
             {Object.entries(TAJWEED_RULES)
               .filter(([key]) => !["slnt", "ham_wasl", "laam_shamsiyah"].includes(key))
@@ -412,6 +561,7 @@ export function MushafReader({ surah, basmala, pages, tafsir, tajweed, initialMu
         ayah={selected}
         tafsir={selected ? tafsirByAyah.get(selected.numberInSurah) : undefined}
         onClose={() => setSelected(null)}
+        canPlay={hafs}
       />
     </div>
   );

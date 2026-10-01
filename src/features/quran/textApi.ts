@@ -99,6 +99,21 @@ export async function getSurahAyahs(surahNumber: number): Promise<{ basmala: str
   }
 }
 
+const RIWAYAT_URL = "https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions";
+
+/** One surah's text in another riwaya, by ayah number (Hafs numbering). Null when unreachable. */
+export async function getRiwayaTexts(edition: string, surahNumber: number): Promise<Map<number, string> | null> {
+  try {
+    const response = await fetch(`${RIWAYAT_URL}/${edition}/${surahNumber}.json`, { next: { revalidate: REVALIDATE } });
+    if (!response.ok) return null;
+    const data = (await response.json()) as { chapter: { verse: number; text: string }[] };
+    if (!data.chapter?.length) return null;
+    return new Map(data.chapter.map((verse) => [verse.verse, stripLeadingBom(verse.text).trim()]));
+  } catch {
+    return null;
+  }
+}
+
 export async function getSurahTafsir(surahNumber: number): Promise<TafsirAyah[]> {
   try {
     const response = await fetch(`${BASE_URL}/surah/${surahNumber}/${TAFSIR_EDITION}`, { next: { revalidate: REVALIDATE } });

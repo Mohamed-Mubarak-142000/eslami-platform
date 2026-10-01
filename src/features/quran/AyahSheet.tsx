@@ -17,9 +17,11 @@ interface AyahSheetProps {
   ayah: Ayah | null;
   tafsir: string | undefined;
   onClose: () => void;
+  /** Per-ayah audio is a Hafs recitation: hidden while another riwaya is shown. */
+  canPlay?: boolean;
 }
 
-export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose }: AyahSheetProps) {
+export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, canPlay = true }: AyahSheetProps) {
   const audio = useAudio();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState(false);
@@ -108,16 +110,18 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose }: AyahShe
               {ayah.text} <span className="ayah-mark">﴿{toArabicDigits(ayah.numberInSurah)}﴾</span>
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <button type="button" onClick={playAyah} className={buttonClass("primary", "md")}>
-                {isThis && audio.loading ? (
-                  <Loader2 className="animate-spin" aria-hidden />
-                ) : isThis && audio.playing ? (
-                  <Pause aria-hidden className="fill-current" />
-                ) : (
-                  <Play aria-hidden className="fill-current" />
-                )}
-                استمع للآية
-              </button>
+              {canPlay && (
+                <button type="button" onClick={playAyah} className={buttonClass("primary", "md")}>
+                  {isThis && audio.loading ? (
+                    <Loader2 className="animate-spin" aria-hidden />
+                  ) : isThis && audio.playing ? (
+                    <Pause aria-hidden className="fill-current" />
+                  ) : (
+                    <Play aria-hidden className="fill-current" />
+                  )}
+                  استمع للآية
+                </button>
+              )}
               <button type="button" onClick={copy} className={buttonClass("outline", "md")}>
                 {copied ? <Check aria-hidden className="text-emerald" /> : <Copy aria-hidden />}
                 {copied ? "تم النسخ" : "انسخ مع المرجع"}
