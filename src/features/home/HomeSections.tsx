@@ -103,7 +103,7 @@ export function HomeSections() {
                 key={item.href}
                 href={item.href}
                 data-card
-                className={`group relative isolate overflow-hidden rounded-[1.75rem] bg-linear-to-br p-6 shadow-soft ring-1 ring-black/5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-lift ${SECTION_TONES[index % SECTION_TONES.length] ?? ""} ${index === 0 ? "lg:col-span-2 lg:row-span-2 lg:p-9" : ""}`}
+                className={`group relative isolate overflow-hidden rounded-[1.75rem] bg-linear-to-br p-6 shadow-soft ring-1 ring-black/5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-lift ${SECTION_TONES[index % SECTION_TONES.length] ?? ""}`}
               >
                 <div className={`absolute inset-0 -z-10 opacity-60 ${dark ? "pattern-stars-light" : "pattern-stars"}`} aria-hidden />
                 <span
@@ -111,7 +111,7 @@ export function HomeSections() {
                 >
                   <Icon className="size-6" aria-hidden />
                 </span>
-                <h3 className={`mt-5 font-bold ${index === 0 ? "text-3xl" : "text-xl"}`}>{item.label}</h3>
+                <h3 className="mt-5 text-xl font-bold">{item.label}</h3>
                 <p className={`mt-2 text-sm leading-7 ${dark ? "text-white/75" : "text-muted"}`}>{item.description}</p>
                 <span className={`mt-5 inline-flex items-center gap-1 text-sm font-bold ${dark ? "text-gold-soft" : "text-emerald"}`}>
                   ادخل <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" aria-hidden />
