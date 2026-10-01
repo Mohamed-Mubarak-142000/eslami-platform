@@ -14,7 +14,7 @@ export const RADIO_STATION = {
   providerUrl: "https://misrquran.gov.eg/",
 } as const;
 
-export type TrackKind = "radio" | "surah" | "ayah";
+export type TrackKind = "radio" | "surah" | "ayah" | "clip";
 
 export interface AudioTrack {
   id: string;

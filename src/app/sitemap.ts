@@ -1,6 +1,20 @@
 import type { MetadataRoute } from "next";
 
-const ROUTES = ["", "/quran", "/listen", "/radio", "/prayer-times", "/calendar", "/adhkar", "/privacy", "/terms"];
+const ROUTES = [
+  "",
+  "/quran",
+  "/listen",
+  "/radio",
+  "/ibtihalat",
+  "/tawasheeh",
+  "/duas",
+  "/adhan",
+  "/prayer-times",
+  "/calendar",
+  "/adhkar",
+  "/privacy",
+  "/terms",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://al-manara.example";

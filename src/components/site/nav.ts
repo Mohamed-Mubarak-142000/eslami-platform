@@ -10,8 +10,12 @@ import {
   Clock,
   Compass,
   GraduationCap,
+  HandHeart,
   Headphones,
   Home,
+  Landmark,
+  MicVocal,
+  MoonStar,
   Radio,
   ScrollText,
   Sparkles,
@@ -29,6 +33,8 @@ export interface NavItem {
   kidsOnly?: boolean;
   /** Only shown to signed-in users. */
   signedInOnly?: boolean;
+  /** Left off the home page's section cards (a sibling's card stands for the group). */
+  homeHidden?: boolean;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
@@ -37,6 +43,10 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/listen", label: "الاستماع", icon: Headphones, description: "تلاوات لأكثر من مئتي قارئ" },
   { href: "/radio", label: "الإذاعة", icon: Radio, description: "إذاعة القرآن الكريم بث مباشر" },
   { href: "/hadith", label: "الأحاديث", icon: ScrollText, description: "أحاديث نبوية مع شرحها وفوائدها" },
+  { href: "/ibtihalat", label: "ابتهالات", icon: MoonStar, description: "ابتهالات كبار المبتهلين" },
+  { href: "/tawasheeh", label: "تواشيح", icon: MicVocal, description: "تواشيح الشيخ سيد النقشبندي", homeHidden: true },
+  { href: "/duas", label: "أدعية", icon: HandHeart, description: "أدعية القنوت وختم القرآن مسموعة", homeHidden: true },
+  { href: "/adhan", label: "أذان", icon: Landmark, description: "الأذان بأصوات من العالم الإسلامي", homeHidden: true },
   { href: "/stories", label: "القصص", icon: Clapperboard, description: "قصص الأنبياء المصوّرة", signedInOnly: true },
   { href: "/kids", label: "الأطفال", icon: Trees, description: "حديقة القرآن للأطفال", kidsOnly: true },
   { href: "/prayer-times", label: "المواقيت", icon: Clock, description: "مواقيت الصلاة واتجاه القبلة" },
@@ -72,6 +82,12 @@ const byHref = (href: string) => {
 export const NAV_GROUPS: readonly NavGroup[] = [
   { id: "home", label: "الرئيسية", icon: Home, description: "البداية", href: "/" },
   { id: "quran", label: "القرآن والسنة", icon: BookOpen, items: ["/quran", "/listen", "/radio", "/hadith"].map(byHref) },
+  {
+    id: "sounds",
+    label: "أدعية وابتهالات",
+    icon: HandHeart,
+    items: ["/ibtihalat", "/tawasheeh", "/duas", "/adhan"].map(byHref),
+  },
   { id: "journey", label: "رحلتي", icon: Compass, items: JOURNEY_ITEMS },
   { id: "stories", label: "القصص والأطفال", icon: Clapperboard, items: ["/stories", "/kids"].map(byHref) },
   { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar"].map(byHref) },

@@ -84,7 +84,7 @@ function RadioCard() {
 }
 
 export function HomeSections() {
-  const sections = NAV_ITEMS.slice(1);
+  const sections = NAV_ITEMS.slice(1).filter((item) => !item.homeHidden);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -97,13 +97,13 @@ export function HomeSections() {
         <Reveal stagger="[data-card]" className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {sections.map((item, index) => {
             const Icon = item.icon;
-            const dark = SECTION_TONES[index]?.includes("text-white");
+            const dark = SECTION_TONES[index % SECTION_TONES.length]?.includes("text-white");
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 data-card
-                className={`group relative isolate overflow-hidden rounded-[1.75rem] bg-linear-to-br p-6 shadow-soft ring-1 ring-black/5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-lift ${SECTION_TONES[index] ?? ""} ${index === 0 ? "lg:col-span-2 lg:row-span-2 lg:p-9" : ""}`}
+                className={`group relative isolate overflow-hidden rounded-[1.75rem] bg-linear-to-br p-6 shadow-soft ring-1 ring-black/5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1.5 hover:shadow-lift ${SECTION_TONES[index % SECTION_TONES.length] ?? ""} ${index === 0 ? "lg:col-span-2 lg:row-span-2 lg:p-9" : ""}`}
               >
                 <div className={`absolute inset-0 -z-10 opacity-60 ${dark ? "pattern-stars-light" : "pattern-stars"}`} aria-hidden />
                 <span
