@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BookText, ChevronLeft, ChevronRight, Loader2, Minus, Palette, Pause, Play, Plus, Settings2, X } from "lucide-react";
+import { ArrowRight, BookText, ChevronLeft, ChevronRight, Loader2, Minus, Pause, Play, Plus, Settings2, X } from "lucide-react";
 import { useAudio } from "@/features/audio/AudioProvider";
 import { gsap, useGSAP, FULL_MOTION, REDUCED_MOTION } from "@/lib/gsap";
 import { cn } from "@/lib/cn";
@@ -173,7 +173,6 @@ export function MushafReader({
   const [index, setIndex] = useState(initialIndex);
   const [theme, setTheme] = useState<ReaderTheme>("light");
   const [fontStep, setFontStep] = useState(2);
-  const [tajweedOn, setTajweedOn] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selected, setSelected] = useState<Ayah | null>(null);
   const directionRef = useRef(0);
@@ -183,8 +182,8 @@ export function MushafReader({
   const page = pages[index];
   const tafsirByAyah = useMemo(() => new Map(tafsir.map((entry) => [entry.numberInSurah, entry.text])), [tafsir]);
   const tajweedByAyah = useMemo(() => new Map(tajweed.map((entry) => [entry.numberInSurah, entry.segments])), [tajweed]);
-  // Tajweed colours are drawn on the Hafs text only.
-  const showTajweed = tajweedOn && hafs;
+  // Tajweed colours are always on, but drawn on the Hafs text only.
+  const showTajweed = hafs;
 
   const riwayaHref = useCallback(
     (key: RiwayaKey, mushafPage: number) => {
@@ -379,22 +378,6 @@ export function MushafReader({
                       </button>
                     ))}
                   </div>
-                  {tajweed.length > 0 && hafs && (
-                    <button
-                      type="button"
-                      aria-pressed={tajweedOn}
-                      onClick={() => setTajweedOn((on) => !on)}
-                      className={cn(
-                        "mt-5 flex w-full items-center justify-between rounded-2xl border p-3 text-sm font-bold",
-                        tajweedOn ? "border-emerald bg-emerald-mist text-emerald-deep" : "border-line",
-                      )}
-                    >
-                      <span className="inline-flex items-center gap-2">
-                        <Palette className="size-4" aria-hidden /> ألوان أحكام التجويد
-                      </span>
-                      <span>{tajweedOn ? "مفعّل" : "متوقف"}</span>
-                    </button>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>
