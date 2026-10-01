@@ -10,6 +10,7 @@ import { getJuzAyahs } from "@/features/quran/textApi";
 import { getSurahs } from "@/features/quran/api";
 import { generateExam, gradeExam } from "./examGenerator";
 import { getExamSettings } from "./data";
+import { getJuzReadiness } from "./requirements";
 
 const MAX_STARTS_PER_DAY = 6;
 /** Network latency allowance after the timer reaches zero. */
@@ -60,6 +61,12 @@ export async function startExamAction(juz: number): Promise<StartExamState> {
   ]);
   if (certificate && !certificate.revoked_at) return { error: "حصلت على شهادة هذا الجزء بالفعل." };
 
+  // The exam opens only once the whole juz is memorized and recited (تسميع).
+  const readiness = await getJuzReadiness(admin, learnerId, [juz]).catch(() => null);
+  const juzReadiness = readiness?.[juz];
+  if (!juzReadiness) return { error: "تعذّر التحقق من متطلبات الاختبار الآن، حاول بعد قليل." };
+  if (!juzReadiness.ready) return { error: "أكمل حفظ الجزء كاملًا وتسميعه قبل دخول الاختبار." };
+
   const active = recent?.find(
     (attempt) => attempt.juz === juz && attempt.status === "in_progress" && new Date(attempt.expires_at).getTime() > now,
   );
@@ -78,7 +85,8 @@ export async function startExamAction(juz: number): Promise<StartExamState> {
     ayahs.length > 0
       ? generateExam(ayahs, settings.exam_question_count, Object.fromEntries(surahs.map((surah) => [surah.id, surah.name])))
       : null;
-  if (!exam) return { error: "تعذّر تجهيز الاختبار الآن، حاول بعد قليل." };
+  // A certificate requires the full configured exam, never a shortened one.
+  if (!exam || exam.questions.length !== settings.exam_question_count) return { error: "تعذّر تجهيز الاختبار الآن، حاول بعد قليل." };
 
   const { data: attempt, error } = await admin
     .from("exam_attempts")
@@ -113,10 +121,17 @@ export async function submitExamAction(attemptId: string, answers: number[]): Pr
     getExamSettings(),
   ]);
   const key = Array.isArray(keyRow?.key) ? (keyRow.key as number[]) : [];
-  const sanitized = Array.from({ length: key.length }, (_, index) => (Number.isInteger(answers[index]) ? answers[index]! : -1));
+  const given: unknown[] = Array.isArray(answers) ? answers : [];
+  const sanitized = Array.from({ length: key.length }, (_, index) => {
+    const answer = given[index];
+    return Number.isInteger(answer) ? (answer as number) : -1;
+  });
   const { score, total, perQuestion } = gradeExam(key, sanitized);
   const expired = Date.now() > new Date(attempt.expires_at).getTime() + SUBMIT_GRACE_MS;
-  const passed = !expired && total > 0 && (score / total) * 100 >= settings.exam_pass_percent;
+  // The key must cover every question the learner was shown (the full length is enforced at start).
+  const complete = total > 0 && total === attempt.total && Array.isArray(attempt.questions) && attempt.questions.length === total;
+  // Integer comparison avoids floating-point edge cases right at the pass mark.
+  const passed = !expired && complete && score * 100 >= settings.exam_pass_percent * total;
   const status = expired ? "expired" : passed ? "passed" : "failed";
 
   // Conditional update: a second concurrent submit finds no in-progress row and stops here.
@@ -129,7 +144,17 @@ export async function submitExamAction(attemptId: string, answers: number[]): Pr
   if (!updated || updated.length === 0) return { error: "تم تسليم هذا الاختبار من قبل." };
 
   let certificateCode: string | undefined;
-  if (passed) {
+  // Two attempts started in parallel must not overwrite (and invalidate the code of) a valid certificate.
+  const { data: existing } = passed
+    ? await admin
+        .from("certificates")
+        .select("verification_code, revoked_at")
+        .eq("learner_id", attempt.learner_id)
+        .eq("juz", attempt.juz)
+        .maybeSingle()
+    : { data: null };
+  if (existing && !existing.revoked_at) certificateCode = existing.verification_code;
+  else if (passed) {
     const learner = session.learners.find((entry) => entry.id === attempt.learner_id)!;
     const name = learner.kind === "child" ? learner.display_name : holderName({ ...session, activeLearner: learner });
     const certificate = {

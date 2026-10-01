@@ -1,12 +1,14 @@
 import Link from "next/link";
 import type { Metadata, Route } from "next";
-import { Award, Clock, GraduationCap, Hourglass, PlayCircle } from "lucide-react";
+import { Award, Clock, GraduationCap, Hourglass, Lock, PlayCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { requireSession } from "@/features/auth/session";
 import { getExamOverview, getExamSettings, type JuzExamStatus } from "@/features/exams/data";
 import { LearnerSwitcher } from "@/features/account/LearnerSwitcher";
+import { getJuzReadiness, type JuzReadiness } from "@/features/exams/requirements";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "اختبارات الأجزاء", robots: { index: false } };
 
@@ -41,10 +43,24 @@ function StatusLine({ status }: { status: JuzExamStatus }) {
   }
 }
 
+/** The exam stays closed until the whole juz is memorized and recited. */
+function LockedLine({ readiness }: { readiness: JuzReadiness | undefined }) {
+  const total = readiness?.totalAyahs ?? 0;
+  const percent = total > 0 ? Math.floor(((readiness!.memorized + readiness!.recited) / (2 * total)) * 100) : 0;
+  return (
+    <span className="inline-flex items-center gap-1 text-muted">
+      <Lock className="size-4" aria-hidden /> {readiness ? `التحضير ${toArabicDigits(percent)}٪` : "مغلق"}
+    </span>
+  );
+}
+
 export default async function ExamsPage() {
   const session = await requireSession("/exams");
   const settings = await getExamSettings();
-  const overview = await getExamOverview(session.activeLearner.id, settings.retry_cooldown_hours);
+  const [overview, readiness] = await Promise.all([
+    getExamOverview(session.activeLearner.id, settings.retry_cooldown_hours),
+    createSupabaseServerClient().then((supabase) => getJuzReadiness(supabase, session.activeLearner.id).catch(() => null)),
+  ]);
   const certified = Object.values(overview).filter((status) => status.kind === "certified").length;
 
   return (
@@ -53,7 +69,7 @@ export default async function ExamsPage() {
         kicker="اختبارات الأجزاء"
         icon={<GraduationCap className="size-4" aria-hidden />}
         title="اختبر حفظك واحصل على الشهادة"
-        description={`لكل جزء اختبار حفظ من ${toArabicDigits(settings.exam_question_count)} سؤالًا في ${toArabicDigits(settings.exam_minutes)} دقيقة، يتولّد ويُصحَّح آليًا. تنجح بـ ${toArabicDigits(settings.exam_pass_percent)}٪ فتصدر لك شهادة اجتياز باسمك.`}
+        description={`يُفتح اختبار الجزء بعد حفظ آياته كلها وتسميعها. لكل جزء اختبار حفظ من ${toArabicDigits(settings.exam_question_count)} سؤالًا في ${toArabicDigits(settings.exam_minutes)} دقيقة، يتولّد ويُصحَّح آليًا. تنجح بـ ${toArabicDigits(settings.exam_pass_percent)}٪ فتصدر لك شهادة اجتياز باسمك.`}
         actions={<LearnerSwitcher />}
       />
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -76,7 +92,11 @@ export default async function ExamsPage() {
                   )}
                 >
                   <span className="font-display text-lg text-emerald-deep">الجزء {toArabicDigits(juz)}</span>
-                  <StatusLine status={status} />
+                  {status.kind === "available" && !readiness?.[juz]?.ready ? (
+                    <LockedLine readiness={readiness?.[juz]} />
+                  ) : (
+                    <StatusLine status={status} />
+                  )}
                 </Link>
               </li>
             );
