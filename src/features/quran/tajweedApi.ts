@@ -40,20 +40,37 @@ interface RawTajweedVerse {
 
 const TAJWEED_URL = "https://api.quran.com/api/v4/quran/verses/uthmani_tajweed";
 const TAJWEED_REVALIDATE_SECONDS = 60 * 60 * 24 * 30;
-const TAJWEED_TOKEN_PATTERN = /<tajweed class=([a-z_]+)>([^<]*)<\/tajweed>|<span class=end>[^<]*<\/span>/g;
+const TAJWEED_TAG_PATTERN = /<(\/?)(tajweed|span)(?:\s+class=["']?([a-z_]+)["']?)?\s*>/g;
 
+// The markup nests tags (e.g. a silent alif inside a madd), so text takes the innermost rule.
+// The verse-end marker (<span class=end>) is dropped; the reader draws its own.
 export function parseTajweedMarkup(markup: string): TajweedSegment[] {
   const segments: TajweedSegment[] = [];
+  const stack: { tag: string; ruleClass: string | null }[] = [];
   let lastIndex = 0;
-  for (const match of markup.matchAll(TAJWEED_TOKEN_PATTERN)) {
-    const [fullMatch, ruleClass, ruleText] = match;
+  const pushText = (rawText: string) => {
+    // A few verses carry malformed tags in the source data (e.g. 32:3), so stray brackets are dropped.
+    const text = rawText.replace(/[<>]/g, "");
+    if (!text || stack.some((entry) => entry.tag === "span")) return;
+    const ruleClass = stack.at(-1)?.ruleClass ?? null;
+    const previous = segments.at(-1);
+    if (previous && previous.ruleClass === ruleClass) previous.text += text;
+    else segments.push({ text, ruleClass });
+  };
+  for (const match of markup.matchAll(TAJWEED_TAG_PATTERN)) {
+    const [fullMatch, closing, tag, ruleClass] = match;
     const start = match.index ?? 0;
-    if (start > lastIndex) segments.push({ text: markup.slice(lastIndex, start), ruleClass: null });
-    if (ruleClass !== undefined) segments.push({ text: ruleText ?? "", ruleClass });
+    pushText(markup.slice(lastIndex, start));
+    if (closing) {
+      const openIndex = stack.map((entry) => entry.tag).lastIndexOf(tag ?? "");
+      if (openIndex !== -1) stack.length = openIndex;
+    } else {
+      stack.push({ tag: tag ?? "", ruleClass: ruleClass ?? null });
+    }
     lastIndex = start + fullMatch.length;
   }
-  if (lastIndex < markup.length) segments.push({ text: markup.slice(lastIndex), ruleClass: null });
-  return segments.filter((segment) => segment.text.length > 0);
+  pushText(markup.slice(lastIndex));
+  return segments;
 }
 
 export async function getSurahTajweedAyahs(surahNumber: number): Promise<TajweedAyah[]> {
