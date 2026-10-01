@@ -1,7 +1,8 @@
 import QRCode from "qrcode";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
-import { Divider, StarMark } from "@/components/ui/Ornament";
+import { Divider } from "@/components/ui/Ornament";
+import { BrandMark } from "@/components/site/BrandMark";
 import { FrameCorner } from "@/features/quran/MushafFrame";
 
 const JUZ_ORDINALS = [
@@ -130,7 +131,7 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
           <FrameCorner className={cn("bottom-1 left-1 -scale-y-100", CORNER)} />
 
           <header className="relative flex flex-col items-center">
-            <StarMark className="size-[max(2rem,3.8cqw)] text-gold" />
+            <BrandMark priority className="h-[max(3rem,6cqw)]" />
             <p className={cn("mt-[0.5cqw] font-bold tracking-wide text-gold-deep", TEXT.sm)}>منصة المنارة للقرآن الكريم</p>
             <h1 className={cn("mt-[0.3cqw] font-display font-bold leading-tight text-emerald-deep", TEXT.title)}>
               شهادة اجتياز اختبار حفظ

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-import { StarMark } from "@/components/ui/Ornament";
+import { BrandMark } from "./BrandMark";
 import { SPLASH_SEEN_KEY } from "./splash";
 /** Long enough for the mark's entrance to finish, short enough not to feel like a wait. */
 const MIN_VISIBLE_MS = 1300;
@@ -59,8 +59,8 @@ export function SplashScreen() {
       <div className="relative flex flex-col items-center px-6 text-center">
         <div className="relative grid size-28 place-items-center animate-splash-rise sm:size-32">
           <span className="absolute inset-0 rounded-full border border-dashed border-gold/40 animate-spin-slow" />
-          <span className="grid size-20 place-items-center rounded-[1.75rem] bg-emerald text-gold shadow-gold sm:size-24">
-            <StarMark className="size-12 animate-splash-turn sm:size-14" />
+          <span className="grid size-20 place-items-center rounded-[1.75rem] bg-ivory shadow-gold sm:size-24">
+            <BrandMark priority className="h-14 animate-splash-rise [animation-delay:60ms] sm:h-16" />
           </span>
         </div>
 
