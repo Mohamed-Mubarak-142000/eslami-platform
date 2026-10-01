@@ -43,12 +43,24 @@ jobs:
           query="slot=${SLOT}"
           [ -n "${DATE}" ] && query="${query}&date=${DATE}"
           [ "${DRY_RUN}" = "1" ] && query="${query}&dryRun=1"
+          url="${SITE_URL%/}/api/cron/reminders?${query}"
           # Each call sends for up to ~4 minutes, then reports what is left; call again until done.
           for attempt in 1 2 3 4 5 6; do
-            body=$(curl -sS --fail-with-body --max-time 320 -X POST \
-              -H "Authorization: Bearer ${CRON_SECRET}" \
-              "${SITE_URL}/api/cron/reminders?${query}")
-            echo "Attempt ${attempt}: ${body}"
+            # Redirects are not followed: curl would drop the Authorization header, so SITE_URL must be
+            # the final address (https, and www or not, exactly as the site serves it).
+            response=$(curl -sS --max-time 320 -X POST -o body.json -w '%{http_code} %{redirect_url}' \
+              -H "Authorization: Bearer ${CRON_SECRET}" "${url}")
+            status="${response%% *}"
+            body=$(cat body.json)
+            echo "Attempt ${attempt}: HTTP ${status} ${body}"
+            if [ "${status}" -ge 300 ] && [ "${status}" -lt 400 ]; then
+              echo "::error::${SITE_URL} redirects to ${response#* }. Set the SITE_URL secret to that address (without the path)."
+              exit 1
+            fi
+            if [ "${status}" != "200" ]; then
+              echo "::error::HTTP ${status} from the reminders endpoint."
+              exit 1
+            fi
             remaining=$(echo "${body}" | jq -r '.remaining // 0')
             if [ "${DRY_RUN}" = "1" ] || [ "${remaining}" = "0" ]; then exit 0; fi
           done
