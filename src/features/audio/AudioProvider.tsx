@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import type HlsType from "hls.js";
 import { createRadioFailover, type RadioFailover } from "./radioFailover";
-import { loadHls, playsHlsNatively } from "./hlsSource";
+import { loadHls, loadedHls, playsHlsNatively } from "./hlsSource";
 
 export const RADIO_STATION = {
   name: "إذاعة القرآن الكريم من القاهرة",
@@ -151,33 +151,42 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           })
           .finally(() => attempt === startAttemptRef.current && setLoading(false));
       };
-      if (!next.hls || playsHlsNatively(audio)) {
+      if (!next.hls) {
         audio.src = next.src;
         begin();
         return;
       }
-      loadHls()
-        .then((Hls) => {
-          if (attempt !== startAttemptRef.current) return;
-          if (!Hls.isSupported()) throw new Error("HLS unsupported");
-          const hls = new Hls();
-          hlsRef.current = hls;
-          hls.on(Hls.Events.ERROR, (_event, data) => {
-            if (!data.fatal || hlsRef.current !== hls) return;
-            detachHls();
-            setPlaying(false);
+      const attach = (Hls: typeof HlsType | null) => {
+        if (attempt !== startAttemptRef.current) return;
+        if (!Hls?.isSupported()) {
+          if (!playsHlsNatively(audio)) {
             setLoading(false);
             setError(failed);
-          });
-          hls.loadSource(next.src);
-          hls.attachMedia(audio);
+            return;
+          }
+          audio.src = next.src;
           begin();
-        })
-        .catch(() => {
-          if (attempt !== startAttemptRef.current) return;
+          return;
+        }
+        const hls = new Hls();
+        hlsRef.current = hls;
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (!data.fatal || hlsRef.current !== hls) return;
+          detachHls();
+          setPlaying(false);
           setLoading(false);
           setError(failed);
         });
+        hls.loadSource(next.src);
+        hls.attachMedia(audio);
+        begin();
+      };
+      const ready = loadedHls();
+      if (ready) {
+        attach(ready);
+        return;
+      }
+      loadHls().then(attach, () => attach(null));
     },
     [rate, radio, detachHls],
   );
