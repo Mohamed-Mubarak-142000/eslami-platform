@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import type HlsType from "hls.js";
 import { createRadioFailover, type RadioFailover } from "./radioFailover";
+import { loadHls, playsHlsNatively } from "./hlsSource";
 
 export const RADIO_STATION = {
   name: "إذاعة القرآن الكريم من القاهرة",
@@ -22,6 +24,8 @@ export interface AudioTrack {
   title: string;
   subtitle: string;
   src: string;
+  /** An HLS stream rather than a plain audio file. */
+  hls?: boolean;
   href?: string;
 }
 
@@ -85,6 +89,14 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [radioOnBackup, setRadioOnBackup] = useState(false);
   const radioRef = useRef<RadioFailover | null>(null);
+  const hlsRef = useRef<HlsType | null>(null);
+  // Bumped on every start so a slow hls.js load can't attach an abandoned track.
+  const startAttemptRef = useRef(0);
+
+  const detachHls = useCallback(() => {
+    hlsRef.current?.destroy();
+    hlsRef.current = null;
+  }, []);
 
   const radio = useCallback((): RadioFailover | null => {
     const audio = audioRef.current;
@@ -113,6 +125,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       const audio = audioRef.current;
       if (!audio) return;
       radio()?.stop();
+      detachHls();
+      const attempt = ++startAttemptRef.current;
       setError("");
       setTrack(next);
       setCurrentTime(0);
@@ -123,19 +137,49 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         return;
       }
       setRadioOnBackup(false);
-      audio.src = next.src;
-      audio.playbackRate = rate;
       setLoading(true);
-      audio
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => {
-          setPlaying(false);
-          setError("تعذّر تشغيل التلاوة، تحقق من اتصالك.");
+      const failed = next.kind === "clip" ? "تعذّر تشغيل المقطع، تحقق من اتصالك." : "تعذّر تشغيل التلاوة، تحقق من اتصالك.";
+      const begin = () => {
+        audio.playbackRate = rate;
+        audio
+          .play()
+          .then(() => setPlaying(true))
+          .catch(() => {
+            if (attempt !== startAttemptRef.current) return;
+            setPlaying(false);
+            setError(failed);
+          })
+          .finally(() => attempt === startAttemptRef.current && setLoading(false));
+      };
+      if (!next.hls || playsHlsNatively(audio)) {
+        audio.src = next.src;
+        begin();
+        return;
+      }
+      loadHls()
+        .then((Hls) => {
+          if (attempt !== startAttemptRef.current) return;
+          if (!Hls.isSupported()) throw new Error("HLS unsupported");
+          const hls = new Hls();
+          hlsRef.current = hls;
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (!data.fatal || hlsRef.current !== hls) return;
+            detachHls();
+            setPlaying(false);
+            setLoading(false);
+            setError(failed);
+          });
+          hls.loadSource(next.src);
+          hls.attachMedia(audio);
+          begin();
         })
-        .finally(() => setLoading(false));
+        .catch(() => {
+          if (attempt !== startAttemptRef.current) return;
+          setLoading(false);
+          setError(failed);
+        });
     },
-    [rate, radio],
+    [rate, radio, detachHls],
   );
 
   const play = useCallback(
@@ -178,6 +222,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const stop = useCallback(() => {
     const audio = audioRef.current;
     radio()?.stop();
+    detachHls();
+    startAttemptRef.current++;
     setRadioOnBackup(false);
     setLoading(false);
     if (audio) {
@@ -189,7 +235,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setPlaying(false);
     setTrack(null);
     setQueue([]);
-  }, [radio]);
+  }, [radio, detachHls]);
 
   const step = useCallback(
     (direction: 1 | -1) => {
