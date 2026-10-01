@@ -172,21 +172,37 @@ export interface BulkResult {
   failed: string[];
   /** Set when the provider refused further mail (quota); the remaining messages were not attempted. */
   stoppedByQuota: boolean;
+  /** Set when `deadline` passed; the remaining messages were not attempted (and are not in `failed`). */
+  stoppedByDeadline: boolean;
+}
+
+export interface BulkOptions {
+  onProgress?: (done: number) => void;
+  /** Called after each accepted message, with its index in `messages`. */
+  onSent?: (index: number) => void | Promise<void>;
+  /** Epoch ms; no new message is started after it, so a serverless function can return in time. */
+  deadline?: number;
 }
 
 /**
  * Sends messages one by one over a single connection (one login instead of one per message).
  * A rejected recipient is skipped; a dropped connection is reopened; a quota reply stops the run.
  */
-export async function sendBulkMail(messages: MailMessage[], onProgress?: (done: number) => void): Promise<BulkResult> {
-  const result: BulkResult = { sent: 0, failed: [], stoppedByQuota: false };
+export async function sendBulkMail(messages: MailMessage[], options: BulkOptions = {}): Promise<BulkResult> {
+  const { onProgress, onSent, deadline } = options;
+  const result: BulkResult = { sent: 0, failed: [], stoppedByQuota: false, stoppedByDeadline: false };
   let session: Awaited<ReturnType<typeof openSession>> | null = null;
   try {
     for (const [index, message] of messages.entries()) {
+      if (deadline !== undefined && Date.now() >= deadline) {
+        result.stoppedByDeadline = true;
+        break;
+      }
       try {
         if (!session || session.closed) session = await openSession();
         await session.deliver(message);
         result.sent++;
+        await onSent?.(index);
       } catch (error) {
         result.failed.push(message.to);
         if (isQuotaError(error)) {

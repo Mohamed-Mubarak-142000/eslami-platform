@@ -25,6 +25,9 @@ export type ProfileRow = {
   role: AppRole;
   disabled: boolean;
   email_updates: boolean;
+  remind_friday: boolean;
+  remind_fasting: boolean;
+  remind_seasons: boolean;
   created_at: Timestamp;
   updated_at: Timestamp;
 };
@@ -117,6 +120,9 @@ export type AppSettingsRow = {
   exam_minutes: number;
   retry_cooldown_hours: number;
   facebook_url: string | null;
+  reminders_enabled: boolean;
+  hijri_offset: number;
+  disabled_occasions: string[];
   updated_at: Timestamp;
 };
 export type AnnouncementRow = {
@@ -129,6 +135,25 @@ export type AnnouncementRow = {
   failed_count: number;
   created_at: Timestamp;
   finished_at: Timestamp | null;
+};
+export type ReminderSlot = "morning" | "evening";
+export type ReminderRunStatus = "running" | "done" | "quota";
+export type ReminderRunRow = {
+  id: string;
+  occasion_key: string;
+  run_date: string;
+  slot: ReminderSlot;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  status: ReminderRunStatus;
+  started_at: Timestamp;
+  finished_at: Timestamp | null;
+};
+export type ReminderDeliveryRow = {
+  run_id: string;
+  user_id: string;
+  sent_at: Timestamp;
 };
 export type ExamAttemptRow = {
   id: string;
@@ -255,7 +280,17 @@ export type Database = {
         ProfileRow,
         Optional<
           ProfileRow,
-          "email" | "full_name" | "certificate_name" | "role" | "disabled" | "email_updates" | "created_at" | "updated_at"
+          | "email"
+          | "full_name"
+          | "certificate_name"
+          | "role"
+          | "disabled"
+          | "email_updates"
+          | "remind_friday"
+          | "remind_fasting"
+          | "remind_seasons"
+          | "created_at"
+          | "updated_at"
         >
       >;
       learners: TableDef<LearnerRow, Optional<LearnerRow, "id" | "birth_year" | "created_at">>;
@@ -289,6 +324,11 @@ export type Database = {
         AnnouncementRow,
         Optional<AnnouncementRow, "id" | "sent_by" | "recipient_count" | "sent_count" | "failed_count" | "created_at" | "finished_at">
       >;
+      reminder_runs: TableDef<
+        ReminderRunRow,
+        Optional<ReminderRunRow, "id" | "recipient_count" | "sent_count" | "failed_count" | "status" | "started_at" | "finished_at">
+      >;
+      reminder_deliveries: TableDef<ReminderDeliveryRow, Optional<ReminderDeliveryRow, "sent_at">>;
       certificates: TableDef<CertificateRow, Optional<CertificateRow, "id" | "exam_attempt_id" | "issued_at" | "revoked_at">>;
       memorization_plans: TableDef<
         MemorizationPlanRow,

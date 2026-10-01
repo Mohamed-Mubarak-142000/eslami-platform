@@ -9,13 +9,22 @@ function secret(): string {
   return value;
 }
 
-/** A per-user signature, so an unsubscribe link only ever works for the account it was sent to. */
-export function unsubscribeToken(userId: string): string {
-  return createHmac("sha256", secret()).update(`unsubscribe:${userId}`).digest("base64url").slice(0, 32);
+/** Which emails a link turns off: feature announcements, or the special-day reminders. */
+export type MailingList = "updates" | "reminders";
+
+export const parseMailingList = (value: unknown): MailingList => (value === "reminders" ? "reminders" : "updates");
+
+/**
+ * A per-user signature, so an unsubscribe link only ever works for the account it was sent to.
+ * "updates" keeps the original payload so links in already-sent announcements stay valid.
+ */
+export function unsubscribeToken(userId: string, list: MailingList = "updates"): string {
+  const payload = list === "updates" ? `unsubscribe:${userId}` : `unsubscribe:${list}:${userId}`;
+  return createHmac("sha256", secret()).update(payload).digest("base64url").slice(0, 32);
 }
 
-export function isValidUnsubscribeToken(userId: string, token: string): boolean {
-  const expected = Buffer.from(unsubscribeToken(userId));
+export function isValidUnsubscribeToken(userId: string, token: string, list: MailingList = "updates"): boolean {
+  const expected = Buffer.from(unsubscribeToken(userId, list));
   const given = Buffer.from(token);
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
@@ -32,11 +41,15 @@ export async function siteOrigin(): Promise<string> {
   return `${proto}://${host}`;
 }
 
-export function unsubscribeUrl(origin: string, userId: string): string {
-  return `${origin}/unsubscribe?${new URLSearchParams({ u: userId, t: unsubscribeToken(userId) })}`;
+function unsubscribeQuery(userId: string, list: MailingList) {
+  return new URLSearchParams({ u: userId, t: unsubscribeToken(userId, list), ...(list === "reminders" && { list }) });
+}
+
+export function unsubscribeUrl(origin: string, userId: string, list: MailingList = "updates"): string {
+  return `${origin}/unsubscribe?${unsubscribeQuery(userId, list)}`;
 }
 
 /** Where Gmail POSTs its own "Unsubscribe" button (List-Unsubscribe-Post, RFC 8058). */
-export function oneClickUnsubscribeUrl(origin: string, userId: string): string {
-  return `${origin}/unsubscribe/one-click?${new URLSearchParams({ u: userId, t: unsubscribeToken(userId) })}`;
+export function oneClickUnsubscribeUrl(origin: string, userId: string, list: MailingList = "updates"): string {
+  return `${origin}/unsubscribe/one-click?${unsubscribeQuery(userId, list)}`;
 }

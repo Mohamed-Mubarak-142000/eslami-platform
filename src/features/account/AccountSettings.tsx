@@ -1,13 +1,14 @@
 "use client";
 
 import { useActionState, useState, useTransition, type ReactNode } from "react";
-import { Baby, KeyRound, Mail, Pencil, Plus, Trash2, TriangleAlert, UserRound, X } from "lucide-react";
+import { Baby, BellRing, KeyRound, Mail, Pencil, Plus, Trash2, TriangleAlert, UserRound, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { Field, FormAlert, SubmitButton } from "@/features/auth/ui/AuthFields";
 import type { FormState } from "@/features/auth/actions";
 import type { LearnerRow } from "@/lib/supabase/database.types";
+import { ReminderToggles, type ReminderPrefs } from "@/features/reminders/ReminderSettings";
 import { useAccountContext } from "./AccountProvider";
 import { EmailUpdatesToggle } from "@/features/announcements/AnnouncementSettings";
 import {
@@ -261,9 +262,10 @@ interface AccountSettingsProps {
   certificateName: string;
   childLearners: LearnerRow[];
   emailUpdates: boolean;
+  reminders: ReminderPrefs;
 }
 
-export function AccountSettings({ email, fullName, certificateName, childLearners, emailUpdates }: AccountSettingsProps) {
+export function AccountSettings({ email, fullName, certificateName, childLearners, emailUpdates, reminders }: AccountSettingsProps) {
   return (
     <div className="mx-auto grid max-w-4xl gap-6 px-4 py-10 sm:px-6">
       <Section icon={<UserRound aria-hidden />} title="بياناتي" description="الاسم على الشهادات يُثبَّت في كل شهادة لحظة إصدارها.">
@@ -285,6 +287,13 @@ export function AccountSettings({ email, fullName, certificateName, childLearner
       </Section>
       <Section icon={<Mail aria-hidden />} title="رسائل التحديثات" description="رسائل قليلة على بريدك عند إضافة ميزة جديدة للمنارة.">
         <EmailUpdatesToggle enabled={emailUpdates} />
+      </Section>
+      <Section
+        icon={<BellRing aria-hidden />}
+        title="تذكيرات الأيام المميزة"
+        description="رسالة على بريدك في الأيام الفاضلة: صباح الجمعة بسورة الكهف، وليلة أيام الصيام، ومواسم الخير."
+      >
+        <ReminderToggles prefs={reminders} />
       </Section>
       <Section
         tone="danger"

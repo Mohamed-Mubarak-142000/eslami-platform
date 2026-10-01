@@ -59,7 +59,7 @@ export function EmailUpdatesToggle({ enabled: initial }: { enabled: boolean }) {
 }
 
 /** The page behind the email's unsubscribe link: one explicit tap, so link scanners can't trigger it. */
-export function UnsubscribeButton({ userId, token }: { userId: string; token: string }) {
+export function UnsubscribeButton({ userId, token, list, label }: { userId: string; token: string; list?: string; label: string }) {
   const [pending, start] = useTransition();
   const [result, setResult] = useState<FormState>();
   if (result?.message) return <FormAlert message={result.message} />;
@@ -69,11 +69,11 @@ export function UnsubscribeButton({ userId, token }: { userId: string; token: st
       <button
         type="button"
         disabled={pending}
-        onClick={() => start(async () => setResult(await unsubscribeAction(userId, token)))}
+        onClick={() => start(async () => setResult(await unsubscribeAction(userId, token, list)))}
         className={buttonClass("primary", "lg", "w-full")}
       >
         {pending && <Loader2 className="animate-spin" aria-hidden />}
-        إيقاف رسائل التحديثات
+        {label}
       </button>
     </div>
   );

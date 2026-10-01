@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Pause, Play, Repeat, Repeat1, Search, SkipBack, SkipForward } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -15,6 +15,22 @@ const RATES = [0.75, 1, 1.25, 1.5];
 const REPEAT_ORDER: RepeatMode[] = ["off", "all", "one"];
 const REPEAT_LABEL: Record<RepeatMode, string> = { off: "بدون تكرار", all: "تكرار الكل", one: "تكرار السورة" };
 
+const noSubscribe = () => () => {};
+
+/**
+ * `?surah=18` from a link (the Friday email): read on the client so the page stays static.
+ * Null during server render and hydration, then the real value.
+ */
+function useFocusSurah(): number | null {
+  const raw = useSyncExternalStore(
+    noSubscribe,
+    () => new URLSearchParams(window.location.search).get("surah"),
+    () => null,
+  );
+  const id = Number(raw);
+  return Number.isInteger(id) && id >= 1 && id <= 114 ? id : null;
+}
+
 interface ReciterPlayerProps {
   reciter: Reciter;
   surahs: Surah[];
@@ -24,9 +40,14 @@ interface ReciterPlayerProps {
 
 export function ReciterPlayer({ reciter, surahs, riwayat, href }: ReciterPlayerProps) {
   const audio = useAudio();
-  const [moshafId, setMoshafId] = useState(reciter.moshaf[0]?.id ?? 0);
+  const focusSurah = useFocusSurah();
+  const [moshafId, setMoshafId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
-  const moshaf = reciter.moshaf.find((entry) => entry.id === moshafId) ?? reciter.moshaf[0];
+  // Until the listener picks one, prefer a moshaf that has the linked surah.
+  const moshaf =
+    reciter.moshaf.find((entry) => entry.id === moshafId) ??
+    (focusSurah ? reciter.moshaf.find((entry) => entry.surahList.includes(focusSurah)) : undefined) ??
+    reciter.moshaf[0];
   const surahName = useMemo(() => new Map(surahs.map((surah) => [surah.id, surah.name])), [surahs]);
   const riwayaName = (id: number) => riwayat.find((entry) => entry.id === id)?.name ?? "";
 
@@ -48,7 +69,12 @@ export function ReciterPlayer({ reciter, surahs, riwayat, href }: ReciterPlayerP
     return queue.filter((track) => !needle || normalizeArabic(track.title).includes(needle));
   }, [queue, query]);
 
+  const focusTrack = focusSurah ? (queue.find((track) => track.id === `m${moshaf?.id}-s${focusSurah}`) ?? null) : null;
   const activeTrack = audio.track && queue.some((track) => track.id === audio.track?.id) ? audio.track : null;
+
+  useEffect(() => {
+    if (focusTrack) document.getElementById(focusTrack.id)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focusTrack]);
   const progress = activeTrack && audio.duration > 0 ? audio.currentTime / audio.duration : 0;
 
   function playTrack(track: AudioTrack) {
@@ -82,7 +108,9 @@ export function ReciterPlayer({ reciter, surahs, riwayat, href }: ReciterPlayerP
               )}
             </div>
             <h2 className="mt-5 text-xl font-bold">{reciter.name}</h2>
-            <p className="mt-1 text-sm text-gold-soft">{activeTrack ? activeTrack.title : "اختر سورة للاستماع"}</p>
+            <p className="mt-1 text-sm text-gold-soft">
+              {activeTrack ? activeTrack.title : focusTrack ? `${focusTrack.title} جاهزة، اضغط للتشغيل` : "اختر سورة للاستماع"}
+            </p>
           </div>
 
           <div className="mt-6">
@@ -119,7 +147,10 @@ export function ReciterPlayer({ reciter, surahs, riwayat, href }: ReciterPlayerP
             </button>
             <button
               type="button"
-              onClick={() => (activeTrack ? audio.toggle() : queue[0] && playTrack(queue[0]))}
+              onClick={() => {
+                if (activeTrack) audio.toggle();
+                else if (focusTrack ?? queue[0]) playTrack((focusTrack ?? queue[0])!);
+              }}
               className="grid size-16 place-items-center rounded-full bg-gold text-emerald-night shadow-gold transition-transform active:scale-95"
               aria-label={audio.playing && activeTrack ? "إيقاف مؤقت" : "تشغيل"}
             >
@@ -211,14 +242,19 @@ export function ReciterPlayer({ reciter, surahs, riwayat, href }: ReciterPlayerP
           {visible.map((track) => {
             const current = audio.isCurrent(track.id);
             const surahId = Number(track.id.split("-s")[1]);
+            const focused = !current && track.id === focusTrack?.id;
             return (
-              <li key={track.id}>
+              <li key={track.id} id={track.id} className="scroll-mt-28">
                 <button
                   type="button"
                   onClick={() => playTrack(track)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-2xl border p-3 text-start transition-[border-color,background-color]",
-                    current ? "border-emerald bg-emerald text-white shadow-soft" : "border-line bg-white hover:border-gold/60",
+                    current
+                      ? "border-emerald bg-emerald text-white shadow-soft"
+                      : focused
+                        ? "border-gold bg-gold-mist ring-2 ring-gold/50"
+                        : "border-line bg-white hover:border-gold/60",
                   )}
                 >
                   <span

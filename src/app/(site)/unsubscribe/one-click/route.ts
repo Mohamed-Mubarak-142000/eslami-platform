@@ -7,6 +7,6 @@ import { unsubscribeAction } from "@/features/announcements/actions";
  */
 export async function POST(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const result = await unsubscribeAction(params.get("u") ?? "", params.get("t") ?? "");
+  const result = await unsubscribeAction(params.get("u") ?? "", params.get("t") ?? "", params.get("list") ?? undefined);
   return NextResponse.json(result, { status: result.error ? 400 : 200 });
 }

@@ -22,6 +22,7 @@ export default async function AccountPage() {
         certificateName={profile.certificate_name}
         childLearners={learners.filter((learner) => learner.kind === "child")}
         emailUpdates={profile.email_updates}
+        reminders={{ friday: profile.remind_friday, fasting: profile.remind_fasting, seasons: profile.remind_seasons }}
       />
     </>
   );

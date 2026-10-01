@@ -9,7 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { renderAnnouncementEmail, type AnnouncementContent } from "@/lib/mail/announcementEmail";
 import { isMailConfigured, isQuotaError, sendBulkMail, sendMail, type MailMessage } from "@/lib/mail/smtp";
 import { toArabicDigits } from "@/lib/arabic";
-import { isValidUnsubscribeToken, oneClickUnsubscribeUrl, siteOrigin, unsubscribeUrl } from "./links";
+import { isValidUnsubscribeToken, oneClickUnsubscribeUrl, parseMailingList, siteOrigin, unsubscribeUrl } from "./links";
 import { MAX_RECIPIENTS } from "./limits";
 
 const FAILED = "تعذّر تنفيذ العملية.";
@@ -212,12 +212,14 @@ export async function setEmailUpdatesAction(enabled: boolean): Promise<FormState
   return { message: enabled ? "ستصلك رسائل التحديثات." : "لن تصلك رسائل التحديثات بعد الآن." };
 }
 
-/** The signed link in every email; works without signing in. */
-export async function unsubscribeAction(userId: string, token: string): Promise<FormState> {
-  if (!z.string().uuid().safeParse(userId).success || !isValidUnsubscribeToken(userId, token)) {
+/** The signed link in every email; works without signing in. `list` picks which emails stop. */
+export async function unsubscribeAction(userId: string, token: string, listValue?: string): Promise<FormState> {
+  const list = parseMailingList(listValue);
+  if (!z.string().uuid().safeParse(userId).success || !isValidUnsubscribeToken(userId, token, list)) {
     return { error: "رابط إلغاء الاشتراك غير صالح." };
   }
-  const { error } = await createSupabaseAdminClient().from("profiles").update({ email_updates: false }).eq("id", userId);
+  const changes = list === "reminders" ? { remind_friday: false, remind_fasting: false, remind_seasons: false } : { email_updates: false };
+  const { error } = await createSupabaseAdminClient().from("profiles").update(changes).eq("id", userId);
   if (error) return { error: FAILED };
-  return { message: "تم. لن تصلك رسائل التحديثات بعد الآن." };
+  return { message: list === "reminders" ? "تم. لن تصلك تذكيرات الأيام المميزة بعد الآن." : "تم. لن تصلك رسائل التحديثات بعد الآن." };
 }
