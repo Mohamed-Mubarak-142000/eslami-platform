@@ -1,10 +1,15 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createRadioFailover, type RadioFailover } from "./radioFailover";
 
 export const RADIO_STATION = {
   name: "إذاعة القرآن الكريم من القاهرة",
-  streamUrl: process.env.NEXT_PUBLIC_QURAN_RADIO_URL ?? "https://stream.radiojar.com/8s5u5tpdtwzuv",
+  /** Tried in order: the official stream first, then relays of the same station. */
+  streams: [
+    process.env.NEXT_PUBLIC_QURAN_RADIO_URL ?? "https://stream.radiojar.com/8s5u5tpdtwzuv",
+    "https://radio.xecod.com/station/quran-cairo",
+  ],
   providerName: "إذاعة القرآن الكريم المصرية",
   providerUrl: "https://misrquran.gov.eg/",
 } as const;
@@ -33,6 +38,8 @@ interface AudioContextValue {
   playing: boolean;
   loading: boolean;
   error: string;
+  /** The radio is playing from a backup stream while the official one is down. */
+  radioOnBackup: boolean;
   currentTime: number;
   duration: number;
   volume: number;
@@ -59,7 +66,7 @@ const RADIO_TRACK: AudioTrack = {
   kind: "radio",
   title: RADIO_STATION.name,
   subtitle: "بث مباشر",
-  src: RADIO_STATION.streamUrl,
+  src: RADIO_STATION.streams[0],
   href: "/radio",
 };
 
@@ -76,28 +83,59 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [volume, setVolumeState] = useState(80);
   const [rate, setRateState] = useState(1);
   const [repeat, setRepeat] = useState<RepeatMode>("off");
+  const [radioOnBackup, setRadioOnBackup] = useState(false);
+  const radioRef = useRef<RadioFailover | null>(null);
+
+  const radio = useCallback((): RadioFailover | null => {
+    const audio = audioRef.current;
+    if (!audio) return null;
+    radioRef.current ??= createRadioFailover(audio, RADIO_STATION.streams, {
+      onSourceChange: (index) => {
+        setRadioOnBackup(index > 0);
+        setError("");
+        setLoading(true);
+      },
+      onAllDown: () => {
+        setLoading(true);
+        setError("البث متوقف من المصدر الآن، وسنعيد المحاولة تلقائيًا.");
+      },
+      onBlocked: () => {
+        setLoading(false);
+        setPlaying(false);
+        setError("اضغط تشغيل لبدء البث.");
+      },
+    });
+    return radioRef.current;
+  }, []);
 
   const start = useCallback(
     (next: AudioTrack) => {
       const audio = audioRef.current;
       if (!audio) return;
+      radio()?.stop();
       setError("");
       setTrack(next);
       setCurrentTime(0);
       setDuration(0);
+      if (next.kind === "radio") {
+        audio.playbackRate = 1;
+        radio()?.start();
+        return;
+      }
+      setRadioOnBackup(false);
       audio.src = next.src;
-      audio.playbackRate = next.kind === "radio" ? 1 : rate;
+      audio.playbackRate = rate;
       setLoading(true);
       audio
         .play()
         .then(() => setPlaying(true))
         .catch(() => {
           setPlaying(false);
-          setError(next.kind === "radio" ? "تعذّر تشغيل البث الآن، حاول مرة أخرى." : "تعذّر تشغيل التلاوة، تحقق من اتصالك.");
+          setError("تعذّر تشغيل التلاوة، تحقق من اتصالك.");
         })
         .finally(() => setLoading(false));
     },
-    [rate],
+    [rate, radio],
   );
 
   const play = useCallback(
@@ -112,9 +150,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const playRadio = useCallback(() => play(RADIO_TRACK), [play]);
 
   const pause = useCallback(() => {
+    radio()?.stop();
     audioRef.current?.pause();
     setPlaying(false);
-  }, []);
+    setLoading(false);
+  }, [radio]);
 
   const toggle = useCallback(() => {
     const audio = audioRef.current;
@@ -137,6 +177,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
+    radio()?.stop();
+    setRadioOnBackup(false);
+    setLoading(false);
     if (audio) {
       audio.pause();
       audio.removeAttribute("src");
@@ -146,7 +189,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setPlaying(false);
     setTrack(null);
     setQueue([]);
-  }, []);
+  }, [radio]);
 
   const step = useCallback(
     (direction: 1 | -1) => {
@@ -182,6 +225,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       playing,
       loading,
       error,
+      radioOnBackup,
       currentTime,
       duration,
       volume,
@@ -209,7 +253,25 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       setRepeat,
       isCurrent: (id) => track?.id === id,
     }),
-    [track, queue, playing, loading, error, currentTime, duration, volume, rate, repeat, play, playRadio, toggle, pause, stop, step],
+    [
+      track,
+      queue,
+      playing,
+      loading,
+      error,
+      radioOnBackup,
+      currentTime,
+      duration,
+      volume,
+      rate,
+      repeat,
+      play,
+      playRadio,
+      toggle,
+      pause,
+      stop,
+      step,
+    ],
   );
 
   return (
@@ -220,15 +282,29 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         preload="none"
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-        onWaiting={() => setLoading(true)}
+        onWaiting={() => {
+          setLoading(true);
+          if (track?.kind === "radio") radioRef.current?.onWaiting();
+        }}
+        onStalled={() => {
+          if (track?.kind === "radio") radioRef.current?.onWaiting();
+        }}
         onPlaying={() => {
           setLoading(false);
           setPlaying(true);
+          if (track?.kind === "radio") radioRef.current?.onPlaying();
         }}
-        onPause={() => setPlaying(false)}
+        onPause={() => {
+          setPlaying(false);
+          if (track?.kind === "radio") radioRef.current?.onPause();
+        }}
         onEnded={handleEnded}
         onError={() => {
           if (!track) return;
+          if (track.kind === "radio") {
+            radioRef.current?.onError();
+            return;
+          }
           setPlaying(false);
           setLoading(false);
           setError("المصدر الصوتي غير متاح مؤقتًا.");

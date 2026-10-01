@@ -123,8 +123,11 @@ export function RadioStage() {
           <output className="w-10 text-sm tabular-nums">{toArabicDigits(audio.volume)}٪</output>
         </label>
 
-        <p role="status" className="mt-4 min-h-5 text-sm text-rose">
-          {isRadio ? audio.error : ""}
+        <p
+          role="status"
+          className={`mt-4 min-h-5 text-sm ${isRadio && !audio.error && audio.radioOnBackup ? "text-gold-soft" : "text-rose"}`}
+        >
+          {!isRadio ? "" : audio.error || (audio.radioOnBackup ? "البث الرسمي متوقف مؤقتًا، ونشغّل لك من مصدر بديل حتى يعود." : "")}
         </p>
         <a
           data-radio-fade
