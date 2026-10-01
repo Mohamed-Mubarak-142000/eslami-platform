@@ -12,6 +12,7 @@ import {
   Headphones,
   Home,
   Radio,
+  ScrollText,
   Sparkles,
   Sun,
   Trees,
@@ -34,6 +35,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/quran", label: "المصحف", icon: BookOpen, description: "اقرأ القرآن الكريم في مصحف مصفّح" },
   { href: "/listen", label: "الاستماع", icon: Headphones, description: "تلاوات لأكثر من مئتي قارئ" },
   { href: "/radio", label: "الإذاعة", icon: Radio, description: "إذاعة القرآن الكريم بث مباشر" },
+  { href: "/hadith", label: "الأحاديث", icon: ScrollText, description: "أحاديث نبوية مع شرحها وفوائدها" },
   { href: "/stories", label: "القصص", icon: Clapperboard, description: "قصص الأنبياء المصوّرة", signedInOnly: true },
   { href: "/kids", label: "الأطفال", icon: Trees, description: "حديقة القرآن للأطفال", kidsOnly: true },
   { href: "/prayer-times", label: "المواقيت", icon: Clock, description: "مواقيت الصلاة واتجاه القبلة" },
@@ -67,7 +69,7 @@ const byHref = (href: string) => {
 
 export const NAV_GROUPS: readonly NavGroup[] = [
   { id: "home", label: "الرئيسية", icon: Home, description: "البداية", href: "/" },
-  { id: "quran", label: "القرآن", icon: BookOpen, items: ["/quran", "/listen", "/radio"].map(byHref) },
+  { id: "quran", label: "القرآن والسنة", icon: BookOpen, items: ["/quran", "/listen", "/radio", "/hadith"].map(byHref) },
   { id: "journey", label: "رحلتي", icon: Compass, items: JOURNEY_ITEMS },
   { id: "stories", label: "القصص والأطفال", icon: Clapperboard, items: ["/stories", "/kids"].map(byHref) },
   { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar"].map(byHref) },
