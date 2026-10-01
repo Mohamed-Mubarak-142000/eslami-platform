@@ -26,6 +26,7 @@ import { husaryAyahUrl, husaryMuallimAyahUrl } from "@/features/quran/ayahAudio"
 import type { Surah } from "@/features/quran/api";
 import type { Ayah, TafsirAyah } from "@/features/quran/textApi";
 import { useKidsProgress } from "./progress/KidsProgressProvider";
+import { isSurahUnlocked } from "./progress/levels";
 import { ReciteRecorder } from "./ReciteRecorder";
 import { Celebration } from "./ui/Celebration";
 import { kidsButton } from "./ui/kidsStyles";
@@ -230,19 +231,21 @@ export function KidsLearn({ surah, ayahs, basmala, tafsir, surahs, teaching }: K
               exit={{ opacity: 0, y: -10, scale: 0.96 }}
               className="absolute left-1/2 top-full z-20 mt-3 grid max-h-80 w-72 -translate-x-1/2 grid-cols-2 gap-1.5 overflow-y-auto rounded-3xl bg-white p-3 shadow-lift"
             >
-              {surahs.map((entry) => (
-                <li key={entry.id}>
-                  <Link
-                    href={`/kids/learn/${entry.id}` as Route}
-                    className={cn(
-                      "block rounded-2xl px-3 py-2 text-center font-extrabold",
-                      entry.id === surah.id ? "bg-[#12a15b] text-white" : "hover:bg-emerald-mist",
-                    )}
-                  >
-                    {entry.name}
-                  </Link>
-                </li>
-              ))}
+              {surahs
+                .filter((entry) => isSurahUnlocked(state, entry.id))
+                .map((entry) => (
+                  <li key={entry.id}>
+                    <Link
+                      href={`/kids/learn/${entry.id}` as Route}
+                      className={cn(
+                        "block rounded-2xl px-3 py-2 text-center font-extrabold",
+                        entry.id === surah.id ? "bg-[#12a15b] text-white" : "hover:bg-emerald-mist",
+                      )}
+                    >
+                      {entry.name}
+                    </Link>
+                  </li>
+                ))}
             </motion.ul>
           )}
         </AnimatePresence>
@@ -515,12 +518,12 @@ export function KidsLearn({ surah, ayahs, basmala, tafsir, surahs, teaching }: K
         message={celebrate === "memorized" ? `أتممت حفظ سورة ${surah.name} كاملة` : `استمعت لسورة ${surah.name} كاملة`}
         stars={3}
       >
+        <Link href={`/kids/quiz/${surah.id}` as Route} className={kidsButton("gold")}>
+          اختبر نفسك لتفتح السورة التالية
+        </Link>
         <button type="button" onClick={() => setCelebrate(null)} className={kidsButton("emerald")}>
           أكمل
         </button>
-        <Link href="/kids/learn" className={kidsButton("white")}>
-          سورة أخرى
-        </Link>
       </Celebration>
     </div>
   );

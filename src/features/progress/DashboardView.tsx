@@ -29,6 +29,11 @@ const GAME_LABELS: Record<GameKind, string> = {
   tajweed: "ألوان التجويد",
   arrange: "رتّب الآية",
   quiz: "مسابقة السور",
+  listen_pick: "اسمع واختر",
+  ayah_order: "رتّب الآيات",
+  true_false: "صح أم خطأ",
+  surah_match: "ذاكرة السور",
+  kids_recite: "سمّعني",
 };
 
 interface CertificateSummary {

@@ -1,12 +1,16 @@
 import type { KidsProgressState } from "./progressTypes";
 
+/** Finished games of every kind except the quiz, which earns a star per correct answer instead. */
+export function countGamesPlayed(state: KidsProgressState): number {
+  return Object.entries(state.gameCounts).reduce((sum, [game, count]) => (game === "quiz" ? sum : sum + (count ?? 0)), 0);
+}
+
 /** A single friendly "stars" total for the garden: every learning action earns some. */
 export function computeStars(state: KidsProgressState): number {
-  const memorized = Object.values(state.memorizedAyahsBySurah).reduce((sum, ayahs) => sum + ayahs.length, 0);
   return (
-    memorized * 2 +
+    countMemorizedAyahs(state) * 2 +
     state.quizStats.totalCorrect +
-    (state.matchStats.letterGamesCompleted + state.matchStats.tajweedGamesCompleted) * 3 +
+    countGamesPlayed(state) * 3 +
     state.listenStats.surahsCompleted.length * 5
   );
 }

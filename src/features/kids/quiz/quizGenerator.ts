@@ -53,8 +53,8 @@ function toChoices(labels: string[], correctLabel: string, rng: Rng): { choices:
   return { choices, correctChoiceId: correctChoice?.id ?? choices[0]?.id ?? "choice-0" };
 }
 
-export function buildWhichSurahQuestion(pool: QuizPoolItem[], rng: Rng): QuizQuestion | null {
-  const target = pickOne(pool, rng);
+export function buildWhichSurahQuestion(pool: QuizPoolItem[], rng: Rng, targets: QuizPoolItem[] = pool): QuizQuestion | null {
+  const target = pickOne(targets, rng);
   if (!target) return null;
 
   const distractors = pickDistinct(pool, 3, rng, (a, b) => a.surah.id === b.surah.id, target);
@@ -76,8 +76,8 @@ export function buildWhichSurahQuestion(pool: QuizPoolItem[], rng: Rng): QuizQue
   };
 }
 
-export function buildCompleteAyahQuestion(pool: QuizPoolItem[], rng: Rng): QuizQuestion | null {
-  const withNext = pool.filter((item) => item.nextAyah !== null);
+export function buildCompleteAyahQuestion(pool: QuizPoolItem[], rng: Rng, targets: QuizPoolItem[] = pool): QuizQuestion | null {
+  const withNext = targets.filter((item) => item.nextAyah !== null);
   const target = pickOne(withNext, rng);
   if (!target || !target.nextAyah) return null;
 
@@ -108,8 +108,11 @@ export function generateQuiz(
   ayahsBySurah: Record<number, Ayah[]>,
   questionCount: number,
   rng: Rng = Math.random,
+  /** Ask only about this surah's ayahs; the other surahs still supply the wrong choices. */
+  focusSurahId?: number,
 ): QuizQuestion[] {
   const pool = buildQuizPool(surahs, ayahsBySurah);
+  const targets = focusSurahId === undefined ? pool : pool.filter((item) => item.surah.id === focusSurahId);
   const questions: QuizQuestion[] = [];
   const usedIds = new Set<string>();
   let attempts = 0;
@@ -117,7 +120,7 @@ export function generateQuiz(
   while (questions.length < questionCount && attempts < questionCount * 10) {
     attempts += 1;
     const kind = rng() < 0.5 ? "which-surah" : "complete-ayah";
-    const question = kind === "which-surah" ? buildWhichSurahQuestion(pool, rng) : buildCompleteAyahQuestion(pool, rng);
+    const question = kind === "which-surah" ? buildWhichSurahQuestion(pool, rng, targets) : buildCompleteAyahQuestion(pool, rng, targets);
     if (question && !usedIds.has(question.id)) {
       usedIds.add(question.id);
       questions.push(question);

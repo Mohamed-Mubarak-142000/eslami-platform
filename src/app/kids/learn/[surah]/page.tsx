@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSurahAyahs, getSurahTafsir } from "@/features/quran/textApi";
 import { getKidsSurahs, getTeachingTrack, isKidsSurah } from "@/features/kids/kidsData";
 import { KidsLearn } from "@/features/kids/KidsLearn";
+import { LevelGate } from "@/features/kids/ui/LevelGate";
 
 export const revalidate = 86400;
 
@@ -28,5 +29,9 @@ export default async function KidsLearnPage({ params }: PageProps<"/kids/learn/[
     getTeachingTrack(id),
   ]);
   const surah = surahs.find((entry) => entry.id === id) ?? { id, name: String(id), meccan: true };
-  return <KidsLearn surah={surah} ayahs={text.ayahs} basmala={text.basmala} tafsir={tafsir} surahs={surahs} teaching={teaching} />;
+  return (
+    <LevelGate surahId={id}>
+      <KidsLearn surah={surah} ayahs={text.ayahs} basmala={text.basmala} tafsir={tafsir} surahs={surahs} teaching={teaching} />
+    </LevelGate>
+  );
 }

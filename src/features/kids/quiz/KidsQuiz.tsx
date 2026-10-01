@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Sparkles, Star, X } from "lucide-react";
@@ -9,6 +10,7 @@ import { toArabicDigits } from "@/lib/arabic";
 import type { Surah } from "@/features/quran/api";
 import type { Ayah } from "@/features/quran/textApi";
 import { useKidsProgress } from "../progress/KidsProgressProvider";
+import { isQuizPassed, nextSurahId, QUIZ_PASS_PERCENT } from "../progress/levels";
 import { Celebration } from "../ui/Celebration";
 import { kidsButton, kidsPanel } from "../ui/kidsStyles";
 import { sfx } from "../sfx";
@@ -17,8 +19,18 @@ import type { QuizQuestion } from "./quizTypes";
 
 const QUESTION_COUNT = 8;
 
-export function KidsQuiz({ surahs, ayahsBySurah }: { surahs: Surah[]; ayahsBySurah: Record<number, Ayah[]> }) {
+interface KidsQuizProps {
+  surahs: Surah[];
+  ayahsBySurah: Record<number, Ayah[]>;
+  /** The surah being tested; passing opens the next one. */
+  surahId: number;
+}
+
+export function KidsQuiz({ surahs, ayahsBySurah, surahId }: KidsQuizProps) {
   const { recordQuizResult } = useKidsProgress();
+  const surah = surahs.find((entry) => entry.id === surahId);
+  const nextId = nextSurahId(surahId);
+  const nextSurah = nextId === null ? undefined : surahs.find((entry) => entry.id === nextId);
   const [questions, setQuestions] = useState<QuizQuestion[] | null>(null);
   const [current, setCurrent] = useState(0);
   const [answer, setAnswer] = useState<string | null>(null);
@@ -26,7 +38,7 @@ export function KidsQuiz({ surahs, ayahsBySurah }: { surahs: Surah[]; ayahsBySur
   const [finished, setFinished] = useState(false);
 
   function start() {
-    setQuestions(generateQuiz(surahs, ayahsBySurah, QUESTION_COUNT));
+    setQuestions(generateQuiz(surahs, ayahsBySurah, QUESTION_COUNT, Math.random, surahId));
     setCurrent(0);
     setAnswer(null);
     setScore(0);
@@ -51,8 +63,9 @@ export function KidsQuiz({ surahs, ayahsBySurah }: { surahs: Surah[]; ayahsBySur
     if (!questions) return;
     if (current === questions.length - 1) {
       const finalScore = score;
-      recordQuizResult(finalScore, questions.length);
-      sfx.win();
+      recordQuizResult(finalScore, questions.length, surahId);
+      if (isQuizPassed(finalScore, questions.length)) sfx.win();
+      else sfx.wrong();
       setFinished(true);
       return;
     }
@@ -66,8 +79,11 @@ export function KidsQuiz({ surahs, ayahsBySurah }: { surahs: Surah[]; ayahsBySur
         <span className="mx-auto grid size-20 place-items-center rounded-3xl bg-[#f5b92e] text-white shadow-[0_7px_0_#c98f10]">
           <Sparkles className="size-10" aria-hidden />
         </span>
-        <h1 className="mt-5 text-3xl font-extrabold text-emerald-deep sm:text-4xl">اختبر نفسك</h1>
-        <p className="mt-2 text-lg text-muted">{toArabicDigits(QUESTION_COUNT)} أسئلة: أكمل الآية التالية، أو اعرف من أي سورة هذه الآية.</p>
+        <h1 className="mt-5 text-3xl font-extrabold text-emerald-deep sm:text-4xl">اختبار سورة {surah?.name}</h1>
+        <p className="mt-2 text-lg text-muted">أكمل الآية التالية، أو اعرف من أي سورة هذه الآية.</p>
+        <p className="mt-2 font-extrabold text-[#8a5a00]">
+          أجب {toArabicDigits(QUIZ_PASS_PERCENT)}٪ من الأسئلة صحيحًا لتفتح {nextSurah ? `سورة ${nextSurah.name}` : "الشارة الكبرى"}
+        </p>
         <button type="button" onClick={start} disabled={surahs.length === 0} className={kidsButton("gold", "mt-6 px-10")}>
           ابدأ الاختبار
         </button>
@@ -77,6 +93,7 @@ export function KidsQuiz({ surahs, ayahsBySurah }: { surahs: Surah[]; ayahsBySur
 
   if (questions.length === 0) return <p className={`${kidsPanel} text-center text-muted`}>تعذّر تحضير الأسئلة الآن، جرّب بعد قليل.</p>;
   const percent = Math.round((score / questions.length) * 100);
+  const passed = isQuizPassed(score, questions.length);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -158,15 +175,29 @@ export function KidsQuiz({ surahs, ayahsBySurah }: { surahs: Surah[]; ayahsBySur
 
       <Celebration
         open={finished}
-        title={percent >= 80 ? "بطل! نتيجة رائعة" : percent >= 50 ? "أحسنت!" : "محاولة جميلة!"}
-        message={`أجبت ${toArabicDigits(score)} من ${toArabicDigits(questions.length)} إجابة صحيحة`}
-        stars={percent >= 90 ? 3 : percent >= 50 ? 2 : 1}
+        title={passed ? (nextSurah ? `نجحت! فتحت سورة ${nextSurah.name}` : "بطل! أنهيت كل السور") : "محاولة جميلة!"}
+        message={
+          `أجبت ${toArabicDigits(score)} من ${toArabicDigits(questions.length)} إجابة صحيحة` +
+          (passed ? "" : `. تحتاج ${toArabicDigits(QUIZ_PASS_PERCENT)}٪ لتنجح، راجع السورة وحاول مرة أخرى`)
+        }
+        stars={percent >= 90 ? 3 : passed ? 2 : 1}
       >
-        <button type="button" onClick={start} className={kidsButton("gold")}>
-          اختبار جديد
-        </button>
-        <Link href="/kids" className={kidsButton("white")}>
-          الحديقة
+        {passed && nextSurah ? (
+          <Link href={`/kids/learn/${nextSurah.id}` as Route} className={kidsButton("gold")}>
+            تعلّم سورة {nextSurah.name}
+          </Link>
+        ) : (
+          <button type="button" onClick={start} className={kidsButton("gold")}>
+            حاول مرة أخرى
+          </button>
+        )}
+        {!passed && (
+          <Link href={`/kids/learn/${surahId}` as Route} className={kidsButton("emerald")}>
+            راجع السورة
+          </Link>
+        )}
+        <Link href="/kids/quiz" className={kidsButton("white")}>
+          الاختبارات
         </Link>
       </Celebration>
     </div>

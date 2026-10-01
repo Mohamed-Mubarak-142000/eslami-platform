@@ -12,7 +12,8 @@ export default async function KidsLearnIndexPage() {
       surahs={surahs}
       hrefBase="/kids/learn"
       title="اختر سورة لتتعلّمها"
-      subtitle="استمع لكل آية مع الشيخ، ثم ردّدها وسجّل صوتك."
+      subtitle="استمع لكل آية مع الشيخ وردّدها، ثم انجح في اختبار السورة لتفتح التالية."
+      levels
     />
   );
 }

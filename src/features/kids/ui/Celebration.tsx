@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
+import { useKidsProgress } from "../progress/KidsProgressProvider";
+import { Companion } from "../companion/Companion";
 
 // Deterministic "random" spread so the burst never differs between renders.
 const PARTICLES = Array.from({ length: 26 }, (_, i) => {
@@ -26,6 +28,7 @@ interface CelebrationProps {
 }
 
 export function Celebration({ open, title, message, stars, children }: CelebrationProps) {
+  const { companion } = useKidsProgress().state;
   return (
     <AnimatePresence>
       {open && (
@@ -58,8 +61,18 @@ export function Celebration({ open, title, message, stars, children }: Celebrati
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
             className="relative w-full max-w-sm rounded-[2.5rem] bg-white p-8 text-center font-kids shadow-lift"
           >
+            {companion && (
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 14 }}
+                className={`mx-auto size-32 ${stars !== undefined ? "-mt-28" : "-mt-24"}`}
+              >
+                <Companion animal={companion.animal} equipped={companion.equipped} mood="cheer" className="size-full drop-shadow-lg" />
+              </motion.div>
+            )}
             {stars !== undefined && (
-              <div className="-mt-16 mb-4 flex justify-center gap-1" aria-label={`${stars} من ٣ نجوم`}>
+              <div className={`mb-4 flex justify-center gap-1 ${companion ? "mt-1" : "-mt-16"}`} aria-label={`${stars} من ٣ نجوم`}>
                 {[0, 1, 2].map((index) => (
                   <motion.span
                     key={index}

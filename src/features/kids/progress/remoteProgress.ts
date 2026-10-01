@@ -2,7 +2,8 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, GameKind } from "@/lib/supabase/database.types";
-import { DEFAULT_KIDS_PROGRESS, type KidsProgressState, type KidsSurahReview } from "./progressTypes";
+import { DEFAULT_KIDS_PROGRESS, type KidsCompanion, type KidsProgressState, type KidsSurahReview, type MissionStep } from "./progressTypes";
+import { isQuizPassed } from "./levels";
 
 type Client = SupabaseClient<Database>;
 
@@ -17,15 +18,23 @@ export interface GameRecord {
 
 /** Rebuilds the progress state for one learner from the normalized tables (RLS scopes every query). */
 export async function loadRemoteProgress(supabase: Client, learnerId: string): Promise<KidsProgressState> {
-  const [ayahs, reviews, days, games, listens, badges] = await Promise.all([
+  const [ayahs, reviews, days, games, listens, badges, profile, daily, rewards] = await Promise.all([
     supabase.from("memorized_ayahs").select("surah, ayah").eq("learner_id", learnerId).limit(10000),
     supabase.from("review_schedule").select("surah, interval_index, last_reviewed_at, due_at").eq("learner_id", learnerId),
     supabase.from("activity_days").select("day").eq("learner_id", learnerId).order("day").limit(2000),
-    supabase.from("game_sessions").select("game, score, total, created_at").eq("learner_id", learnerId).order("created_at").limit(5000),
+    supabase
+      .from("game_sessions")
+      .select("game, surah, score, total, created_at")
+      .eq("learner_id", learnerId)
+      .order("created_at")
+      .limit(5000),
     supabase.from("listen_completions").select("surah, completed_at").eq("learner_id", learnerId),
     supabase.from("learner_badges").select("badge_id").eq("learner_id", learnerId),
+    supabase.from("kids_profile").select("companion, equipped").eq("learner_id", learnerId).maybeSingle(),
+    supabase.from("kids_daily_tasks").select("day, task_id").eq("learner_id", learnerId).limit(5000),
+    supabase.from("kids_rewards").select("kind, ref_id, reward_id").eq("learner_id", learnerId),
   ]);
-  const failed = [ayahs, reviews, days, games, listens, badges].find((result) => result.error);
+  const failed = [ayahs, reviews, days, games, listens, badges, profile, daily, rewards].find((result) => result.error);
   if (failed?.error) throw failed.error;
 
   const memorizedAyahsBySurah: Record<number, number[]> = {};
@@ -38,13 +47,23 @@ export async function loadRemoteProgress(supabase: Client, learnerId: string): P
 
   const quizStats = { ...DEFAULT_KIDS_PROGRESS.quizStats };
   const matchStats = { ...DEFAULT_KIDS_PROGRESS.matchStats };
+  const gameCounts: KidsProgressState["gameCounts"] = {};
+  const surahSteps: Record<number, MissionStep[]> = {};
+  const passedQuizSurahs = new Set<number>();
+  const addStep = (surah: number, step: MissionStep) => {
+    const steps = (surahSteps[surah] ??= []);
+    if (!steps.includes(step)) steps.push(step);
+  };
   for (const row of games.data ?? []) {
+    gameCounts[row.game] = (gameCounts[row.game] ?? 0) + 1;
+    if (row.surah !== null && row.game !== "quiz") addStep(row.surah, row.game === "kids_recite" ? "recite" : "play");
     if (row.game === "quiz") {
       quizStats.attempts += 1;
       quizStats.totalCorrect += row.score;
       quizStats.totalQuestions += row.total;
       quizStats.bestScorePercent = Math.max(quizStats.bestScorePercent, row.total > 0 ? Math.round((row.score / row.total) * 100) : 0);
       quizStats.lastPlayedAt = row.created_at;
+      if (row.surah !== null && isQuizPassed(row.score, row.total)) passedQuizSurahs.add(row.surah);
     } else if (row.game === "tajweed" || row.game === "letters") {
       if (row.game === "tajweed") matchStats.tajweedGamesCompleted += 1;
       else matchStats.letterGamesCompleted += 1;
@@ -53,12 +72,32 @@ export async function loadRemoteProgress(supabase: Client, learnerId: string): P
   }
 
   const listenRows = listens.data ?? [];
+  for (const row of listenRows) addStep(row.surah, "listen");
+
+  const dailyDone: Record<string, string[]> = {};
+  for (const row of daily.data ?? []) (dailyDone[row.day] ??= []).push(row.task_id);
+
+  const ownedItems: string[] = [];
+  const openedChests: Record<string, string> = {};
+  for (const row of rewards.data ?? []) {
+    if (row.kind === "item") ownedItems.push(row.ref_id);
+    else openedChests[row.ref_id] = row.reward_id ?? "";
+  }
+
+  const kidsProfile = profile.data;
   return {
     ...DEFAULT_KIDS_PROGRESS,
     memorizedAyahsBySurah,
     reviewSchedule,
     quizStats,
     matchStats,
+    gameCounts,
+    surahSteps,
+    dailyDone,
+    ownedItems,
+    openedChests,
+    companion: kidsProfile?.companion ? { animal: kidsProfile.companion, equipped: kidsProfile.equipped } : null,
+    passedQuizSurahs: [...passedQuizSurahs],
     listenStats: {
       surahsCompleted: listenRows.map((row) => row.surah),
       lastPlayedAt: listenRows.reduce<string | null>(
@@ -118,25 +157,58 @@ export function remoteWriter(supabase: Client, learnerId: string) {
     },
     async addGames(games: GameRecord[]) {
       if (games.length === 0) return;
-      await supabase
-        .from("game_sessions")
-        .insert(
-          games.map((game) => ({
-            learner_id,
-            game: game.game,
-            surah: game.surah ?? null,
-            score: game.score,
-            total: game.total,
-            stars: game.stars ?? null,
-            moves: game.moves ?? null,
-          })),
-        );
+      await supabase.from("game_sessions").insert(
+        games.map((game) => ({
+          learner_id,
+          game: game.game,
+          surah: game.surah ?? null,
+          score: game.score,
+          total: game.total,
+          stars: game.stars ?? null,
+          moves: game.moves ?? null,
+        })),
+      );
+    },
+    async setProfile(companion: KidsCompanion | null) {
+      await supabase.from("kids_profile").upsert(
+        {
+          learner_id,
+          companion: companion?.animal ?? null,
+          equipped: companion?.equipped ?? [],
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "learner_id" },
+      );
+    },
+    async addDailyTasks(tasks: { day: string; taskId: string }[]) {
+      if (tasks.length === 0) return;
+      await supabase.from("kids_daily_tasks").upsert(
+        tasks.map(({ day, taskId }) => ({ learner_id, day, task_id: taskId })),
+        { onConflict: "learner_id,day,task_id", ignoreDuplicates: true },
+      );
+    },
+    async addRewards(rewards: { kind: "item" | "chest"; refId: string; rewardId?: string }[]) {
+      if (rewards.length === 0) return;
+      await supabase.from("kids_rewards").upsert(
+        rewards.map(({ kind, refId, rewardId }) => ({ learner_id, kind, ref_id: refId, reward_id: rewardId ?? null })),
+        { onConflict: "learner_id,kind,ref_id", ignoreDuplicates: true },
+      );
     },
     async reset() {
+      // The companion stays: a reset clears learning progress, not who the child travels with.
       await Promise.all(
-        (["memorized_ayahs", "review_schedule", "activity_days", "game_sessions", "listen_completions", "learner_badges"] as const).map(
-          (table) => supabase.from(table).delete().eq("learner_id", learner_id),
-        ),
+        (
+          [
+            "memorized_ayahs",
+            "review_schedule",
+            "activity_days",
+            "game_sessions",
+            "listen_completions",
+            "learner_badges",
+            "kids_daily_tasks",
+            "kids_rewards",
+          ] as const
+        ).map((table) => supabase.from(table).delete().eq("learner_id", learner_id)),
       );
     },
   };

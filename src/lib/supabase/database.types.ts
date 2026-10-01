@@ -12,7 +12,9 @@ type TableDef<Row, Insert, Update = Partial<Insert>> = {
 
 export type AppRole = "user" | "admin";
 export type LearnerKind = "self" | "child";
-export type GameKind = "letters" | "tajweed" | "arrange" | "quiz";
+export type GameKind =
+  "letters" | "tajweed" | "arrange" | "quiz" | "listen_pick" | "ayah_order" | "true_false" | "surah_match" | "kids_recite";
+export type CompanionAnimal = "bear" | "panda" | "rabbit" | "fox";
 export type ExamStatus = "in_progress" | "passed" | "failed" | "expired";
 
 export type ProfileRow = {
@@ -87,6 +89,25 @@ export type TasmeeSessionRow = {
   ayah_to: number;
   correct: number;
   mistakes: number;
+  created_at: Timestamp;
+};
+export type KidsProfileRow = {
+  learner_id: string;
+  companion: CompanionAnimal | null;
+  equipped: string[];
+  updated_at: Timestamp;
+};
+export type KidsDailyTaskRow = {
+  learner_id: string;
+  day: string;
+  task_id: string;
+  done_at: Timestamp;
+};
+export type KidsRewardRow = {
+  learner_id: string;
+  kind: "item" | "chest";
+  ref_id: string;
+  reward_id: string | null;
   created_at: Timestamp;
 };
 export type AppSettingsRow = {
@@ -249,6 +270,9 @@ export type Database = {
       listen_completions: TableDef<ListenCompletionRow, Optional<ListenCompletionRow, "completed_at">>;
       learner_badges: TableDef<LearnerBadgeRow, Optional<LearnerBadgeRow, "unlocked_at">>;
       tasmee_sessions: TableDef<TasmeeSessionRow, Optional<TasmeeSessionRow, "id" | "correct" | "mistakes" | "created_at">>;
+      kids_profile: TableDef<KidsProfileRow, Optional<KidsProfileRow, "companion" | "equipped" | "updated_at">>;
+      kids_daily_tasks: TableDef<KidsDailyTaskRow, Optional<KidsDailyTaskRow, "done_at">>;
+      kids_rewards: TableDef<KidsRewardRow, Optional<KidsRewardRow, "reward_id" | "created_at">>;
       app_settings: TableDef<AppSettingsRow, Partial<AppSettingsRow>>;
       exam_attempts: TableDef<
         ExamAttemptRow,
