@@ -7,8 +7,6 @@ export interface Moshaf {
   moshafType: number;
   server: string;
   surahList: number[];
-  /** Per-surah file paths under `server`, for sources without the NNN.mp3 layout. */
-  files?: Record<number, string>;
 }
 
 export interface Reciter {
@@ -118,8 +116,8 @@ export async function getRiwayat(): Promise<Riwaya[]> {
   }
 }
 
-export function buildSurahAudioUrl(moshaf: Pick<Moshaf, "server" | "files">, surahId: number): string {
-  return `${moshaf.server}${moshaf.files?.[surahId] ?? `${String(surahId).padStart(3, "0")}.mp3`}`;
+export function buildSurahAudioUrl(moshaf: Pick<Moshaf, "server">, surahId: number): string {
+  return `${moshaf.server}${String(surahId).padStart(3, "0")}.mp3`;
 }
 
 export const TEACHING_MOSHAF_TYPE = 213;
