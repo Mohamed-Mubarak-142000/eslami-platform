@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildSurahAudioUrl, getReciters, getSurahs } from "@/features/quran/api";
-import { getRiwayaTexts, getSurahAyahs, getSurahTafsir, groupByMushafPage } from "@/features/quran/textApi";
-import { findRiwaya, type Riwaya } from "@/features/quran/riwayat";
+import { getSurahAyahs, getSurahTafsir, groupByMushafPage } from "@/features/quran/textApi";
+import { getRiwayaSurah } from "@/features/quran/riwayaText";
+import { DEFAULT_RIWAYA, findRiwaya, type Riwaya } from "@/features/quran/riwayat";
 import { getSurahTajweedAyahs } from "@/features/quran/tajweedApi";
 import { MushafReader } from "@/features/quran/MushafReader";
+import { riwayaFontFamily } from "@/features/quran/riwayaFonts";
 
 export const revalidate = 86400;
+
+const HAFS = { key: DEFAULT_RIWAYA.key, label: DEFAULT_RIWAYA.label, short: DEFAULT_RIWAYA.short };
 
 function parseSurah(value: string): number | null {
   const number = Number(value);
@@ -25,19 +29,16 @@ export async function generateMetadata({ params }: PageProps<"/quran/[surah]">):
   };
 }
 
+/** The surah from the chosen riwaya's own mushaf; null for Hafs or when it can't load. */
 async function loadRiwayaText(riwaya: Riwaya, surah: number) {
-  if (!riwaya.edition) return null;
-  const [ayahs, fatiha] = await Promise.all([
-    getRiwayaTexts(riwaya.edition, surah),
-    surah === 1 || surah === 9 ? null : getRiwayaTexts(riwaya.edition, 1),
-  ]);
-  // The riwaya's basmala is al-Fatiha's first ayah in its own text.
-  return ayahs ? { ayahs, basmala: fatiha?.get(1) ?? null } : null;
+  if (riwaya.key === "hafs") return null;
+  const text = await getRiwayaSurah(riwaya.key, surah);
+  return text.ayahs.length > 0 ? text : null;
 }
 
 /** A full-surah recitation in the chosen riwaya (per-ayah audio exists only for Hafs). */
 async function loadRiwayaAudio(riwaya: Riwaya, surah: number) {
-  if (!riwaya.edition) return null;
+  if (riwaya.key === "hafs") return null;
   const ids: readonly number[] = riwaya.audio;
   for (const reciter of await getReciters()) {
     const moshaf = reciter.moshaf.find((entry) => ids.includes(entry.rewayaId) && entry.surahList.includes(surah));
@@ -54,19 +55,17 @@ export default async function SurahPage({ params, searchParams }: PageProps<"/qu
   const requestedPage = Number(Array.isArray(pageParam) ? pageParam[0] : pageParam);
   const riwaya = findRiwaya(Array.isArray(query.riwaya) ? query.riwaya[0] : query.riwaya);
 
-  const [surahs, text, tafsir, tajweed, riwayaText, riwayaAudio] = await Promise.all([
+  const [surahs, riwayaText, riwayaAudio] = await Promise.all([
     getSurahs(),
-    getSurahAyahs(number),
-    getSurahTafsir(number),
-    getSurahTajweedAyahs(number),
     loadRiwayaText(riwaya, number),
     loadRiwayaAudio(riwaya, number),
   ]);
-  // Another riwaya keeps the Hafs page layout and swaps each ayah's text; if it can't load, Hafs.
-  const ayahs = riwayaText
-    ? text.ayahs.map((ayah) => ({ ...ayah, text: riwayaText.ayahs.get(ayah.numberInSurah) ?? ayah.text }))
-    : text.ayahs;
-  const basmala = riwayaText && text.basmala ? (riwayaText.basmala ?? text.basmala) : text.basmala;
+  // Another riwaya is read from its own mushaf, whose ayah numbering can differ from Hafs, so the
+  // Hafs tafsir and tajweed colours (keyed by Hafs ayah number) are only loaded for Hafs.
+  // If the riwaya can't load, Hafs is shown instead.
+  const [text, tafsir, tajweed] = riwayaText
+    ? [riwayaText, [], []]
+    : await Promise.all([getSurahAyahs(number), getSurahTafsir(number), getSurahTajweedAyahs(number)]);
   const surah = surahs.find((entry) => entry.id === number) ?? { id: number, name: String(number), meccan: true };
   const previous = surahs.find((entry) => entry.id === number - 1);
   const next = surahs.find((entry) => entry.id === number + 1);
@@ -74,10 +73,12 @@ export default async function SurahPage({ params, searchParams }: PageProps<"/qu
   return (
     <MushafReader
       surah={surah}
-      basmala={basmala}
-      pages={groupByMushafPage(ayahs)}
-      riwaya={{ key: riwaya.key, label: riwaya.label, short: riwaya.short }}
-      riwayaFailed={riwaya.edition !== null && !riwayaText}
+      basmala={text.basmala}
+      pages={groupByMushafPage(text.ayahs)}
+      riwaya={riwayaText ? { key: riwaya.key, label: riwaya.label, short: riwaya.short } : HAFS}
+      riwayaFailed={riwaya.key !== "hafs" && !riwayaText}
+      failedRiwayaLabel={riwaya.label}
+      riwayaFont={riwayaText && riwaya.key !== "hafs" ? riwayaFontFamily(riwaya.key) : null}
       riwayaAudio={riwayaAudio}
       tafsir={tafsir}
       tajweed={tajweed}

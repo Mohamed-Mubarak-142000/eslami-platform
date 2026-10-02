@@ -11,6 +11,7 @@ import { gsap, useGSAP, FULL_MOTION, REDUCED_MOTION } from "@/lib/gsap";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { useCoarsePointer } from "@/lib/useCoarsePointer";
+import { AyahNumber } from "./AyahNumber";
 import { AyahSheet } from "./AyahSheet";
 import { MushafFrame, SurahBanner } from "./MushafFrame";
 import { saveLastRead } from "./lastReadStorage";
@@ -61,46 +62,41 @@ interface MushafReaderProps {
   initialMushafPage: number | null;
   previousSurah: SurahRef | null;
   nextSurah: SurahRef | null;
+  /** The riwaya actually shown: Hafs when the chosen one failed to load. */
   riwaya: { key: RiwayaKey; label: string; short: string };
   /** The chosen riwaya's text couldn't load, so Hafs is shown. */
   riwayaFailed: boolean;
+  failedRiwayaLabel: string;
+  /** The typeface of the riwaya's own mushaf; null for Hafs. */
+  riwayaFont: string | null;
   /** A full-surah recitation in the chosen riwaya, when one exists. */
   riwayaAudio: { reciter: string; src: string } | null;
 }
 
 /**
- * Shown for a riwaya other than Hafs: which one, that pages follow the Hafs mushaf, and a
+ * Shown for a riwaya other than Hafs: which one, that it is that riwaya's own mushaf, and a
  * full-surah recitation in that riwaya (per-ayah audio exists only for Hafs).
  */
 function RiwayaBar({
   riwaya,
-  failed,
   recitation,
   surah,
   audio,
 }: {
   riwaya: { key: RiwayaKey; label: string };
-  failed: boolean;
   recitation: { reciter: string; src: string } | null;
   surah: SurahRef;
   audio: ReturnType<typeof useAudio>;
 }) {
   const id = `riwaya-${riwaya.key}-${surah.id}`;
   const isThis = audio.isCurrent(id);
-  if (failed) {
-    return (
-      <p className="mb-5 rounded-2xl bg-rose/10 px-4 py-3 text-center text-sm font-bold text-rose">
-        تعذّر تحميل نص رواية {riwaya.label} الآن، فنعرض لك رواية حفص. حاول بعد قليل.
-      </p>
-    );
-  }
   return (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-current/10 px-4 py-3 text-sm">
       <p className="inline-flex items-center gap-2">
         <BookText className="size-4 shrink-0 opacity-70" aria-hidden />
         <span>
-          رواية <strong>{riwaya.label}</strong>
-          <span className="opacity-70"> · ترقيم الصفحات حسب مصحف المدينة برواية حفص</span>
+          مصحف رواية <strong>{riwaya.label}</strong>
+          <span className="opacity-70"> · برسمه وترقيم آياته وصفحاته كما طبعه مجمع الملك فهد</span>
         </span>
       </p>
       {recitation && (
@@ -161,15 +157,16 @@ export function MushafReader({
   nextSurah,
   riwaya,
   riwayaFailed,
+  failedRiwayaLabel,
+  riwayaFont,
   riwayaAudio,
 }: MushafReaderProps) {
   const router = useRouter();
   const audio = useAudio();
   const hafs = riwaya.key === "hafs";
-  const initialIndex = Math.max(
-    0,
-    pages.findIndex((page) => page.page === initialMushafPage),
-  );
+  // Riwayat paginate slightly differently, so a page number carried over from another riwaya
+  // opens the last page of this surah that starts at or before it.
+  const initialIndex = initialMushafPage === null ? 0 : Math.max(0, pages.filter((page) => page.page <= initialMushafPage).length - 1);
   const [index, setIndex] = useState(initialIndex);
   const [theme, setTheme] = useState<ReaderTheme>("light");
   const [fontStep, setFontStep] = useState(2);
@@ -282,6 +279,7 @@ export function MushafReader({
   const isFirstPageOfSurah = page.ayahs[0]?.numberInSurah === 1;
   const themeConfig = THEMES[theme];
   const fontSize = `clamp(1.2rem, 4.6vw, ${FONT_STEPS[fontStep]}rem)`;
+  const textStyle: CSSProperties = riwayaFont ? { fontSize, fontFamily: riwayaFont } : { fontSize };
 
   return (
     <div className={cn("min-h-dvh transition-colors duration-500", themeConfig.shell)} style={themeConfig.vars}>
@@ -403,9 +401,12 @@ export function MushafReader({
       </header>
 
       <main id="main" className="mx-auto max-w-4xl px-3 pb-36 pt-6 sm:px-6 sm:pt-10">
-        {(!hafs || riwayaFailed) && (
-          <RiwayaBar riwaya={riwaya} failed={riwayaFailed} recitation={riwayaAudio} surah={surah} audio={audio} />
+        {riwayaFailed && (
+          <p className="mb-5 rounded-2xl bg-rose/10 px-4 py-3 text-center text-sm font-bold text-rose">
+            تعذّر تحميل مصحف رواية {failedRiwayaLabel} الآن، فنعرض لك رواية حفص. حاول بعد قليل.
+          </p>
         )}
+        {!hafs && <RiwayaBar riwaya={riwaya} recitation={riwayaAudio} surah={surah} audio={audio} />}
         <motion.div
           ref={stageRef}
           className="[perspective:1600px]"
@@ -417,20 +418,24 @@ export function MushafReader({
           <div data-mushaf-page>
             <MushafFrame
               headerStart={`سورة ${surah.name}`}
-              headerEnd={`الجزء ${toArabicDigits(page.juz)} · ${hizbLabel(page.hizbQuarter)}`}
+              headerEnd={
+                page.hizbQuarter === null
+                  ? `الجزء ${toArabicDigits(page.juz)}`
+                  : `الجزء ${toArabicDigits(page.juz)} · ${hizbLabel(page.hizbQuarter)}`
+              }
               page={page.page}
             >
               {isFirstPageOfSurah && (
                 <>
                   <SurahBanner name={surah.name} />
                   {basmala && (
-                    <p className="quran-text mb-4 text-center" style={{ fontSize }}>
+                    <p className="quran-text mb-4 text-center" style={textStyle}>
                       {basmala}
                     </p>
                   )}
                 </>
               )}
-              <p className="quran-text text-justify [text-align-last:center]" style={{ fontSize }}>
+              <p className="quran-text text-justify [text-align-last:center]" style={textStyle}>
                 {page.ayahs.map((ayah) => {
                   const segments = showTajweed ? tajweedByAyah.get(ayah.numberInSurah) : undefined;
                   return (
@@ -466,7 +471,7 @@ export function MushafReader({
                             ۩
                           </span>
                         )}
-                        <span className="ayah-mark">﴿{toArabicDigits(ayah.numberInSurah)}﴾</span>
+                        <AyahNumber number={ayah.numberInSurah} riwayaFont={riwayaFont} />
                       </span>{" "}
                     </span>
                   );
@@ -561,7 +566,8 @@ export function MushafReader({
         ayah={selected}
         tafsir={selected ? tafsirByAyah.get(selected.numberInSurah) : undefined}
         onClose={() => setSelected(null)}
-        canPlay={hafs}
+        hafs={hafs}
+        riwayaFont={riwayaFont}
       />
     </div>
   );
