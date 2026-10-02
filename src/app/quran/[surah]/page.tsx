@@ -42,7 +42,7 @@ async function loadRiwayaAudio(riwaya: Riwaya, surah: number) {
   const ids: readonly number[] = riwaya.audio;
   for (const reciter of await getReciters()) {
     const moshaf = reciter.moshaf.find((entry) => ids.includes(entry.rewayaId) && entry.surahList.includes(surah));
-    if (moshaf) return { reciter: reciter.name, src: buildSurahAudioUrl(moshaf.server, surah) };
+    if (moshaf) return { reciter: reciter.name, src: buildSurahAudioUrl(moshaf, surah) };
   }
   return null;
 }

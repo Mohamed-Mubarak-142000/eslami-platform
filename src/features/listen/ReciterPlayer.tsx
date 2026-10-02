@@ -58,7 +58,7 @@ export function ReciterPlayer({ reciter, surahs, riwayat, href }: ReciterPlayerP
         kind: "surah" as const,
         title: `سورة ${surahName.get(id) ?? id}`,
         subtitle: reciter.name,
-        src: buildSurahAudioUrl(moshaf!.server, id),
+        src: buildSurahAudioUrl(moshaf!, id),
         href,
       })),
     [moshaf, surahName, reciter.name, href],

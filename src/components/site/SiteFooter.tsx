@@ -32,7 +32,7 @@ export function SiteFooter() {
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             <li>نص المصحف والتفسير الميسّر: AlQuran Cloud</li>
             <li>أحكام التجويد: Quran.com</li>
-            <li>التلاوات: mp3quran.net و everyayah.com</li>
+            <li>التلاوات: mp3quran.net و everyayah.com و archive.org</li>
             <li>المواقيت: AlAdhan</li>
           </ul>
         </div>

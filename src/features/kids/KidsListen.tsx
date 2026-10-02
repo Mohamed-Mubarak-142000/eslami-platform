@@ -25,7 +25,7 @@ export function KidsListen({ reciters, surahs }: { reciters: Reciter[]; surahs: 
         kind: "surah" as const,
         title: `سورة ${surah.name}`,
         subtitle: `${reciter.name} — المصحف المعلّم`,
-        src: buildSurahAudioUrl(moshaf.server, surah.id),
+        src: buildSurahAudioUrl(moshaf, surah.id),
       }));
   }, [reciter, moshaf, surahs]);
 

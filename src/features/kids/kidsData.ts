@@ -23,7 +23,7 @@ export async function getTeachingTrack(surahId: number): Promise<TeachingTrack |
   const ranked = [...teaching].sort((a, b) => Number(b.name.includes("المنشاوي")) - Number(a.name.includes("المنشاوي")));
   for (const reciter of ranked) {
     const moshaf = reciter.moshaf.find((entry) => entry.surahList.includes(surahId));
-    if (moshaf) return { src: buildSurahAudioUrl(moshaf.server, surahId), reciterName: reciter.name };
+    if (moshaf) return { src: buildSurahAudioUrl(moshaf, surahId), reciterName: reciter.name };
   }
   return null;
 }

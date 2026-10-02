@@ -1,3 +1,5 @@
+import { EXTRA_RECITERS } from "./extraReciters";
+
 export interface Moshaf {
   id: number;
   name: string;
@@ -5,6 +7,8 @@ export interface Moshaf {
   moshafType: number;
   server: string;
   surahList: number[];
+  /** Per-surah file paths under `server`, for sources without the NNN.mp3 layout. */
+  files?: Record<number, string>;
 }
 
 export interface Reciter {
@@ -66,6 +70,10 @@ function parseSurahList(value: string): number[] {
 }
 
 export async function getReciters(): Promise<Reciter[]> {
+  return [...(await getMp3QuranReciters()), ...EXTRA_RECITERS];
+}
+
+async function getMp3QuranReciters(): Promise<Reciter[]> {
   try {
     const response = await fetch(RECITERS_URL, { next: { revalidate: REVALIDATE_SECONDS } });
     if (!response.ok) return [];
@@ -110,8 +118,8 @@ export async function getRiwayat(): Promise<Riwaya[]> {
   }
 }
 
-export function buildSurahAudioUrl(server: string, surahId: number): string {
-  return `${server}${String(surahId).padStart(3, "0")}.mp3`;
+export function buildSurahAudioUrl(moshaf: Pick<Moshaf, "server" | "files">, surahId: number): string {
+  return `${moshaf.server}${moshaf.files?.[surahId] ?? `${String(surahId).padStart(3, "0")}.mp3`}`;
 }
 
 export const TEACHING_MOSHAF_TYPE = 213;
