@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { fontVariables } from "@/lib/fonts";
 import { SplashScreen } from "@/components/site/SplashScreen";
 import { SPLASH_BOOT_SCRIPT } from "@/components/site/splash";
@@ -7,6 +8,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://al-manara.example";
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SplashScreen />
         <Providers>{children}</Providers>
       </body>
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }
