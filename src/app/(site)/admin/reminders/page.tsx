@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { requireAdmin } from "@/features/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { formatArabicDate } from "@/features/progress/format";
+import { formatDateTime } from "@/features/admin/UserBits";
 import { siteOrigin } from "@/features/announcements/links";
 import { localDate, reminderDay } from "@/features/reminders/dates";
 import { OCCASIONS, occasionByKey } from "@/features/reminders/occasions";
@@ -25,7 +25,7 @@ export default async function AdminRemindersPage({ searchParams }: PageProps<"/a
     supabase.from("app_settings").select("reminders_enabled, hijri_offset, disabled_occasions, facebook_url").eq("id", true).maybeSingle(),
     supabase
       .from("reminder_runs")
-      .select("id, occasion_key, run_date, recipient_count, sent_count, failed_count, status")
+      .select("id, occasion_key, recipient_count, sent_count, failed_count, status, started_at, finished_at")
       .order("started_at", { ascending: false })
       .limit(20),
     siteOrigin(),
@@ -137,7 +137,8 @@ export default async function AdminRemindersPage({ searchParams }: PageProps<"/a
           <thead className="bg-ivory text-xs text-muted">
             <tr>
               <th className="px-4 py-3 text-start font-bold">المناسبة</th>
-              <th className="px-4 py-3 text-start font-bold">التاريخ</th>
+              <th className="px-4 py-3 text-start font-bold">بدأ</th>
+              <th className="px-4 py-3 text-start font-bold">انتهى</th>
               <th className="px-4 py-3 text-start font-bold">وصلت</th>
               <th className="px-4 py-3 text-start font-bold">تعذّرت</th>
               <th className="px-4 py-3 text-start font-bold">الحالة</th>
@@ -147,7 +148,8 @@ export default async function AdminRemindersPage({ searchParams }: PageProps<"/a
             {(runs ?? []).map((run) => (
               <tr key={run.id}>
                 <td className="px-4 py-3 font-bold">{occasionByKey(run.occasion_key)?.label ?? run.occasion_key}</td>
-                <td className="px-4 py-3 text-muted">{formatArabicDate(run.run_date)}</td>
+                <td className="px-4 py-3 text-muted">{formatDateTime(run.started_at)}</td>
+                <td className="px-4 py-3 text-muted">{run.finished_at ? formatDateTime(run.finished_at) : "—"}</td>
                 <td className="px-4 py-3">
                   {toArabicDigits(run.sent_count)} من {toArabicDigits(run.recipient_count)}
                 </td>
