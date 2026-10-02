@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ReminderRunStatus, ReminderSlot } from "@/lib/supabase/database.types";
 import { renderReminderEmail } from "@/lib/mail/reminderEmail";
 import { isMailConfigured, sendBulkMail, type MailMessage } from "@/lib/mail/smtp";
+import { sendPushToUsers } from "@/lib/push/expo";
 import { oneClickUnsubscribeUrl, unsubscribeUrl } from "@/features/announcements/links";
 import type { ReminderContent } from "./occasions";
 import { TOPIC_COLUMN } from "./topics";
@@ -104,6 +105,14 @@ export async function runReminders({ date, slot, origin, dryRun, startedAt }: Ru
 
   const run = await findOrCreateRun(occasion.key, date, slot);
   if (run.status === "done") return { ...result, skipped: "already-done", status: "done" };
+  // Pushes go out once, from the call that created the run; a resumed call only continues the emails.
+  if (run.fresh) {
+    const push = await sendPushToUsers(
+      recipients.map((recipient) => recipient.id),
+      { title: content.subject, body: content.preheader, url: appRoute(content.actions[0]?.href) },
+    );
+    if (push.sent || push.failed) console.info("Reminder pushes", occasion.key, push);
+  }
 
   const { data: deliveries, error: deliveriesError } = await admin
     .from("reminder_deliveries")
@@ -144,6 +153,12 @@ export async function runReminders({ date, slot, origin, dryRun, startedAt }: Ru
   return { ...result, sent: outcome.sent, failed: outcome.failed.length, remaining, status };
 }
 
+/** The mobile app's screen for a site path the reminder links to, when it has one. */
+const APP_ROUTES: Record<string, string> = { "/adhkar": "/adhkar", "/quran": "/quran", "/prayer-times": "/prayer", "/listen": "/listen" };
+function appRoute(href: string | undefined): string | undefined {
+  return href ? APP_ROUTES[href.split(/[?#]/)[0]!] : undefined;
+}
+
 async function findOrCreateRun(occasionKey: string, date: string, slot: ReminderSlot) {
   const admin = createSupabaseAdminClient();
   const { data: created, error } = await admin
@@ -151,7 +166,7 @@ async function findOrCreateRun(occasionKey: string, date: string, slot: Reminder
     .insert({ occasion_key: occasionKey, run_date: date, slot })
     .select("id, status")
     .single();
-  if (created) return created;
+  if (created) return { ...created, fresh: true };
   // 23505: another call already created today's run; continue it.
   if (error.code !== "23505") throw error;
   const { data: existing, error: readError } = await admin
@@ -161,5 +176,5 @@ async function findOrCreateRun(occasionKey: string, date: string, slot: Reminder
     .eq("run_date", date)
     .single();
   if (readError) throw readError;
-  return existing;
+  return { ...existing, fresh: false };
 }

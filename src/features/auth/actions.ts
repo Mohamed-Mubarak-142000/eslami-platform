@@ -4,11 +4,19 @@ import type { Route } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { NOT_CONFIGURED, authErrorMessage, otpErrorMessage } from "./errors";
-import { consumeOtp, issueOtp } from "./otp";
+import { issueOtp } from "./otp";
+import {
+  emailSchema as email,
+  findUserId,
+  otpTypeSchema,
+  passwordSchema as password,
+  registerAccount,
+  verifyCode,
+  type OtpType,
+} from "./service";
 import { ACTIVE_LEARNER_COOKIE } from "./session";
 
 export interface FormState {
@@ -23,9 +31,7 @@ function echo(formData: FormData, ...names: string[]): Record<string, string> {
   return Object.fromEntries(names.map((name) => [name, String(formData.get(name) ?? "")]));
 }
 
-const email = z.string().trim().toLowerCase().email("أدخل بريدًا إلكترونيًا صحيحًا");
-const password = z.string().min(8, "كلمة المرور ٨ أحرف على الأقل").max(72, "كلمة المرور طويلة جدًا");
-export type OtpType = "signup" | "recovery" | "email";
+export type { OtpType };
 
 function safeNext(value: FormDataEntryValue | null): Route {
   const next = typeof value === "string" ? value : "";
@@ -42,18 +48,11 @@ function fieldErrors(error: z.ZodError): Record<string, string> {
   return result;
 }
 
-async function findUserId(address: string): Promise<string | null> {
-  const { data } = await createSupabaseAdminClient().from("profiles").select("id").eq("email", address).maybeSingle();
-  return data?.id ?? null;
-}
-
-/** Signs the user in after our own code check: a server-generated magic-link token, never emailed. */
-async function startSession(address: string): Promise<FormState | null> {
-  const { data, error } = await createSupabaseAdminClient().auth.admin.generateLink({ type: "magiclink", email: address });
-  if (error || !data.properties?.hashed_token) return { error: authErrorMessage(error) };
+/** Exchanges verifyCode()'s token hash for the website's cookie session. */
+async function startSession(tokenHash: string): Promise<FormState | null> {
   const supabase = await createSupabaseServerClient();
-  const { error: sessionError } = await supabase.auth.verifyOtp({ type: "email", token_hash: data.properties.hashed_token });
-  return sessionError ? { error: authErrorMessage(sessionError) } : null;
+  const { error } = await supabase.auth.verifyOtp({ type: "email", token_hash: tokenHash });
+  return error ? { error: authErrorMessage(error) } : null;
 }
 
 function verifyUrl(address: string, type: OtpType, next?: string): Route {
@@ -72,20 +71,8 @@ export async function registerAction(_: FormState | undefined, formData: FormDat
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
   // Created unconfirmed and without Supabase's mailer; our own code confirms it in verifyOtpAction.
-  const admin = createSupabaseAdminClient();
-  const { data, error } = await admin.auth.admin.createUser({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    email_confirm: false,
-    user_metadata: { full_name: parsed.data.fullName },
-  });
-  if (error) return { error: authErrorMessage(error), values };
-  const sent = await issueOtp(parsed.data.email, "signup");
-  if (!sent.ok && sent.reason === "send_failed") {
-    // Undo the account: otherwise the retry fails with "already registered" and no code ever arrives.
-    await admin.auth.admin.deleteUser(data.user.id);
-    return { error: otpErrorMessage(sent.reason), values };
-  }
+  const created = await registerAccount(parsed.data);
+  if (!created.ok) return { error: created.error, values };
   redirect(verifyUrl(parsed.data.email, "signup"));
 }
 
@@ -125,20 +112,14 @@ export async function verifyOtpAction(_: FormState | undefined, formData: FormDa
         .string()
         .trim()
         .regex(/^\d{6}$/, "الكود ٦ أرقام"),
-      type: z.enum(["signup", "recovery", "email"]),
+      type: otpTypeSchema,
     })
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
 
-  const checked = await consumeOtp(parsed.data.email, parsed.data.type, parsed.data.token);
-  if (!checked.ok) return { error: otpErrorMessage(checked.reason) };
-  const userId = await findUserId(parsed.data.email);
-  if (!userId) return { error: otpErrorMessage("invalid") };
-  if (parsed.data.type === "signup") {
-    const { error } = await createSupabaseAdminClient().auth.admin.updateUserById(userId, { email_confirm: true });
-    if (error) return { error: authErrorMessage(error) };
-  }
-  const failed = await startSession(parsed.data.email);
+  const verified = await verifyCode(parsed.data.email, parsed.data.type, parsed.data.token);
+  if (!verified.ok) return { error: verified.error };
+  const failed = await startSession(verified.tokenHash);
   if (failed) return failed;
   redirect(parsed.data.type === "recovery" ? "/reset-password" : safeNext(formData.get("next")));
 }
