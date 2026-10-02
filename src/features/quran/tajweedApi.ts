@@ -50,7 +50,9 @@ export function parseTajweedMarkup(markup: string): TajweedSegment[] {
   let lastIndex = 0;
   const pushText = (rawText: string) => {
     // A few verses carry malformed tags in the source data (e.g. 32:3), so stray brackets are dropped.
-    const text = rawText.replace(/[<>]/g, "");
+    // The source writes the dagger alif of 1,561 madds (e.g. "صِرَٰطَ" in 1:6) as U+0672, which the
+    // Uthmanic Hafs font draws as a dotted circle; it is U+0670 in the Hafs text, so it's mapped back.
+    const text = rawText.replace(/[<>]/g, "").replace(/ٲ/g, "ٰ");
     if (!text || stack.some((entry) => entry.tag === "span")) return;
     const ruleClass = stack.at(-1)?.ruleClass ?? null;
     const previous = segments.at(-1);
