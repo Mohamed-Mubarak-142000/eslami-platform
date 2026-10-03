@@ -71,22 +71,26 @@ export async function registerAction(_: FormState | undefined, formData: FormDat
   const values = echo(formData, "fullName", "email");
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
-  // Created unconfirmed and without Supabase's mailer; our own code confirms it in verifyOtpAction.
-  const admin = createSupabaseAdminClient();
-  const { data, error } = await admin.auth.admin.createUser({
+  // Created already confirmed, so signing up needs no emailed code.
+  const { error: createError } = await createSupabaseAdminClient().auth.admin.createUser({
     email: parsed.data.email,
     password: parsed.data.password,
-    email_confirm: false,
+    email_confirm: true,
     user_metadata: { full_name: parsed.data.fullName },
   });
+  if (createError) return { error: authErrorMessage(createError), values };
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
   if (error) return { error: authErrorMessage(error), values };
-  const sent = await issueOtp(parsed.data.email, "signup");
-  if (!sent.ok && sent.reason === "send_failed") {
-    // Undo the account: otherwise the retry fails with "already registered" and no code ever arrives.
-    await admin.auth.admin.deleteUser(data.user.id);
-    return { error: otpErrorMessage(sent.reason), values };
-  }
-  redirect(verifyUrl(parsed.data.email, "signup"));
+  redirect(safeNext(formData.get("next")));
+}
+
+/** Confirms an account left unconfirmed by the old signup-code flow. */
+async function confirmEmail(address: string): Promise<boolean> {
+  const userId = await findUserId(address);
+  if (!userId) return false;
+  const { error } = await createSupabaseAdminClient().auth.admin.updateUserById(userId, { email_confirm: true });
+  return !error;
 }
 
 export async function loginAction(_: FormState | undefined, formData: FormData): Promise<FormState> {
@@ -96,10 +100,10 @@ export async function loginAction(_: FormState | undefined, formData: FormData):
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error?.code === "email_not_confirmed") {
-    await issueOtp(parsed.data.email, "signup");
-    redirect(verifyUrl(parsed.data.email, "signup", safeNext(formData.get("next"))));
+  let { error } = await supabase.auth.signInWithPassword(parsed.data);
+  // Supabase checks the password before the confirmation, so this account's owner is proven.
+  if (error?.code === "email_not_confirmed" && (await confirmEmail(parsed.data.email))) {
+    ({ error } = await supabase.auth.signInWithPassword(parsed.data));
   }
   if (error) return { error: authErrorMessage(error), values };
   redirect(safeNext(formData.get("next")));
