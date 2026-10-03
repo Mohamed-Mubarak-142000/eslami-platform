@@ -9,6 +9,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { NOT_CONFIGURED, authErrorMessage, otpErrorMessage } from "./errors";
 import { issueOtp } from "./otp";
 import {
+  confirmEmail,
   emailSchema as email,
   findUserId,
   otpTypeSchema,
@@ -70,10 +71,12 @@ export async function registerAction(_: FormState | undefined, formData: FormDat
   const values = echo(formData, "fullName", "email");
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
-  // Created unconfirmed and without Supabase's mailer; our own code confirms it in verifyOtpAction.
   const created = await registerAccount(parsed.data);
   if (!created.ok) return { error: created.error, values };
-  redirect(verifyUrl(parsed.data.email, "signup"));
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
+  if (error) return { error: authErrorMessage(error), values };
+  redirect(safeNext(formData.get("next")));
 }
 
 export async function loginAction(_: FormState | undefined, formData: FormData): Promise<FormState> {
@@ -83,10 +86,10 @@ export async function loginAction(_: FormState | undefined, formData: FormData):
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error?.code === "email_not_confirmed") {
-    await issueOtp(parsed.data.email, "signup");
-    redirect(verifyUrl(parsed.data.email, "signup", safeNext(formData.get("next"))));
+  let { error } = await supabase.auth.signInWithPassword(parsed.data);
+  // Supabase checks the password before the confirmation, so this account's owner is proven.
+  if (error?.code === "email_not_confirmed" && (await confirmEmail(parsed.data.email))) {
+    ({ error } = await supabase.auth.signInWithPassword(parsed.data));
   }
   if (error) return { error: authErrorMessage(error), values };
   redirect(safeNext(formData.get("next")));

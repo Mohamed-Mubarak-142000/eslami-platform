@@ -22,24 +22,24 @@ export async function findUserId(address: string): Promise<string | null> {
   return data?.id ?? null;
 }
 
-/** Creates the account unconfirmed (no Supabase mailer) and emails our own signup code. */
+/** Creates the account already confirmed, so signing up needs no emailed code. */
 export async function registerAccount(input: { fullName: string; email: string; password: string }): Promise<ServiceResult> {
   if (!isSupabaseConfigured) return { ok: false, error: NOT_CONFIGURED };
-  const admin = createSupabaseAdminClient();
-  const { data, error } = await admin.auth.admin.createUser({
+  const { error } = await createSupabaseAdminClient().auth.admin.createUser({
     email: input.email,
     password: input.password,
-    email_confirm: false,
+    email_confirm: true,
     user_metadata: { full_name: input.fullName },
   });
-  if (error) return { ok: false, error: authErrorMessage(error) };
-  const sent = await issueOtp(input.email, "signup");
-  if (!sent.ok && sent.reason === "send_failed") {
-    // Undo the account: otherwise the retry fails with "already registered" and no code ever arrives.
-    await admin.auth.admin.deleteUser(data.user.id);
-    return { ok: false, error: otpErrorMessage(sent.reason) };
-  }
-  return { ok: true };
+  return error ? { ok: false, error: authErrorMessage(error) } : { ok: true };
+}
+
+/** Confirms an account left unconfirmed by the old signup-code flow. */
+export async function confirmEmail(address: string): Promise<boolean> {
+  const userId = await findUserId(address);
+  if (!userId) return false;
+  const { error } = await createSupabaseAdminClient().auth.admin.updateUserById(userId, { email_confirm: true });
+  return !error;
 }
 
 /**
