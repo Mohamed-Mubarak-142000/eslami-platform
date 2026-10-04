@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname } from "next/navigation";
-import { Award, BellRing, Clapperboard, LayoutDashboard, Mail, Users } from "lucide-react";
+import { Award, BellRing, Clapperboard, HandHeart, LayoutDashboard, Mail, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const TABS: { href: Route; label: string; icon: typeof Users }[] = [
@@ -13,6 +13,7 @@ const TABS: { href: Route; label: string; icon: typeof Users }[] = [
   { href: "/admin/stories", label: "قصص الأطفال", icon: Clapperboard },
   { href: "/admin/emails", label: "الرسائل", icon: Mail },
   { href: "/admin/reminders", label: "التذكيرات", icon: BellRing },
+  { href: "/admin/sponsors", label: "الرعاة", icon: HandHeart },
 ];
 
 export function AdminNav() {
