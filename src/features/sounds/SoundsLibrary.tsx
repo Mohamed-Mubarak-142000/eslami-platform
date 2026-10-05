@@ -15,7 +15,7 @@ import { SOUND_CATEGORIES, bareArtistName, type SoundArtist, type SoundCategoryK
 
 const ALL = "all";
 const VOICE_LABEL: Record<SoundCategoryKey, string> = {
-  recordings: "القراء والأصوات",
+  recordings: "القرّاء",
   ibtihalat: "المبتهلون",
   tawasheeh: "المنشدون",
   duas: "الأصوات",
@@ -48,6 +48,9 @@ export function SoundsLibrary({ category, library }: SoundsLibraryProps) {
   const audio = useAudio();
   const [artistId, setArtistId] = useState(ALL);
   const [query, setQuery] = useState("");
+  const [display, setDisplay] = useState({ filter: "", count: 60 });
+  const filterKey = JSON.stringify([artistId, query]);
+  const displayCount = display.filter === filterKey ? display.count : 60;
   const { href, label } = SOUND_CATEGORIES[category];
   const artists = useMemo(() => new Map(library.artists.map((artist) => [artist.id, artist])), [library.artists]);
 
@@ -170,7 +173,7 @@ export function SoundsLibrary({ category, library }: SoundsLibraryProps) {
 
           {visible.length === 0 && <p className="rounded-3xl bg-white p-8 text-center text-muted">لا توجد نتائج مطابقة.</p>}
           <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {queue.map((track) => {
+            {queue.slice(0, displayCount).map((track) => {
               const current = audio.isCurrent(track.id);
               const source = trackById.get(track.id);
               const artist = source ? artists.get(source.artistId) : undefined;
@@ -213,6 +216,15 @@ export function SoundsLibrary({ category, library }: SoundsLibraryProps) {
               );
             })}
           </ul>
+          {queue.length > displayCount && (
+            <button
+              type="button"
+              onClick={() => setDisplay({ filter: filterKey, count: displayCount + 60 })}
+              className="mx-auto mt-6 block rounded-full border border-emerald/30 bg-white px-6 py-3 text-sm font-bold text-emerald hover:bg-emerald-mist"
+            >
+              عرض المزيد من التسجيلات
+            </button>
+          )}
           {audio.error && queue.some((track) => audio.isCurrent(track.id)) && (
             <p role="status" className="mt-4 text-center text-sm text-rose">
               {audio.error}

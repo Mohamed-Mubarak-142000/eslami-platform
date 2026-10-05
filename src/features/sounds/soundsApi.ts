@@ -31,9 +31,10 @@ export const SOUND_CATEGORIES: Record<SoundCategoryKey, SoundCategory> = {
     key: "recordings",
     href: "/recordings",
     label: "تسجيلات الإذاعة",
-    title: "تسجيلات إذاعة القرآن الكريم المصرية",
-    description: "تلاوات وابتهالات وتسجيلات من المكتبة الرسمية لإذاعة القرآن الكريم المصرية، مع البحث بالعنوان أو اسم القارئ.",
-    radioTags: [""],
+    title: "تلاوات القرآن المسجّلة من الإذاعة",
+    description:
+      "تسجيلات القرآن الكريم لجميع القرّاء المتاحين في مكتبة إذاعة القرآن الكريم المصرية، مع اختيار الشيخ والبحث عن السورة أو التلاوة.",
+    radioTags: [],
     archive: [],
   },
   ibtihalat: {
@@ -223,6 +224,52 @@ interface RawArchiveFile {
   length?: string;
 }
 
+interface RawQuranRecording {
+  id: string;
+  title: string;
+  pioneer: { id: string; name: string; imageUrl: string | null } | null;
+  mediaService: RawRadioRecording["mediaService"];
+}
+
+/** Quran recordings have their own endpoint, separate from duas and ibtihalat. */
+async function getRadioQuranRecordings(): Promise<RawRadioRecording[]> {
+  const pageSize = 200;
+  async function getPage(pageNumber: number) {
+    const params = `pageSize=${pageSize}&pageNumber=${pageNumber}&pioneerId=&recitationId=&narrationId=`;
+    const response = await fetch(`${RADIO_API}/QuraanRecordings/GetAll?${params}`, {
+      method: "POST",
+      cache: "force-cache",
+      next: { revalidate: RADIO_REVALIDATE_SECONDS },
+    });
+    if (!response.ok) throw new Error("Quran recordings source unavailable");
+    const result = (await response.json()) as {
+      isSuccess?: boolean;
+      data?: { responseObject?: RawQuranRecording[]; count?: number };
+    };
+    if (!result.isSuccess || !result.data?.responseObject) throw new Error("Invalid Quran recordings response");
+    return { recordings: result.data.responseObject, count: result.data.count ?? 0 };
+  }
+
+  try {
+    const first = await getPage(1);
+    const remaining = await Promise.all(
+      Array.from({ length: Math.max(0, Math.ceil(first.count / pageSize) - 1) }, (_, index) => getPage(index + 2)),
+    );
+    return [first, ...remaining].flatMap((page) =>
+      page.recordings.map((recording) => ({
+        id: recording.id,
+        title: recording.title,
+        pioneerId: recording.pioneer?.id ?? null,
+        pioneerName: recording.pioneer?.name ?? null,
+        imgUrl: recording.pioneer?.imageUrl ?? null,
+        mediaService: recording.mediaService,
+      })),
+    );
+  } catch {
+    return [];
+  }
+}
+
 async function getRadioRecordings(tagId: string): Promise<RawRadioRecording[]> {
   try {
     const params = `firstItemId=${tagId}&secondItemId=&pageSize=1000&pageNumber=1&name=`;
@@ -252,7 +299,7 @@ async function getArchiveFiles(id: string): Promise<RawArchiveFile[]> {
 export async function getSoundLibrary(category: SoundCategoryKey): Promise<SoundLibrary> {
   const { radioTags, archive } = SOUND_CATEGORIES[category];
   const [radio, archiveFiles] = await Promise.all([
-    Promise.all(radioTags.map(getRadioRecordings)).then((lists) => lists.flat()),
+    category === "recordings" ? getRadioQuranRecordings() : Promise.all(radioTags.map(getRadioRecordings)).then((lists) => lists.flat()),
     Promise.all(archive.map((source) => getArchiveFiles(source.id))),
   ]);
 
