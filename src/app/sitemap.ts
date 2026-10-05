@@ -5,6 +5,7 @@ const ROUTES = [
   "/quran",
   "/listen",
   "/radio",
+  "/recordings",
   "/ibtihalat",
   "/tawasheeh",
   "/duas",

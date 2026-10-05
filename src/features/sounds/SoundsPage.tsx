@@ -16,7 +16,7 @@ export async function SoundsPage({ category }: { category: SoundCategoryKey }) {
   return (
     <>
       <PageHeader
-        kicker="أدعية وابتهالات"
+        kicker={category === "recordings" ? "مكتبة الإذاعة" : "أدعية وابتهالات"}
         icon={<Icon className="size-4" aria-hidden />}
         title={title}
         description={`${description} والاستماع يستمر معك وأنت تتنقّل في الموقع.`}

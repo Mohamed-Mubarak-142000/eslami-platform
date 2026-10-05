@@ -15,6 +15,7 @@ import { SOUND_CATEGORIES, bareArtistName, type SoundArtist, type SoundCategoryK
 
 const ALL = "all";
 const VOICE_LABEL: Record<SoundCategoryKey, string> = {
+  recordings: "القراء والأصوات",
   ibtihalat: "المبتهلون",
   tawasheeh: "المنشدون",
   duas: "الأصوات",
@@ -92,7 +93,7 @@ export function SoundsLibrary({ category, library }: SoundsLibraryProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
-      <nav aria-label="أقسام الأدعية والابتهالات" className="flex flex-wrap gap-2">
+      <nav aria-label="أقسام التسجيلات الصوتية" className="flex flex-wrap gap-2">
         {Object.values(SOUND_CATEGORIES).map((entry) => (
           <Link
             key={entry.key}
@@ -221,11 +222,16 @@ export function SoundsLibrary({ category, library }: SoundsLibraryProps) {
             المصدر:{" "}
             <a href="https://misrquran.gov.eg/" target="_blank" rel="noreferrer" className="underline">
               مكتبة إذاعة القرآن الكريم المصرية
-            </a>{" "}
-            ومجموعات عامة على{" "}
-            <a href="https://archive.org/" target="_blank" rel="noreferrer" className="underline">
-              أرشيف الإنترنت
             </a>
+            {SOUND_CATEGORIES[category].archive.length > 0 && (
+              <>
+                {" "}
+                ومجموعات عامة على{" "}
+                <a href="https://archive.org/" target="_blank" rel="noreferrer" className="underline">
+                  أرشيف الإنترنت
+                </a>
+              </>
+            )}
             .
           </p>
         </>

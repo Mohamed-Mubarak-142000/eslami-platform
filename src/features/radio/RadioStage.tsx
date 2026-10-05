@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ExternalLink, Loader2, Pause, Play, Volume1, Volume2, VolumeX } from "lucide-react";
 import { gsap, useGSAP, FULL_MOTION } from "@/lib/gsap";
@@ -52,6 +53,12 @@ export function RadioStage() {
         <p data-radio-fade className="mt-3 text-white/70">
           {RADIO_STATION.name}
         </p>
+        <Link
+          href="/recordings"
+          className="mt-5 rounded-full border border-gold/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-gold-soft transition-colors hover:bg-white/20"
+        >
+          استمع إلى تسجيلات الإذاعة
+        </Link>
 
         <div data-radio-fade className="relative my-12 grid size-72 place-items-center sm:size-80">
           <svg data-orbit viewBox="0 0 200 200" className="absolute inset-0 size-full text-gold/40" aria-hidden>

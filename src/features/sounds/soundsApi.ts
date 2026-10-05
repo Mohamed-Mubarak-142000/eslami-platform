@@ -6,7 +6,7 @@ import { normalizeArabic } from "@/lib/normalizeArabic";
  * Radio recordings are HLS streams resolved through /api/sounds/media; archive.org serves plain mp3s.
  */
 
-export type SoundCategoryKey = "ibtihalat" | "tawasheeh" | "duas" | "adhan";
+export type SoundCategoryKey = "ibtihalat" | "tawasheeh" | "duas" | "adhan" | "recordings";
 
 interface ArchiveSource {
   id: string;
@@ -27,6 +27,15 @@ export interface SoundCategory {
 }
 
 export const SOUND_CATEGORIES: Record<SoundCategoryKey, SoundCategory> = {
+  recordings: {
+    key: "recordings",
+    href: "/recordings",
+    label: "تسجيلات الإذاعة",
+    title: "تسجيلات إذاعة القرآن الكريم المصرية",
+    description: "تلاوات وابتهالات وتسجيلات من المكتبة الرسمية لإذاعة القرآن الكريم المصرية، مع البحث بالعنوان أو اسم القارئ.",
+    radioTags: [""],
+    archive: [],
+  },
   ibtihalat: {
     key: "ibtihalat",
     href: "/ibtihalat",
