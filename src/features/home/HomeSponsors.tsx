@@ -31,16 +31,22 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
   const body = (
     <>
       {sponsor.logo_url ? (
+        // Big enough to recognise a face or a logo; it fills its square (photos are the usual upload).
         // External logos of any size; next/image would need every sponsor host allow-listed.
-        <img src={sponsor.logo_url} alt="" className="size-14 shrink-0 rounded-2xl bg-white object-contain p-1" loading="lazy" />
+        <img
+          src={sponsor.logo_url}
+          alt={sponsor.name}
+          className="size-24 shrink-0 rounded-2xl border border-line bg-white object-cover sm:size-28"
+          loading="lazy"
+        />
       ) : (
-        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gold-mist text-gold-deep">
-          <HandHeart className="size-6" aria-hidden />
+        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-gold-mist text-gold-deep">
+          <HandHeart className="size-7" aria-hidden />
         </span>
       )}
       <span className="min-w-0">
-        <span className="block font-bold text-emerald-deep">{sponsor.name}</span>
-        <span className="mt-0.5 block text-sm text-muted">{sponsor.message}</span>
+        <span className="block text-lg font-bold leading-7 text-emerald-deep">{sponsor.name}</span>
+        <span className="mt-1 block text-sm leading-6 text-muted">{sponsor.message}</span>
       </span>
     </>
   );
