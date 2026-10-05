@@ -11,10 +11,11 @@ import { useAccount } from "@/features/account/AccountProvider";
 import { useInstallArrival } from "@/features/pwa/install-store";
 import gardenChild from "@/assets/scenes/garden-child.png";
 
-/** Shown to signed-out visitors a second after they open a page, then not again for a week once closed. */
-const KEY = "al-manara:kids-invite:v1";
-const DELAY_MS = 1_000;
-const AGAIN_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
+/**
+ * Shown to signed-out visitors ten seconds into every page they open. Closing it only hides it on that
+ * page; the next page brings it back, until they sign in.
+ */
+const DELAY_MS = 10_000;
 /** Every page except the sign-in and sign-up flow itself. */
 const SKIP = /^\/(login|register|verify|forgot-password|reset-password|auth)(\/|$)/;
 
@@ -24,23 +25,6 @@ const PERKS = [
   { icon: Star, text: "نجوم وشارات تشجّعه، وتقدّم كل طفل محفوظ في حسابك" },
 ] as const;
 
-function seenRecently(): boolean {
-  try {
-    const at = Number(localStorage.getItem(KEY));
-    return Number.isFinite(at) && Date.now() - at < AGAIN_AFTER_MS;
-  } catch {
-    return false;
-  }
-}
-
-function remember() {
-  try {
-    localStorage.setItem(KEY, String(Date.now()));
-  } catch {
-    // Private mode: it may show again next visit, which is fine.
-  }
-}
-
 export function KidsInviteDialog() {
   const account = useAccount();
   const pathname = usePathname();
@@ -48,14 +32,14 @@ export function KidsInviteDialog() {
   const [open, setOpen] = useState(false);
   const eligible = account.status === "signed-out" && !SKIP.test(pathname) && !installOpen;
 
+  // Restarts on every navigation, so each page gets its own ten seconds.
   useEffect(() => {
-    if (!eligible || seenRecently()) return;
+    if (!eligible) return;
     const id = setTimeout(() => setOpen(true), DELAY_MS);
     return () => clearTimeout(id);
-  }, [eligible]);
+  }, [eligible, pathname]);
 
   function close() {
-    remember();
     setOpen(false);
   }
 
