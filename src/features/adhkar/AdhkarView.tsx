@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
@@ -7,16 +7,17 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { AdhkarToastToggle } from "./AdhkarToaster";
-import { DUA_CATEGORY_LABELS, DUAS, type Dua, type DuaCategory } from "./duasData";
+import { DUA_CATEGORY_LABELS, DUA_CHAPTERS, DUAS, type Dua, type DuaCategory } from "./duasData";
 
 const CATEGORY_ICONS: Record<DuaCategory, LucideIcon> = {
   morning: Sun,
   evening: CloudMoon,
   sleep: Moon,
+  waking: Sun,
   "after-prayer": Sparkles,
   general: Sparkles,
 };
-const ORDER: DuaCategory[] = ["morning", "evening", "after-prayer", "sleep", "general"];
+const ORDER: DuaCategory[] = ["morning", "evening", "after-prayer", "sleep", "waking", "general"];
 
 const noopSubscribe = () => () => {};
 const speechSupported = () => typeof window !== "undefined" && "speechSynthesis" in window;
@@ -31,9 +32,13 @@ export function AdhkarView() {
   const [chosen, setChosen] = useState<DuaCategory | null>(null);
   const category = chosen ?? initial;
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [chapter, setChapter] = useState(DUA_CHAPTERS[0]?.id ?? 2);
   const canSpeak = useSyncExternalStore(noopSubscribe, speechSupported, () => false);
 
-  const list = useMemo(() => DUAS.filter((dua) => dua.category === category), [category]);
+  const list = useMemo(
+    () => DUAS.filter((dua) => dua.category === category && (category !== "general" || dua.chapter === chapter)),
+    [category, chapter],
+  );
   const done = list.filter((dua) => (counts[dua.id] ?? 0) >= (dua.repeat ?? 1)).length;
 
   function speak(text: string) {
@@ -77,6 +82,23 @@ export function AdhkarView() {
           })}
         </div>
       </LayoutGroup>
+
+      {category === "general" && (
+        <label className="mt-6 block text-sm font-bold text-emerald-deep">
+          اختر باب الأذكار والدعاء
+          <select
+            value={chapter}
+            onChange={(event) => setChapter(Number(event.target.value))}
+            className="mt-2 block w-full rounded-2xl border border-line bg-white p-3 text-ink"
+          >
+            {DUA_CHAPTERS.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-4 ring-1 ring-line">
         <div className="flex items-center gap-3">
@@ -127,7 +149,8 @@ export function AdhkarView() {
       <div className="mt-10 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-gold/50 bg-gold-mist/50 p-6 text-center">
         <AdhkarToastToggle />
         <p className="max-w-xl text-xs leading-6 text-muted">
-          المحتوى نماذج مختارة من أذكار مشهورة بمصادرها، وتحتاج مراجعة من مختص قبل الاعتماد النهائي. عدد التكرار يظهر فقط حيث ورد في المصدر.
+          الأذكار والأدعية من حصن المسلم، مع رابط المرجع لكل ذكر. بعض الأبواب تعرض صيغًا بديلة أو تعليمات مرتبطة بمناسبة الذكر؛ اتبع التوضيح
+          الوارد في النص.
         </p>
       </div>
     </div>
@@ -170,7 +193,14 @@ function DhikrCard({
         )}
       </div>
       <p className="quran-text mt-3 flex-1 text-2xl leading-[2.1] text-emerald-deep">{dua.text}</p>
-      <p className="mt-2 text-xs text-muted">{dua.source}</p>
+      <a
+        href={dua.sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-2 text-xs text-muted underline underline-offset-4 hover:text-emerald"
+      >
+        {dua.source}
+      </a>
       <div className="mt-4 flex items-center gap-3">
         <motion.button
           type="button"

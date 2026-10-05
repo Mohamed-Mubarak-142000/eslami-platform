@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AdhkarView } from "@/features/adhkar/AdhkarView";
 
 export const metadata: Metadata = {
   title: "الأذكار والأدعية",
-  description: "أذكار الصباح والمساء والنوم وبعد الصلاة بمصادرها، مع عدّاد تفاعلي للتكرار.",
+  description: "أذكار الصباح والمساء والنوم والاستيقاظ وبعد الصلاة، وجميع أبواب حصن المسلم بمراجعها وعدّاد تفاعلي.",
   alternates: { canonical: "/adhkar" },
 };
 
