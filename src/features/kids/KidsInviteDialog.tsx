@@ -11,12 +11,12 @@ import { useAccount } from "@/features/account/AccountProvider";
 import { useInstallArrival } from "@/features/pwa/install-store";
 import gardenChild from "@/assets/scenes/garden-child.png";
 
-/** Shown to signed-out visitors after a while on the site, then not again for a week once closed. */
+/** Shown to signed-out visitors a second after they open a page, then not again for a week once closed. */
 const KEY = "al-manara:kids-invite:v1";
-const DELAY_MS = 25_000;
+const DELAY_MS = 1_000;
 const AGAIN_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
-/** Never over the sign-in forms, the reader, reciting, exams, or the kids area itself. */
-const SKIP = /^\/(login|register|verify|forgot-password|reset-password|auth|kids|quran|tasmee|exams|admin)/;
+/** Every page except the sign-in and sign-up flow itself. */
+const SKIP = /^\/(login|register|verify|forgot-password|reset-password|auth)(\/|$)/;
 
 const PERKS = [
   { icon: Gamepad2, text: "ألعاب تفاعلية في الحروف والتجويد وترتيب الآيات" },
