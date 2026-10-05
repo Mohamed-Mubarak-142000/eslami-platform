@@ -65,7 +65,7 @@ export function AdhkarView() {
                 aria-selected={active}
                 onClick={() => setChosen(key)}
                 className={cn(
-                  "relative inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-colors",
+                  "relative isolate inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-colors",
                   active ? "text-white" : "bg-white text-muted ring-1 ring-line hover:text-ink",
                 )}
               >
