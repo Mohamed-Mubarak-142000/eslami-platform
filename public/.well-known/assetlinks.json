@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.almanara.app",
+      "sha256_cert_fingerprints": [
+        "6A:31:2B:94:E2:28:F6:48:57:82:4A:EE:18:01:54:D6:57:C6:66:39:FA:02:76:D5:93:62:57:49:F0:5C:9B:12"
+      ]
+    }
+  }
+]

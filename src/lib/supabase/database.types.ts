@@ -155,6 +155,25 @@ export type ReminderDeliveryRow = {
   user_id: string;
   sent_at: Timestamp;
 };
+export type SponsorRow = {
+  id: string;
+  name: string;
+  message: string;
+  link_url: string | null;
+  logo_url: string | null;
+  starts_on: string;
+  ends_on: string;
+  active: boolean;
+  created_at: Timestamp;
+};
+export type PushPlatform = "ios" | "android";
+export type PushTokenRow = {
+  token: string;
+  user_id: string;
+  platform: PushPlatform;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
 export type ExamAttemptRow = {
   id: string;
   learner_id: string;
@@ -329,6 +348,8 @@ export type Database = {
         Optional<ReminderRunRow, "id" | "recipient_count" | "sent_count" | "failed_count" | "status" | "started_at" | "finished_at">
       >;
       reminder_deliveries: TableDef<ReminderDeliveryRow, Optional<ReminderDeliveryRow, "sent_at">>;
+      push_tokens: TableDef<PushTokenRow, Optional<PushTokenRow, "created_at" | "updated_at">>;
+      sponsors: TableDef<SponsorRow, Optional<SponsorRow, "id" | "link_url" | "logo_url" | "active" | "created_at">>;
       certificates: TableDef<CertificateRow, Optional<CertificateRow, "id" | "exam_attempt_id" | "issued_at" | "revoked_at">>;
       memorization_plans: TableDef<
         MemorizationPlanRow,
