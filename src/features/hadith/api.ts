@@ -45,7 +45,9 @@ export interface Hadith {
 
 async function get<T>(path: string): Promise<T | null> {
   try {
-    const response = await fetch(`${BASE_URL}${path}`, { next: { revalidate: REVALIDATE } });
+    // A slow HadeethEnc must not hang the build (static pages give up after 60 s and fail the deploy):
+    // after 10 s the page renders its "try again later" state and ISR retries on the next revalidate.
+    const response = await fetch(`${BASE_URL}${path}`, { next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(10_000) });
     if (!response.ok) return null;
     return (await response.json()) as T;
   } catch {
