@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/features/auth/session";
 import type { FormState } from "@/features/auth/actions";
@@ -26,6 +26,8 @@ const sponsorSchema = z
 
 function revalidateSponsors() {
   revalidatePath("/admin/sponsors");
+  // The home page's "برعاية" section (features/home/HomeSponsors.tsx) shows the change on the next visit.
+  updateTag("sponsors");
 }
 
 /** Adds a sponsor for the mobile app's home card (sponsors table; admins only by RLS). */
