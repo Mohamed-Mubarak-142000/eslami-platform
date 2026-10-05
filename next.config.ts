@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   images: {
     qualities: [70, 80],
   },
+  experimental: {
+    // Sponsor logos are uploaded through a Server Action (up to 1 MB, plus the form's other fields).
+    serverActions: { bodySizeLimit: "2mb" },
+  },
   async headers() {
     return [
       {
