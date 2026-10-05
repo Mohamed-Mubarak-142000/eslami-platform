@@ -1,5 +1,6 @@
-import { HandHeart } from "lucide-react";
+import { ArrowUpLeft, HandHeart, MessageCircle } from "lucide-react";
 import { Divider } from "@/components/ui/Ornament";
+import { buttonClass } from "@/components/ui/button";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, isSupabaseConfigured } from "@/lib/supabase/env";
 import type { SponsorRow } from "@/lib/supabase/database.types";
 
@@ -27,9 +28,17 @@ async function loadSponsors(): Promise<Sponsor[] | null> {
   }
 }
 
+/** A WhatsApp link gets a "contact" button; any other link a "learn more" one. */
+function linkLabel(url: string): { label: string; whatsapp: boolean } {
+  const host = URL.canParse(url) ? new URL(url).hostname : "";
+  const whatsapp = host === "wa.me" || host.endsWith("whatsapp.com");
+  return { label: whatsapp ? "تواصل عبر واتساب" : "اعرف المزيد", whatsapp };
+}
+
 function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
-  const body = (
-    <>
+  const link = sponsor.link_url ? linkLabel(sponsor.link_url) : null;
+  return (
+    <div className="flex items-center gap-5 rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-6">
       {sponsor.logo_url ? (
         // A portrait frame big enough to recognise a face; it fills the frame from the top (photos are the usual upload).
         // External logos of any size; next/image would need every sponsor host allow-listed.
@@ -47,16 +56,21 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
       <span className="min-w-0">
         <span className="block text-lg font-bold leading-7 text-emerald-deep">{sponsor.name}</span>
         <span className="mt-1 block text-sm leading-6 text-muted">{sponsor.message}</span>
+        {sponsor.link_url && link && (
+          <a
+            href={sponsor.link_url}
+            target="_blank"
+            rel="noopener sponsored"
+            aria-label={`${link.label}: ${sponsor.name}`}
+            className={buttonClass(link.whatsapp ? "primary" : "gold", "sm", "mt-4")}
+          >
+            {link.whatsapp ? <MessageCircle aria-hidden /> : null}
+            {link.label}
+            {link.whatsapp ? null : <ArrowUpLeft aria-hidden />}
+          </a>
+        )}
       </span>
-    </>
-  );
-  const className = "flex items-center gap-5 rounded-3xl border border-line bg-white p-5 shadow-soft transition-shadow sm:p-6";
-  return sponsor.link_url ? (
-    <a href={sponsor.link_url} target="_blank" rel="noopener sponsored" className={`${className} hover:shadow-lift`}>
-      {body}
-    </a>
-  ) : (
-    <div className={className}>{body}</div>
+    </div>
   );
 }
 
