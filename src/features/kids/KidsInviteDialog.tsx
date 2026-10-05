@@ -80,7 +80,7 @@ export function KidsInviteDialog() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="kids-invite-title"
-            className="relative w-full max-w-md overflow-hidden rounded-[2rem] bg-ivory shadow-lift"
+            className="relative grid max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto rounded-[2rem] bg-ivory shadow-lift md:max-w-3xl md:grid-cols-[5fr_6fr] md:overflow-hidden"
             style={{ marginBottom: "max(0rem, env(safe-area-inset-bottom))" }}
             initial={{ y: 48, opacity: 0, scale: 0.97 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -88,39 +88,41 @@ export function KidsInviteDialog() {
             transition={{ type: "spring", damping: 24, stiffness: 260 }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="relative aspect-[16/9]">
+            <button
+              type="button"
+              onClick={close}
+              autoFocus
+              className="absolute left-4 top-4 z-10 grid size-10 place-items-center rounded-full bg-white/85 text-ink shadow-soft backdrop-blur hover:bg-white"
+            >
+              <X className="size-5" aria-hidden />
+              <span className="sr-only">إغلاق</span>
+            </button>
+
+            {/* Phones: a short banner on top. Wider screens: the picture beside the text, so the card stays low. */}
+            <div className="relative aspect-[2/1] md:aspect-auto">
               <Image
                 src={gardenChild}
                 alt="طفل يقرأ المصحف تحت شجرة في حديقة خضراء"
                 fill
-                sizes="(min-width: 640px) 28rem, 100vw"
+                sizes="(min-width: 768px) 21rem, 100vw"
                 placeholder="blur"
                 className="object-cover object-left"
                 priority
               />
-              <div className="absolute inset-0 bg-linear-to-t from-ivory via-ivory/10 to-transparent" aria-hidden />
+              <div className="absolute inset-0 bg-linear-to-t from-ivory via-ivory/10 to-transparent md:hidden" aria-hidden />
               <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1 text-xs font-bold text-emerald-night shadow-gold">
                 <Sparkles className="size-3.5" aria-hidden /> مجانًا لأطفالك
               </span>
-              <button
-                type="button"
-                onClick={close}
-                autoFocus
-                className="absolute left-4 top-4 grid size-10 place-items-center rounded-full bg-white/85 text-ink shadow-soft backdrop-blur hover:bg-white"
-              >
-                <X className="size-5" aria-hidden />
-                <span className="sr-only">إغلاق</span>
-              </button>
             </div>
 
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-5 md:py-7 md:pl-8">
               <p className="text-sm font-bold text-gold-deep">للأطفال</p>
               <h2 id="kids-invite-title" className="mt-1 text-2xl font-bold text-emerald-deep">
                 حديقة القرآن لأطفالك
               </h2>
               <p className="mt-2 text-sm leading-7 text-muted">مكان آمن وممتع يحبّب طفلك في القرآن، بلا إعلانات.</p>
 
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-3 space-y-2">
                 {PERKS.map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3 text-sm leading-6 text-ink">
                     <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-emerald-mist text-emerald">
@@ -131,11 +133,11 @@ export function KidsInviteDialog() {
                 ))}
               </ul>
 
-              <p className="mt-4 rounded-2xl bg-gold-mist px-4 py-2.5 text-xs leading-6 text-gold-deep">
+              <p className="mt-3 rounded-2xl bg-gold-mist px-4 py-2 text-xs leading-6 text-gold-deep">
                 سجّل حسابك المجاني، ثم أضف أطفالك من صفحة حسابك ليكون لكلٍّ منهم حديقته ونجومه.
               </p>
 
-              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <Link href="/register" onClick={close} className={buttonClass("primary", "md", "w-full")}>
                   <UserPlus aria-hidden /> أنشئ حسابًا مجانيًا
                 </Link>
@@ -143,7 +145,7 @@ export function KidsInviteDialog() {
                   <LogIn aria-hidden /> لديّ حساب
                 </Link>
               </div>
-              <button type="button" onClick={close} className="mt-3 w-full text-center text-sm font-bold text-muted hover:text-ink">
+              <button type="button" onClick={close} className="mt-2 w-full text-center text-sm font-bold text-muted hover:text-ink">
                 ربما لاحقًا
               </button>
             </div>
