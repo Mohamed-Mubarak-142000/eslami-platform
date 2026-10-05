@@ -31,12 +31,12 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
   const body = (
     <>
       {sponsor.logo_url ? (
-        // Big enough to recognise a face or a logo; it fills its square (photos are the usual upload).
+        // A portrait frame big enough to recognise a face; it fills the frame from the top (photos are the usual upload).
         // External logos of any size; next/image would need every sponsor host allow-listed.
         <img
           src={sponsor.logo_url}
           alt={sponsor.name}
-          className="size-24 shrink-0 rounded-2xl border border-line bg-white object-cover sm:size-28"
+          className="h-36 w-28 shrink-0 rounded-2xl border border-line bg-white object-cover object-top sm:h-44 sm:w-36"
           loading="lazy"
         />
       ) : (
@@ -50,7 +50,7 @@ function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
       </span>
     </>
   );
-  const className = "flex items-center gap-4 rounded-3xl border border-line bg-white p-5 shadow-soft transition-shadow";
+  const className = "flex items-center gap-5 rounded-3xl border border-line bg-white p-5 shadow-soft transition-shadow sm:p-6";
   return sponsor.link_url ? (
     <a href={sponsor.link_url} target="_blank" rel="noopener sponsored" className={`${className} hover:shadow-lift`}>
       {body}
@@ -73,7 +73,8 @@ export async function HomeSponsors() {
         </h2>
         <Divider className="mx-auto mt-5 max-w-xs" />
       </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Two wide cards a row at most; a single sponsor gets one wide card in the middle. */}
+      <div className={`mx-auto mt-8 grid gap-5 ${sponsors.length === 1 ? "max-w-2xl" : "max-w-5xl md:grid-cols-2"}`}>
         {sponsors.map((sponsor) => (
           <SponsorCard key={sponsor.id} sponsor={sponsor} />
         ))}
