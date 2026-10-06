@@ -115,11 +115,7 @@ export function TodayWird({ view }: { view: TodayView }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="font-bold">
             {memorize
-              ? `${
-                  view.startJuz === view.endJuz
-                    ? `حفظ الجزء ${toArabicDigits(view.startJuz ?? 0)}`
-                    : `حفظ الأجزاء ${toArabicDigits(view.startJuz ?? 0)}–${toArabicDigits(view.endJuz ?? 0)}`
-                } · ${view.dailyLabel} (${view.newDays.label})`
+              ? `${view.rangeLabel} · ${view.dailyLabel} (${view.newDays.label})`
               : `تثبيت الحفظ · ${view.reviewLabel} (${view.reviewDays.label})`}
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-bold">

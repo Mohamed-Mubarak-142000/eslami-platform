@@ -36,15 +36,36 @@ function openingWords(text: string, count = 5): string {
   return words.slice(0, count).join(" ") + (words.length > count ? "…" : "");
 }
 
+export interface PlanBounds {
+  startJuz: number;
+  endJuz: number;
+  startSurah: number | null;
+  endSurah: number | null;
+}
+
+export function planBounds(plan: {
+  start_juz: number | null;
+  end_juz: number | null;
+  start_surah: number | null;
+  end_surah: number | null;
+}): PlanBounds | null {
+  if (plan.start_juz === null || plan.end_juz === null) return null;
+  return { startJuz: plan.start_juz, endJuz: plan.end_juz, startSurah: plan.start_surah, endSurah: plan.end_surah };
+}
+
 /**
- * The exact ayahs of each segment, limited to the plan's juz (a page shared with a neighboring
- * juz only counts its own part). Null when the Quran API is unreachable.
+ * The exact ayahs of each segment, limited to the plan's juz and surahs (a page shared with a
+ * neighboring juz or surah only counts its own part). Null when the Quran API is unreachable.
  */
-export async function resolveSegments(segments: PageSegment[], juz: { start: number; end: number }): Promise<ResolvedSegment[] | null> {
+export async function resolveSegments(segments: PageSegment[], bounds: PlanBounds): Promise<ResolvedSegment[] | null> {
   const pages = await Promise.all(segments.map((segment) => getPageAyahs(segment.page)));
   if (pages.some((ayahs) => ayahs.length === 0)) return null;
+  const firstSurah = bounds.startSurah ?? 1;
+  const lastSurah = bounds.endSurah ?? 114;
   return segments.map((segment, index) => {
-    const own = pages[index]!.filter((ayah) => ayah.juz >= juz.start && ayah.juz <= juz.end);
+    const own = pages[index]!.filter(
+      (ayah) => ayah.juz >= bounds.startJuz && ayah.juz <= bounds.endJuz && ayah.surah >= firstSurah && ayah.surah <= lastSurah,
+    );
     const ayahs = pickHalf(own, segment.half);
     return { ...segment, spans: toSpans(ayahs), opening: ayahs[0] ? openingWords(ayahs[0].text) : "" };
   });

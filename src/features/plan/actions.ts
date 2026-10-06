@@ -9,12 +9,13 @@ import { getSurahAyahCount } from "@/features/kids/progress/surahAyahCounts";
 import { buildJuzRanges, type JuzRange } from "@/features/progress/juz";
 import { getJuzStarts, getMushafPageStarts } from "@/features/quran/textApi";
 import { loadCurrentPlan, loggedOn } from "./data";
-import { resolveSegments, spansToAyahs } from "./portion";
+import { planBounds, resolveSegments, spansToAyahs } from "./portion";
 import {
   buildJuzPages,
   nextCursor,
   PAGES_PER_DAY_OPTIONS,
   planDay,
+  rangePages,
   recentRange,
   surahsToPages,
   todayNewRange,
@@ -37,6 +38,8 @@ const planSchema = z
     kind: z.enum(["memorize", "review"]),
     startJuz: z.coerce.number().int().min(1).max(30),
     endJuz: z.coerce.number().int().min(1).max(30),
+    startSurah: z.coerce.number().int().min(1).max(114).nullable(),
+    endSurah: z.coerce.number().int().min(1).max(114).nullable(),
     unitsPerDay: z.coerce
       .number()
       .int()
@@ -57,6 +60,8 @@ const planSchema = z
     const issue = (path: string, message: string) => context.addIssue({ code: "custom", path: [path], message });
     if (value.kind === "memorize") {
       if (value.startJuz > value.endJuz) issue("endJuz", "جزء النهاية يأتي بعد جزء البداية");
+      else if (value.startSurah && value.endSurah && value.startSurah > value.endSurah)
+        issue("endSurah", "سورة النهاية تأتي بعد سورة البداية");
       if (value.newDays.length === 0) issue("newDays", "اختر يومًا واحدًا على الأقل للحفظ");
     } else {
       if (value.priorSurahs.length === 0 && value.priorJuz.length === 0) issue("priorSurahs", PICK_PRIOR);
@@ -91,6 +96,8 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
     kind: formData.get("kind"),
     startJuz: formData.get("startJuz") ?? 1,
     endJuz: formData.get("endJuz") ?? 1,
+    startSurah: formData.get("startSurah") || null,
+    endSurah: formData.get("endSurah") || null,
     unitsPerDay: formData.get("unitsPerDay") ?? 2,
     farPages: formData.get("farPages"),
     priorSurahs: formData.getAll("priorSurahs"),
@@ -106,9 +113,30 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
 
   const [juzStarts, pageStarts] = await Promise.all([getJuzStarts(), getMushafPageStarts()]);
   const juzPages = buildJuzPages(juzStarts, pageStarts);
-  if (juzPages.length === 0) return { error: "تعذّر الوصول إلى بيانات المصحف الآن، حاول بعد قليل." };
+  const juzRanges = buildJuzRanges(juzStarts);
+  if (juzPages.length === 0 || juzRanges.length === 0) return { error: "تعذّر الوصول إلى بيانات المصحف الآن، حاول بعد قليل." };
 
-  const range = kind === "memorize" ? { startPage: juzPages[startJuz - 1]!.startPage, endPage: juzPages[endJuz - 1]!.endPage } : null;
+  // A surah at the juz' own edge is the same as no surah: store null so the plan reads as whole juz.
+  const startSegments = juzRanges[startJuz - 1]!.segments;
+  const endSegments = juzRanges[endJuz - 1]!.segments;
+  const startSurah = parsed.data.startSurah === startSegments[0]?.surah ? null : parsed.data.startSurah;
+  const endSurah = parsed.data.endSurah === endSegments[endSegments.length - 1]?.surah ? null : parsed.data.endSurah;
+  if (kind === "memorize") {
+    if (startSurah && !startSegments.some((segment) => segment.surah === startSurah))
+      return { fieldErrors: { startSurah: "اختر سورة من الجزء الذي تبدأ به" } };
+    if (endSurah && !endSegments.some((segment) => segment.surah === endSurah))
+      return { fieldErrors: { endSurah: "اختر سورة من الجزء الذي تنتهي به" } };
+  }
+  const surahPages = (surah: number | null): Record<number, [number, number]> => {
+    if (!surah) return {};
+    const pages = surahsToPages(pageStarts, [surah], getSurahAyahCount);
+    return { [surah]: [pages[0]!, pages[pages.length - 1]!] };
+  };
+  const range =
+    kind === "memorize"
+      ? rangePages(juzPages, { ...surahPages(startSurah), ...surahPages(endSurah) }, { startJuz, endJuz, startSurah, endSurah })
+      : null;
+  if (kind === "memorize" && !range) return { fieldErrors: { endSurah: "سورة النهاية تأتي بعد سورة البداية" } };
   // The plan's own pages come into review as they're memorized, so leave them out of the prior pool.
   const juzPrior = priorJuz.flatMap((juz) => {
     const { startPage, endPage } = juzPages[juz - 1]!;
@@ -135,6 +163,8 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
     end_juz: range ? endJuz : null,
     start_page: range?.startPage ?? null,
     end_page: range?.endPage ?? null,
+    start_surah: range ? startSurah : null,
+    end_surah: range ? endSurah : null,
     units_per_day: unitsPerDay,
     far_review_pages: farPages,
     prior_surahs: priorSurahs,
@@ -147,7 +177,7 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
   revalidate();
   return {
     message: "أُنشئت خطتك، بالتوفيق!",
-    memorized: knownAyahs(priorSurahs, priorJuz, buildJuzRanges(juzStarts)),
+    memorized: knownAyahs(priorSurahs, priorJuz, juzRanges),
   };
 }
 
@@ -168,8 +198,9 @@ export async function completeNewAction(): Promise<CompleteResult> {
   if (loggedOn(log, today, "new")) return {};
 
   const range = plan.kind === "memorize" ? todayNewRange(plan, null) : null;
-  if (!range || plan.start_juz === null || plan.end_juz === null) return {};
-  const segments = await resolveSegments(unitsToSegments(plan, range), { start: plan.start_juz, end: plan.end_juz });
+  const bounds = planBounds(plan);
+  if (!range || !bounds) return {};
+  const segments = await resolveSegments(unitsToSegments(plan, range), bounds);
   if (!segments) return { error: "تعذّر الوصول إلى بيانات المصحف الآن، حاول بعد قليل." };
 
   const { error: logError } = await supabase.from("memorization_plan_log").insert({

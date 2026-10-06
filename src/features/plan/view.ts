@@ -1,7 +1,8 @@
 import "server-only";
+import { toArabicDigits } from "@/lib/arabic";
 import type { AyahRef } from "@/features/quran/textApi";
 import { loggedOn, type PlanWithLog } from "./data";
-import { resolveSegments } from "./portion";
+import { planBounds, resolveSegments } from "./portion";
 import {
   daysLabel,
   farPages,
@@ -50,6 +51,8 @@ export interface TodayView {
   status: "active" | "completed";
   startJuz: number | null;
   endJuz: number | null;
+  /** "حفظ الجزء ٣٠", "حفظ الأجزاء ٢٦–٣٠", or with surah edges "حفظ من سورة الملك إلى سورة المرسلات". */
+  rangeLabel: string;
   totalPages: number;
   pagesDone: number;
   percent: number;
@@ -96,9 +99,10 @@ export async function buildTodayView(
 
   const range = plan.status === "active" && plan.kind === "memorize" ? todayNewRange(plan, newToday) : null;
   let newPortion: TodayView["newPortion"] = null;
-  if (range && plan.start_juz !== null && plan.end_juz !== null) {
+  const bounds = planBounds(plan);
+  if (range && bounds) {
     const segments = unitsToSegments(plan, range);
-    const resolved = await resolveSegments(segments, { start: plan.start_juz, end: plan.end_juz });
+    const resolved = await resolveSegments(segments, bounds);
     newPortion = {
       done: newToday !== null,
       parts:
@@ -129,6 +133,14 @@ export async function buildTodayView(
     status: plan.status === "completed" ? "completed" : "active",
     startJuz: plan.start_juz,
     endJuz: plan.end_juz,
+    rangeLabel:
+      plan.start_surah !== null && plan.end_surah !== null
+        ? plan.start_surah === plan.end_surah
+          ? `حفظ سورة ${name(plan.start_surah)}`
+          : `حفظ من سورة ${name(plan.start_surah)} إلى سورة ${name(plan.end_surah)}`
+        : plan.start_juz === plan.end_juz
+          ? `حفظ الجزء ${toArabicDigits(plan.start_juz ?? 0)}`
+          : `حفظ الأجزاء ${toArabicDigits(plan.start_juz ?? 0)}–${toArabicDigits(plan.end_juz ?? 0)}`,
     totalPages: total / 2,
     pagesDone: plan.progress_units / 2,
     percent: total > 0 ? Math.round((plan.progress_units / total) * 100) : 0,

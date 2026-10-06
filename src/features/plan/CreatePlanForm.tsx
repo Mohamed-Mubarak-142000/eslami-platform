@@ -10,7 +10,7 @@ import { useNow } from "@/features/time/useNow";
 import { createPlanAction, type PlanFormState } from "./actions";
 import { DaysPicker, FieldError } from "./FormBits";
 import { SurahPicker, type KnownSelection, type PickerJuz, type PickerSurah } from "./SurahPicker";
-import { ALL_DAYS, finishDay, PAGES_PER_DAY_OPTIONS, pagesLabel, planDay, unitsLabel, type JuzPages } from "./schedule";
+import { ALL_DAYS, finishDay, PAGES_PER_DAY_OPTIONS, pagesLabel, planDay, rangePages, unitsLabel, type JuzPages } from "./schedule";
 
 const fieldClass =
   "h-12 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink outline-none focus:border-emerald/50 focus:shadow-soft";
@@ -59,12 +59,15 @@ function KindOption({
 
 export function CreatePlanForm({
   juzPages,
+  juzSurahs,
   surahs,
   juzList,
   surahPages,
   surahNames,
 }: {
   juzPages: JuzPages[];
+  /** Every surah with ayahs in each juz, in order. */
+  juzSurahs: Record<number, number[]>;
   surahs: PickerSurah[];
   juzList: PickerJuz[];
   /** First and last mushaf page of each surah, for the preview. */
@@ -81,6 +84,10 @@ export function CreatePlanForm({
   const [kind, setKind] = useState<Kind>("memorize");
   const [startJuz, setStartJuz] = useState(30);
   const [endJuz, setEndJuz] = useState(30);
+  const firstSurah = (juz: number) => juzSurahs[juz]?.[0] ?? 1;
+  const lastSurah = (juz: number) => juzSurahs[juz]?.at(-1) ?? 114;
+  const [startSurah, setStartSurah] = useState(() => firstSurah(30));
+  const [endSurah, setEndSurah] = useState(() => lastSurah(30));
   const [unitsPerDay, setUnitsPerDay] = useState(2);
   const [reviewPages, setReviewPages] = useState(3);
   const [known, setKnown] = useState<KnownSelection>({ surahs: [], juz: [] });
@@ -89,9 +96,8 @@ export function CreatePlanForm({
   const now = useNow();
   const errors = state?.fieldErrors;
 
-  const start = juzPages[startJuz - 1];
-  const end = juzPages[Math.max(startJuz, endJuz) - 1];
-  const pages = start && end ? end.endPage - start.startPage + 1 : 0;
+  const range = rangePages(juzPages, surahPages, { startJuz, endJuz: Math.max(startJuz, endJuz), startSurah, endSurah });
+  const pages = range ? range.endPage - range.startPage + 1 : 0;
   const sessions = Math.ceil((pages * 2) / unitsPerDay);
   const finish = now ? finishDay(sessions, newDays, planDay(now), false) : null;
 
@@ -102,13 +108,15 @@ export function CreatePlanForm({
   ];
   for (const [first, last] of knownRanges) {
     for (let page = first; page <= last; page++) {
-      if (kind === "review" || !start || !end || page < start.startPage || page > end.endPage) priorPages.add(page);
+      if (kind === "review" || !range || page < range.startPage || page > range.endPage) priorPages.add(page);
     }
   }
   const cycle = Math.ceil(priorPages.size / Math.max(1, reviewPages));
 
   const juzLabel = (juz: JuzPages) =>
     `الجزء ${toArabicDigits(juz.juz)}${surahNames[juz.firstSurah] ? ` — يبدأ بسورة ${surahNames[juz.firstSurah]}` : ""}`;
+  const surahOption = (surah: number, edge: string | null) =>
+    `${toArabicDigits(surah)}. سورة ${surahNames[surah] ?? surah}${edge ? ` (${edge})` : ""}`;
 
   return (
     <form action={action} className="rounded-4xl border border-line bg-white p-5 shadow-soft sm:p-7" noValidate>
@@ -155,7 +163,11 @@ export function CreatePlanForm({
                 onChange={(event) => {
                   const value = Number(event.target.value);
                   setStartJuz(value);
-                  if (endJuz < value) setEndJuz(value);
+                  setStartSurah(firstSurah(value));
+                  if (endJuz < value) {
+                    setEndJuz(value);
+                    setEndSurah(lastSurah(value));
+                  }
                 }}
                 className={fieldClass}
               >
@@ -167,8 +179,37 @@ export function CreatePlanForm({
               </select>
             </label>
             <label className="block">
+              <span className="mb-1.5 block text-sm font-bold">من سورة</span>
+              <select
+                name="startSurah"
+                value={startSurah}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setStartSurah(value);
+                  if (endSurah < value) setEndSurah(value);
+                }}
+                className={fieldClass}
+              >
+                {(juzSurahs[startJuz] ?? []).map((surah, index) => (
+                  <option key={surah} value={surah}>
+                    {surahOption(surah, index === 0 ? "أول الجزء" : null)}
+                  </option>
+                ))}
+              </select>
+              <FieldError message={errors?.startSurah} />
+            </label>
+            <label className="block">
               <span className="mb-1.5 block text-sm font-bold">إلى الجزء</span>
-              <select name="endJuz" value={endJuz} onChange={(event) => setEndJuz(Number(event.target.value))} className={fieldClass}>
+              <select
+                name="endJuz"
+                value={endJuz}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setEndJuz(value);
+                  setEndSurah(lastSurah(value));
+                }}
+                className={fieldClass}
+              >
                 {juzPages
                   .filter((juz) => juz.juz >= startJuz)
                   .map((juz) => (
@@ -178,6 +219,19 @@ export function CreatePlanForm({
                   ))}
               </select>
               <FieldError message={errors?.endJuz} />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-bold">إلى سورة</span>
+              <select name="endSurah" value={endSurah} onChange={(event) => setEndSurah(Number(event.target.value))} className={fieldClass}>
+                {(juzSurahs[endJuz] ?? [])
+                  .filter((surah) => surah >= startSurah)
+                  .map((surah, index, list) => (
+                    <option key={surah} value={surah}>
+                      {surahOption(surah, index === list.length - 1 ? "آخر الجزء" : null)}
+                    </option>
+                  ))}
+              </select>
+              <FieldError message={errors?.endSurah} />
             </label>
             <label className="block">
               <span className="mb-1.5 block text-sm font-bold">أحفظ في كل يوم حفظ</span>
@@ -259,7 +313,7 @@ export function CreatePlanForm({
 
       {kind === "memorize" && pages > 0 && (
         <p className="mt-6 rounded-2xl bg-emerald-mist p-4 text-sm leading-7 text-emerald-deep">
-          {toArabicDigits(pages)} صفحة (من صفحة {toArabicDigits(start!.startPage)} إلى {toArabicDigits(end!.endPage)}) في{" "}
+          {toArabicDigits(pages)} صفحة (من صفحة {toArabicDigits(range!.startPage)} إلى {toArabicDigits(range!.endPage)}) في{" "}
           <strong>{toArabicDigits(sessions)} يوم حفظ</strong>
           {finish && (
             <>

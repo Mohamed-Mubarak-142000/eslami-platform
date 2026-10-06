@@ -36,6 +36,7 @@ export default async function PlanPage() {
     surahs: range.segments.filter(whole).map((segment) => segment.surah),
     aligned: range.segments.every(whole),
   }));
+  const juzSurahs = Object.fromEntries(juzRanges.map((range) => [range.juz, range.segments.map((segment) => segment.surah)]));
   const pickerSurahs = surahs.map((surah) => {
     const span = juzRanges.filter((range) => range.segments.some((segment) => segment.surah === surah.id)).map((range) => range.juz);
     return { id: surah.id, name: surah.name, juz: span[0] ?? 1, span };
@@ -66,7 +67,14 @@ export default async function PlanPage() {
         {view ? (
           <TodayWird view={view} />
         ) : juzPages.length > 0 ? (
-          <CreatePlanForm juzPages={juzPages} surahs={pickerSurahs} juzList={juzList} surahPages={surahPages} surahNames={surahNames} />
+          <CreatePlanForm
+            juzPages={juzPages}
+            juzSurahs={juzSurahs}
+            surahs={pickerSurahs}
+            juzList={juzList}
+            surahPages={surahPages}
+            surahNames={surahNames}
+          />
         ) : (
           <FormAlert
             error={current ? "تعذّر تحميل خطتك الآن، حدّث الصفحة بعد قليل." : "تعذّر تحميل بيانات المصحف الآن، حدّث الصفحة بعد قليل."}

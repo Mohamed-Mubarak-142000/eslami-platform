@@ -231,6 +231,24 @@ export function buildJuzPages(juzStarts: AyahRef[], pageStarts: AyahRef[]): JuzP
   });
 }
 
+/**
+ * Pages of a memorize range from (startJuz, startSurah) to (endJuz, endSurah): the juz' pages,
+ * trimmed to where the start surah begins and the end surah ends. `surahPages` holds each
+ * surah's first and last page; a surah left out keeps the juz' own edge.
+ */
+export function rangePages(
+  juzPages: JuzPages[],
+  surahPages: Record<number, readonly [number, number]>,
+  range: { startJuz: number; endJuz: number; startSurah?: number | null; endSurah?: number | null },
+): { startPage: number; endPage: number } | null {
+  const start = juzPages[range.startJuz - 1];
+  const end = juzPages[range.endJuz - 1];
+  if (!start || !end) return null;
+  const startPage = Math.max(start.startPage, (range.startSurah && surahPages[range.startSurah]?.[0]) || 0);
+  const endPage = Math.min(end.endPage, (range.endSurah && surahPages[range.endSurah]?.[1]) || 604);
+  return startPage <= endPage ? { startPage, endPage } : null;
+}
+
 /** The surah printed at the top of a page, for mushaf links (`/quran/{surah}?page=`). */
 export function surahAtPage(pageStarts: AyahRef[], page: number): number {
   return pageStarts[page - 1]?.surah ?? 1;

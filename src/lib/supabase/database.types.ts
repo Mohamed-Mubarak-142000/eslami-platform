@@ -223,6 +223,9 @@ export type MemorizationPlanRow = {
   end_juz: number | null;
   start_page: number | null;
   end_page: number | null;
+  /** Surahs the memorize range starts and ends at; null means the juz edge. */
+  start_surah: number | null;
+  end_surah: number | null;
   units_per_day: number;
   far_review_pages: number;
   progress_units: number;
@@ -361,6 +364,8 @@ export type Database = {
           | "end_juz"
           | "start_page"
           | "end_page"
+          | "start_surah"
+          | "end_surah"
           | "far_review_pages"
           | "progress_units"
           | "review_cursor"
