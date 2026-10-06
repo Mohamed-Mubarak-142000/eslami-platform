@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { ArrowLeft, ScrollText, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { getCategories, getHadithOfTheDay } from "@/features/hadith/api";
@@ -46,6 +47,8 @@ export default async function HadithIndexPage() {
             </div>
           </HadithPanel>
         )}
+
+        <AdSlot className="px-0 sm:px-0" />
 
         {roots.length === 0 ? (
           <p className="rounded-3xl border border-line bg-white p-6 text-center text-muted">تعذّر تحميل الأحاديث الآن، حاول بعد قليل.</p>
