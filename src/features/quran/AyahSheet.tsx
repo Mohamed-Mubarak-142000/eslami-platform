@@ -8,7 +8,7 @@ import { useAudio } from "@/features/audio/AudioProvider";
 import { toArabicDigits } from "@/lib/arabic";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
 import { useActiveLearner } from "@/features/account/AccountProvider";
-import { husaryAyahUrl } from "./ayahAudio";
+import { playRecitationFrom } from "./recitation";
 import { AyahNumber } from "./AyahNumber";
 import type { Ayah } from "./textApi";
 
@@ -25,9 +25,11 @@ interface AyahSheetProps {
   hafs: boolean;
   /** The typeface of the riwaya's own mushaf; null for Hafs. */
   riwayaFont: string | null;
+  /** Names for the recitation as it moves on into the next surahs. */
+  surahNames: Record<number, string>;
 }
 
-export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, hafs, riwayaFont }: AyahSheetProps) {
+export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, hafs, riwayaFont, surahNames }: AyahSheetProps) {
   const audio = useAudio();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState(false);
@@ -65,14 +67,8 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, hafs, riw
       audio.toggle();
       return;
     }
-    audio.play({
-      id: trackId,
-      kind: "ayah",
-      title: reference,
-      subtitle: "الحصري — مرتّل",
-      src: husaryAyahUrl(ayah.number),
-      href: `/quran/${surahId}`,
-    });
+    // Goes on ayah after ayah; the reader follows and turns the page.
+    playRecitationFrom(audio, ayah.number, surahNames);
   }
 
   return (
@@ -128,7 +124,7 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, hafs, riw
                   ) : (
                     <Play aria-hidden className="fill-current" />
                   )}
-                  استمع للآية
+                  استمع من هنا
                 </button>
               )}
               <button type="button" onClick={copy} className={buttonClass("outline", "md")}>

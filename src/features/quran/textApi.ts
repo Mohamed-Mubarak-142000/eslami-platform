@@ -234,21 +234,3 @@ export async function getPageAyahs(page: number): Promise<PageAyah[]> {
     return [];
   }
 }
-
-export interface MushafPage {
-  page: number;
-  juz: number;
-  hizbQuarter: number | null;
-  ayahs: Ayah[];
-}
-
-/** Groups a surah's ayahs by their Madani mushaf page number. */
-export function groupByMushafPage(ayahs: Ayah[]): MushafPage[] {
-  const pages: MushafPage[] = [];
-  for (const ayah of ayahs) {
-    const last = pages[pages.length - 1];
-    if (last && last.page === ayah.page) last.ayahs.push(ayah);
-    else pages.push({ page: ayah.page, juz: ayah.juz, hizbQuarter: ayah.hizbQuarter, ayahs: [ayah] });
-  }
-  return pages;
-}

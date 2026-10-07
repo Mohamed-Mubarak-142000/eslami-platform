@@ -14,7 +14,7 @@ export function FrameCorner({ className }: { className: string }) {
 
 export function PageMedallion({ page }: { page: number }) {
   return (
-    <span className="relative mx-auto grid size-12 place-items-center">
+    <span className="relative mx-auto grid size-10 place-items-center sm:size-12">
       <svg viewBox="0 0 48 48" className="absolute inset-0 size-full text-gold" aria-hidden>
         <path
           d="M24 2l5.6 13.5L44 10l-5.5 14L44 38l-14.4-5.5L24 46l-5.6-13.5L4 38l5.5-14L4 10l14.4 5.5z"
@@ -39,10 +39,10 @@ interface MushafFrameProps {
 /** Ornamental mushaf page: double gold rule, corner rosettes, running header, page medallion. */
 export function MushafFrame({ headerStart, headerEnd, page, children }: MushafFrameProps) {
   return (
-    <div className="pattern-stars relative rounded-[1.75rem] p-2.5 shadow-lift sm:p-3.5" style={{ background: "var(--frame-bg)" }}>
-      <div className="rounded-[1.35rem] border-2 border-gold/70 p-1.5">
+    <div className="pattern-stars relative rounded-[1.75rem] p-1.5 shadow-lift sm:p-3" style={{ background: "var(--frame-bg)" }}>
+      <div className="rounded-[1.35rem] border-2 border-gold/70 p-1 sm:p-1.5">
         <div
-          className="relative rounded-[1rem] border border-gold/45 px-5 pb-5 pt-4 sm:px-12 sm:pb-7 sm:pt-6"
+          className="relative rounded-[1rem] border border-gold/45 px-3 pb-2 pt-2.5 sm:px-10 sm:pb-4 sm:pt-4"
           style={{ background: "var(--page-bg)", color: "var(--page-ink)" }}
         >
           <FrameCorner className="right-1 top-1 -scale-x-100" />
@@ -51,14 +51,14 @@ export function MushafFrame({ headerStart, headerEnd, page, children }: MushafFr
           <FrameCorner className="bottom-1 left-1 -scale-y-100" />
 
           <div
-            className="relative flex items-center justify-between gap-3 border-b border-gold/30 px-6 pb-3 text-xs font-bold sm:text-sm"
+            className="relative flex items-center justify-between gap-3 border-b border-gold/30 px-6 pb-2 text-xs font-bold sm:text-sm"
             style={{ color: "var(--page-accent)" }}
           >
             <span>{headerStart}</span>
             <span>{headerEnd}</span>
           </div>
-          <div className="relative px-1 py-6 sm:px-3 sm:py-8">{children}</div>
-          <div className="relative border-t border-gold/30 pt-3" style={{ color: "var(--page-accent)" }}>
+          <div className="relative px-1 py-3 sm:px-3 sm:py-5">{children}</div>
+          <div className="relative border-t border-gold/30 pt-2" style={{ color: "var(--page-accent)" }}>
             <PageMedallion page={page} />
           </div>
         </div>
@@ -69,12 +69,12 @@ export function MushafFrame({ headerStart, headerEnd, page, children }: MushafFr
 
 export function SurahBanner({ name }: { name: string }) {
   return (
-    <div className="relative mx-auto mb-5 flex max-w-md items-center justify-center" aria-hidden={false}>
+    <div className="relative mx-auto mb-2 flex max-w-md items-center justify-center sm:mb-3">
       <svg viewBox="0 0 400 64" className="absolute inset-0 size-full" preserveAspectRatio="none" aria-hidden>
         <path d="M24 4h352l20 28-20 28H24L4 32z" fill="var(--color-emerald)" stroke="var(--color-gold)" strokeWidth="3" />
         <path d="M34 11h332l14 21-14 21H34L20 32z" fill="none" stroke="var(--color-gold)" strokeOpacity="0.6" strokeWidth="1.5" />
       </svg>
-      <h2 className="relative py-3.5 font-quran text-2xl text-white sm:text-3xl">سورة {name}</h2>
+      <h2 className="relative py-2 font-quran text-xl text-white sm:py-2.5 sm:text-2xl">سورة {name}</h2>
     </div>
   );
 }

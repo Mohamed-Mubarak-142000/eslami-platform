@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buildSurahAudioUrl, getReciters, getSurahs } from "@/features/quran/api";
-import { getSurahAyahs, getSurahTafsir, groupByMushafPage } from "@/features/quran/textApi";
-import { getRiwayaSurah } from "@/features/quran/riwayaText";
-import { DEFAULT_RIWAYA, findRiwaya, type Riwaya } from "@/features/quran/riwayat";
-import { getSurahTajweedAyahs } from "@/features/quran/tajweedApi";
+import { getSurahs } from "@/features/quran/api";
+import { getMushafIndex, getMushafPage } from "@/features/quran/mushafPage";
+import { TOTAL_PAGES } from "@/features/quran/mushafPageTypes";
+import { DEFAULT_RIWAYA, findRiwaya } from "@/features/quran/riwayat";
 import { MushafReader } from "@/features/quran/MushafReader";
 import { riwayaFontFamily } from "@/features/quran/riwayaFonts";
 
@@ -29,62 +29,51 @@ export async function generateMetadata({ params }: PageProps<"/quran/[surah]">):
   };
 }
 
-/** The surah from the chosen riwaya's own mushaf; null for Hafs or when it can't load. */
-async function loadRiwayaText(riwaya: Riwaya, surah: number) {
-  if (riwaya.key === "hafs") return null;
-  const text = await getRiwayaSurah(riwaya.key, surah);
-  return text.ayahs.length > 0 ? text : null;
-}
-
-/** A full-surah recitation in the chosen riwaya (per-ayah audio exists only for Hafs). */
-async function loadRiwayaAudio(riwaya: Riwaya, surah: number) {
-  if (riwaya.key === "hafs") return null;
-  const ids: readonly number[] = riwaya.audio;
-  for (const reciter of await getReciters()) {
-    const moshaf = reciter.moshaf.find((entry) => ids.includes(entry.rewayaId) && entry.surahList.includes(surah));
-    if (moshaf) return { reciter: reciter.name, src: buildSurahAudioUrl(moshaf, surah) };
-  }
-  return null;
-}
-
+/**
+ * The mushaf opened at a page: `?page=` when given (khatma, plan and last-read links carry it),
+ * otherwise where the surah begins. From there the reader turns through all 604 pages.
+ */
 export default async function SurahPage({ params, searchParams }: PageProps<"/quran/[surah]">) {
   const number = parseSurah((await params).surah);
   if (!number) notFound();
   const query = await searchParams;
-  const pageParam = query.page;
-  const requestedPage = Number(Array.isArray(pageParam) ? pageParam[0] : pageParam);
-  const riwaya = findRiwaya(Array.isArray(query.riwaya) ? query.riwaya[0] : query.riwaya);
+  const pageParam = Number(Array.isArray(query.page) ? query.page[0] : query.page);
+  const chosen = findRiwaya(Array.isArray(query.riwaya) ? query.riwaya[0] : query.riwaya);
 
-  const [surahs, riwayaText, riwayaAudio] = await Promise.all([
-    getSurahs(),
-    loadRiwayaText(riwaya, number),
-    loadRiwayaAudio(riwaya, number),
-  ]);
-  // Another riwaya is read from its own mushaf, whose ayah numbering can differ from Hafs, so the
-  // Hafs tafsir and tajweed colours (keyed by Hafs ayah number) are only loaded for Hafs.
-  // If the riwaya can't load, Hafs is shown instead.
-  const [text, tafsir, tajweed] = riwayaText
-    ? [riwayaText, [], []]
-    : await Promise.all([getSurahAyahs(number), getSurahTafsir(number), getSurahTajweedAyahs(number)]);
-  const surah = surahs.find((entry) => entry.id === number) ?? { id: number, name: String(number), meccan: true };
-  const previous = surahs.find((entry) => entry.id === number - 1);
-  const next = surahs.find((entry) => entry.id === number + 1);
+  // If the chosen riwaya can't load, Hafs is shown instead.
+  let riwaya = chosen;
+  let index = await getMushafIndex(chosen.key);
+  if (!index && chosen.key !== "hafs") {
+    riwaya = DEFAULT_RIWAYA;
+    index = await getMushafIndex("hafs");
+  }
+  const surahStart = index?.surahs[number - 1]?.startPage ?? 1;
+  const page = Number.isInteger(pageParam) && pageParam >= 1 && pageParam <= TOTAL_PAGES ? pageParam : surahStart;
+  const data = index ? await getMushafPage(riwaya.key, page) : null;
+
+  if (!index || !data) {
+    return (
+      <div className="grid min-h-dvh place-items-center p-6 text-center">
+        <div>
+          <p className="text-lg font-bold">تعذّر تحميل المصحف الآن، حاول بعد قليل.</p>
+          <Link href="/quran" className="mt-4 inline-block text-emerald underline">
+            العودة للفهرس
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <MushafReader
-      surah={surah}
-      basmala={text.basmala}
-      pages={groupByMushafPage(text.ayahs)}
-      riwaya={riwayaText ? { key: riwaya.key, label: riwaya.label, short: riwaya.short } : HAFS}
-      riwayaFailed={riwaya.key !== "hafs" && !riwayaText}
-      failedRiwayaLabel={riwaya.label}
-      riwayaFont={riwayaText && riwaya.key !== "hafs" ? riwayaFontFamily(riwaya.key) : null}
-      riwayaAudio={riwayaAudio}
-      tafsir={tafsir}
-      tajweed={tajweed}
-      initialMushafPage={Number.isInteger(requestedPage) ? requestedPage : null}
-      previousSurah={previous ? { id: previous.id, name: previous.name } : null}
-      nextSurah={next ? { id: next.id, name: next.name } : null}
+      // A new riwaya or a link to another page starts the reader afresh.
+      key={`${riwaya.key}-${page}`}
+      initialPage={data}
+      index={index}
+      riwaya={riwaya.key === "hafs" ? HAFS : { key: riwaya.key, label: riwaya.label, short: riwaya.short }}
+      riwayaFailed={chosen.key !== riwaya.key}
+      failedRiwayaLabel={chosen.label}
+      riwayaFont={riwaya.key !== "hafs" ? riwayaFontFamily(riwaya.key) : null}
     />
   );
 }
