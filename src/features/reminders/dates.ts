@@ -34,6 +34,20 @@ export function localDate(now: Date = new Date()): string {
   return localFormatter.format(now);
 }
 
+const hourFormatter = new Intl.DateTimeFormat("en-GB", { timeZone: REMINDER_TIME_ZONE, hour: "numeric", hourCycle: "h23" });
+
+/** Until this Cairo hour, an evening run still belongs to the day before (the scheduler ran late). */
+const EVENING_LATE_UNTIL_HOUR = 6;
+
+/**
+ * The day a run is for. Schedulers can run hours late: an evening run that lands after midnight is
+ * still yesterday evening's (otherwise "tomorrow's fast" would point a day too far and never go out).
+ */
+export function slotDate(slot: "morning" | "evening", now: Date = new Date()): string {
+  const today = localDate(now);
+  return slot === "evening" && Number(hourFormatter.format(now)) < EVENING_LATE_UNTIL_HOUR ? addDays(today, -1) : today;
+}
+
 export const isIsoDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`));
 
 /** Noon UTC, so adding whole days never crosses a date line. */

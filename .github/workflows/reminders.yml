@@ -1,12 +1,13 @@
 name: Reminder emails
 # Special-day reminders (Friday & al-Kahf, fasting days, seasons). The site decides whether today
-# has an occasion; this only knocks twice a day. Needs repository secrets SITE_URL (e.g.
+# has an occasion; this only knocks twice a day. Vercel Cron (vercel.json) sends them on time; this
+# is the backup an hour later (GitHub schedules often run hours late), and finishes whatever is left. Needs repository secrets SITE_URL (e.g.
 # https://example.com, no trailing slash) and CRON_SECRET (same value as on Vercel).
 on:
   schedule:
     # Times are UTC. Cairo is UTC+2 in winter and UTC+3 in summer.
-    - cron: "0 4 * * *" # morning: Friday, about 6–7 am in Cairo
-    - cron: "0 16 * * *" # evening: tomorrow's fasting & seasons, about 6–7 pm in Cairo
+    - cron: "17 5 * * *" # morning backup: Friday, after Vercel's 04:00 run
+    - cron: "17 17 * * *" # evening backup: tomorrow's fasting & seasons, after Vercel's 16:00 run
   workflow_dispatch:
     inputs:
       slot:
@@ -35,7 +36,7 @@ jobs:
         env:
           SITE_URL: ${{ secrets.SITE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          SLOT: ${{ github.event_name == 'schedule' && (github.event.schedule == '0 4 * * *' && 'morning' || 'evening') || inputs.slot }}
+          SLOT: ${{ github.event_name == 'schedule' && (github.event.schedule == '17 5 * * *' && 'morning' || 'evening') || inputs.slot }}
           DATE: ${{ inputs.date }}
           DRY_RUN: ${{ inputs.dryRun && '1' || '0' }}
         run: |
