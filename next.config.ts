@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
+// One id per build (the Vercel deployment, else the build time). Open pages compare theirs with the
+// server's (/api/version) and offer a reload after a deploy — see features/update/UpdatePrompt.tsx.
+const BUILD_ID = process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? String(Date.now());
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_BUILD_ID: BUILD_ID },
   reactStrictMode: true,
   poweredByHeader: false,
   typedRoutes: true,

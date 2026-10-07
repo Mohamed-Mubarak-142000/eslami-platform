@@ -10,6 +10,7 @@ import { KidsInviteDialog } from "@/features/kids/KidsInviteDialog";
 import { KidsProgressProvider } from "@/features/kids/progress/KidsProgressProvider";
 import { LastReadSync } from "@/features/quran/LastReadSync";
 import { SupportSheet } from "@/features/support/SupportSheet";
+import { UpdatePrompt } from "@/features/update/UpdatePrompt";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -22,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <AdhkarToaster />
             <KidsInviteDialog />
             <SupportSheet />
+            <UpdatePrompt />
           </AudioProvider>
           <LastReadSync />
         </KidsProgressProvider>
