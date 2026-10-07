@@ -19,6 +19,8 @@ const REVIEW_OPTIONS = [1, 2, 3, 4, 5, 10, 20];
 const FINISH_FORMAT = new Intl.DateTimeFormat("ar-EG", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 type Kind = "memorize" | "review";
+/** How the memorize range is picked: a juz then a surah inside it, or straight from surah to surah. */
+type RangeBy = "juz" | "surah";
 
 function KindOption({
   kind,
@@ -88,6 +90,14 @@ export function CreatePlanForm({
   const lastSurah = (juz: number) => juzSurahs[juz]?.at(-1) ?? 114;
   const [startSurah, setStartSurah] = useState(() => firstSurah(30));
   const [endSurah, setEndSurah] = useState(() => lastSurah(30));
+  const [rangeBy, setRangeBy] = useState<RangeBy>("juz");
+  const [fromSurah, setFromSurah] = useState(78);
+  const [toSurah, setToSurah] = useState(114);
+  // A surah can run over several juz (al-Baqarah spans three): it starts in the first and ends in the last.
+  const juzOfSurah = (surah: number, edge: "first" | "last") => {
+    const span = surahs.find((item) => item.id === surah)?.span ?? [30];
+    return edge === "first" ? Math.min(...span) : Math.max(...span);
+  };
   const [unitsPerDay, setUnitsPerDay] = useState(2);
   const [reviewPages, setReviewPages] = useState(3);
   const [known, setKnown] = useState<KnownSelection>({ surahs: [], juz: [] });
@@ -96,7 +106,11 @@ export function CreatePlanForm({
   const now = useNow();
   const errors = state?.fieldErrors;
 
-  const range = rangePages(juzPages, surahPages, { startJuz, endJuz: Math.max(startJuz, endJuz), startSurah, endSurah });
+  const picked =
+    rangeBy === "surah"
+      ? { startJuz: juzOfSurah(fromSurah, "first"), endJuz: juzOfSurah(toSurah, "last"), startSurah: fromSurah, endSurah: toSurah }
+      : { startJuz, endJuz: Math.max(startJuz, endJuz), startSurah, endSurah };
+  const range = rangePages(juzPages, surahPages, picked);
   const pages = range ? range.endPage - range.startPage + 1 : 0;
   const sessions = Math.ceil((pages * 2) / unitsPerDay);
   const finish = now ? finishDay(sessions, newDays, planDay(now), false) : null;
@@ -155,84 +169,157 @@ export function CreatePlanForm({
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         {kind === "memorize" ? (
           <>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-bold">من الجزء</span>
-              <select
-                name="startJuz"
-                value={startJuz}
-                onChange={(event) => {
-                  const value = Number(event.target.value);
-                  setStartJuz(value);
-                  setStartSurah(firstSurah(value));
-                  if (endJuz < value) {
-                    setEndJuz(value);
-                    setEndSurah(lastSurah(value));
-                  }
-                }}
-                className={fieldClass}
-              >
-                {juzPages.map((juz) => (
-                  <option key={juz.juz} value={juz.juz}>
-                    {juzLabel(juz)}
-                  </option>
+            <fieldset className="sm:col-span-2">
+              <legend className="mb-1.5 text-sm font-bold">أحدد ما أحفظه</legend>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["juz", "بالأجزاء"],
+                    ["surah", "بالسور"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRangeBy(value)}
+                    aria-pressed={rangeBy === value}
+                    className={cn(
+                      "rounded-full border px-4 py-2 text-sm font-bold transition-colors",
+                      rangeBy === value ? "border-emerald bg-emerald text-white" : "border-line bg-white text-ink hover:border-emerald/40",
+                    )}
+                  >
+                    {label}
+                  </button>
                 ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-bold">من سورة</span>
-              <select
-                name="startSurah"
-                value={startSurah}
-                onChange={(event) => {
-                  const value = Number(event.target.value);
-                  setStartSurah(value);
-                  if (endSurah < value) setEndSurah(value);
-                }}
-                className={fieldClass}
-              >
-                {(juzSurahs[startJuz] ?? []).map((surah, index) => (
-                  <option key={surah} value={surah}>
-                    {surahOption(surah, index === 0 ? "أول الجزء" : null)}
-                  </option>
-                ))}
-              </select>
-              <FieldError message={errors?.startSurah} />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-bold">إلى الجزء</span>
-              <select
-                name="endJuz"
-                value={endJuz}
-                onChange={(event) => {
-                  const value = Number(event.target.value);
-                  setEndJuz(value);
-                  setEndSurah(lastSurah(value));
-                }}
-                className={fieldClass}
-              >
-                {juzPages
-                  .filter((juz) => juz.juz >= startJuz)
-                  .map((juz) => (
-                    <option key={juz.juz} value={juz.juz}>
-                      {juzLabel(juz)}
-                    </option>
-                  ))}
-              </select>
-              <FieldError message={errors?.endJuz} />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-bold">إلى سورة</span>
-              <select name="endSurah" value={endSurah} onChange={(event) => setEndSurah(Number(event.target.value))} className={fieldClass}>
-                {(juzSurahs[endJuz] ?? [])
-                  .filter((surah) => surah >= startSurah)
-                  .map((surah, index, list) => (
-                    <option key={surah} value={surah}>
-                      {surahOption(surah, index === list.length - 1 ? "آخر الجزء" : null)}
-                    </option>
-                  ))}
-              </select>
-              <FieldError message={errors?.endSurah} />
-            </label>
+              </div>
+            </fieldset>
+            {rangeBy === "surah" ? (
+              <>
+                {/* The server takes juz + surah; the juz are the ones these surahs start and end in. */}
+                <input type="hidden" name="startJuz" value={picked.startJuz} />
+                <input type="hidden" name="endJuz" value={picked.endJuz} />
+                <input type="hidden" name="startSurah" value={fromSurah} />
+                <input type="hidden" name="endSurah" value={toSurah} />
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-bold">من سورة</span>
+                  <select
+                    value={fromSurah}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setFromSurah(value);
+                      if (toSurah < value) setToSurah(value);
+                    }}
+                    className={fieldClass}
+                  >
+                    {surahs.map((surah) => (
+                      <option key={surah.id} value={surah.id}>
+                        {surahOption(surah.id, null)}
+                      </option>
+                    ))}
+                  </select>
+                  <FieldError message={errors?.startSurah} />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-bold">إلى سورة</span>
+                  <select value={toSurah} onChange={(event) => setToSurah(Number(event.target.value))} className={fieldClass}>
+                    {surahs
+                      .filter((surah) => surah.id >= fromSurah)
+                      .map((surah) => (
+                        <option key={surah.id} value={surah.id}>
+                          {surahOption(surah.id, null)}
+                        </option>
+                      ))}
+                  </select>
+                  <FieldError message={errors?.endSurah ?? errors?.endJuz} />
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-bold">من الجزء</span>
+                  <select
+                    name="startJuz"
+                    value={startJuz}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setStartJuz(value);
+                      setStartSurah(firstSurah(value));
+                      if (endJuz < value) {
+                        setEndJuz(value);
+                        setEndSurah(lastSurah(value));
+                      }
+                    }}
+                    className={fieldClass}
+                  >
+                    {juzPages.map((juz) => (
+                      <option key={juz.juz} value={juz.juz}>
+                        {juzLabel(juz)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-bold">من سورة</span>
+                  <select
+                    name="startSurah"
+                    value={startSurah}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setStartSurah(value);
+                      if (endSurah < value) setEndSurah(value);
+                    }}
+                    className={fieldClass}
+                  >
+                    {(juzSurahs[startJuz] ?? []).map((surah, index) => (
+                      <option key={surah} value={surah}>
+                        {surahOption(surah, index === 0 ? "أول الجزء" : null)}
+                      </option>
+                    ))}
+                  </select>
+                  <FieldError message={errors?.startSurah} />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-bold">إلى الجزء</span>
+                  <select
+                    name="endJuz"
+                    value={endJuz}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setEndJuz(value);
+                      setEndSurah(lastSurah(value));
+                    }}
+                    className={fieldClass}
+                  >
+                    {juzPages
+                      .filter((juz) => juz.juz >= startJuz)
+                      .map((juz) => (
+                        <option key={juz.juz} value={juz.juz}>
+                          {juzLabel(juz)}
+                        </option>
+                      ))}
+                  </select>
+                  <FieldError message={errors?.endJuz} />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-bold">إلى سورة</span>
+                  <select
+                    name="endSurah"
+                    value={endSurah}
+                    onChange={(event) => setEndSurah(Number(event.target.value))}
+                    className={fieldClass}
+                  >
+                    {(juzSurahs[endJuz] ?? [])
+                      .filter((surah) => surah >= startSurah)
+                      .map((surah, index, list) => (
+                        <option key={surah} value={surah}>
+                          {surahOption(surah, index === list.length - 1 ? "آخر الجزء" : null)}
+                        </option>
+                      ))}
+                  </select>
+                  <FieldError message={errors?.endSurah} />
+                </label>
+              </>
+            )}
             <label className="block">
               <span className="mb-1.5 block text-sm font-bold">أحفظ في كل يوم حفظ</span>
               <select

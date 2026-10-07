@@ -27,7 +27,7 @@ export function KhatmaCard({ khatma }: { khatma: KhatmaSummary | null }) {
               ? "اختم القرآن بوِرد يومي تختاره أو في مدة تحددها."
               : khatma.status === "completed"
                 ? "ختمتَ القرآن، تقبّل الله منك! ابدأ ختمة جديدة."
-                : `${khatma.readToday ? "قرأت ورد اليوم، أحسنت!" : khatma.readsToday ? "ورد اليوم بانتظارك" : "اليوم يوم راحة في ختمتك."} — ${toArabicDigits(khatma.percent)}٪ من المصحف`}
+                : `${khatma.readToday ? "قرأت ورد اليوم، أحسنت!" : khatma.readsToday ? "ورد اليوم بانتظارك" : "اليوم يوم راحة في ختمتك."} — ${toArabicDigits(khatma.percent)}٪ من ختمتك`}
           </p>
         </div>
       </div>

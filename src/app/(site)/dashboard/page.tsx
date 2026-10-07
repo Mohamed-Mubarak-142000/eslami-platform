@@ -10,7 +10,6 @@ import { DashboardView } from "@/features/progress/DashboardView";
 import { loadCurrentPlan, loggedOn } from "@/features/plan/data";
 import { planDay, totalUnits, weekday } from "@/features/plan/schedule";
 import { loadCurrentKhatma } from "@/features/khatma/data";
-import { TOTAL_AYAHS } from "@/features/khatma/schedule";
 import { LearnerSwitcher } from "@/features/account/LearnerSwitcher";
 
 export const metadata: Metadata = { title: "رحلتي", robots: { index: false } };
@@ -62,7 +61,11 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
 
   const khatma = currentKhatma && {
     status: currentKhatma.khatma.status === "completed" ? ("completed" as const) : ("active" as const),
-    percent: Math.round((currentKhatma.khatma.position / TOTAL_AYAHS) * 100),
+    percent: Math.round(
+      ((currentKhatma.khatma.position - currentKhatma.khatma.start_ayah) /
+        (currentKhatma.khatma.end_ayah - currentKhatma.khatma.start_ayah)) *
+        100,
+    ),
     readToday: currentKhatma.log.some((row) => row.day === today),
     readsToday: currentKhatma.khatma.days.includes(weekday(today)),
   };

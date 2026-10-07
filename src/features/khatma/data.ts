@@ -2,7 +2,7 @@ import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getHizbStarts, getJuzStarts, getMushafPageStarts } from "@/features/quran/textApi";
 import type { KhatmaLogRow, KhatmaRow } from "@/lib/supabase/database.types";
-import { buildBoundaries, type Boundaries } from "./schedule";
+import { buildBoundaries, TOTAL_AYAHS, type Boundaries } from "./schedule";
 
 type Client = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -27,6 +27,9 @@ export async function loadCurrentKhatma(supabase: Client, learnerId: string): Pr
     supabase.from("khatmas").select("id", { count: "exact", head: true }).eq("learner_id", learnerId).not("completed_at", "is", null),
   ]);
   if (!khatma) return null;
+  // Before migration 20261007000002 the range columns are missing: every khatma then covers the whole mushaf.
+  khatma.start_ayah ??= 0;
+  khatma.end_ayah ??= TOTAL_AYAHS;
   const { data: log } = await supabase
     .from("khatma_log")
     .select("day, from_ayah, to_ayah")

@@ -11,9 +11,27 @@ import { useNow } from "@/features/time/useNow";
 import { DaysPicker, FieldError } from "@/features/plan/FormBits";
 import { ALL_DAYS, finishDay, planDay, shiftDay } from "@/features/plan/schedule";
 import { createKhatmaAction } from "./actions";
-import { amountLabel, pagesForDuration, pagesInJuz, PER_SESSION_OPTIONS, sessionsBetween, UNIT_TOTALS } from "./schedule";
+import {
+  amountLabel,
+  pagesForDuration,
+  pagesInJuz,
+  PER_SESSION_OPTIONS,
+  scopeRange,
+  sessionsBetween,
+  UNIT_TOTALS,
+  unitsInRange,
+  type Boundaries,
+  type KhatmaScope,
+} from "./schedule";
 
 type Mode = "amount" | "duration";
+type ScopeKind = KhatmaScope["kind"];
+
+const SCOPES: { kind: ScopeKind; label: string }[] = [
+  { kind: "all", label: "المصحف كاملًا" },
+  { kind: "surah", label: "سور محددة" },
+  { kind: "juz", label: "أجزاء محددة" },
+];
 
 const fieldClass =
   "h-12 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink outline-none focus:border-emerald/50 focus:shadow-soft";
@@ -63,7 +81,14 @@ function ModeOption({
   );
 }
 
-export function CreateKhatmaForm() {
+export function CreateKhatmaForm({
+  boundaries,
+  surahNames,
+}: {
+  /** Where each page, hizb, juz and surah begins; null while the Quran API is unreachable (whole mushaf only). */
+  boundaries: Boundaries | null;
+  surahNames: Record<number, string>;
+}) {
   const [state, action] = useActionState<FormState | undefined, FormData>(createKhatmaAction, undefined);
   const [mode, setMode] = useState<Mode>("amount");
   const [unit, setUnit] = useState<KhatmaUnit>("juz");
@@ -72,11 +97,28 @@ export function CreateKhatmaForm() {
   const now = useNow();
   const today = now ? planDay(now) : null;
   const [targetDay, setTargetDay] = useState("");
+  const [scopeKind, setScopeKind] = useState<ScopeKind>("all");
+  const [fromSurah, setFromSurah] = useState(1);
+  const [toSurah, setToSurah] = useState(114);
+  const [fromJuz, setFromJuz] = useState(1);
+  const [toJuz, setToJuz] = useState(30);
   const errors = state?.fieldErrors;
 
-  const sessions = Math.ceil(UNIT_TOTALS[unit] / perSession);
+  const scope: KhatmaScope =
+    scopeKind === "surah"
+      ? { kind: "surah", from: fromSurah, to: toSurah }
+      : scopeKind === "juz"
+        ? { kind: "juz", from: fromJuz, to: toJuz }
+        : { kind: "all" };
+  const range = boundaries ? scopeRange(boundaries, scope) : null;
+  const units = boundaries && range ? unitsInRange(boundaries, unit, range.from, range.to) : UNIT_TOTALS[unit];
+  const totalPages = boundaries && range ? unitsInRange(boundaries, "pages", range.from, range.to) : 604;
+  const sessions = Math.ceil(units / perSession);
   const finish = today ? finishDay(sessions, days, today, false) : null;
-  const durationPages = today && targetDay ? pagesForDuration(today, targetDay, days) : null;
+  const durationPages = today && targetDay ? pagesForDuration(today, targetDay, days, totalPages) : null;
+  const surahOption = (surah: number) => `${toArabicDigits(surah)}. سورة ${surahNames[surah] ?? surah}`;
+  const juzNumbers = Array.from({ length: 30 }, (_, index) => index + 1);
+  const surahNumbers = Array.from({ length: 114 }, (_, index) => index + 1);
   const durationSessions = today && targetDay ? sessionsBetween(today, targetDay, days) : 0;
 
   return (
@@ -112,6 +154,104 @@ export function CreateKhatmaForm() {
           text="اختر متى تريد أن تختم، ونقسم لك المصحف على أيامك."
         />
       </fieldset>
+
+      {boundaries && (
+        <fieldset className="mt-6">
+          <legend className="mb-1.5 text-sm font-bold">ماذا تختم؟</legend>
+          <input type="hidden" name="scope" value={scopeKind} />
+          <div className="flex flex-wrap gap-2">
+            {SCOPES.map((option) => (
+              <button
+                key={option.kind}
+                type="button"
+                onClick={() => setScopeKind(option.kind)}
+                aria-pressed={scopeKind === option.kind}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-bold transition-colors",
+                  scopeKind === option.kind
+                    ? "border-emerald bg-emerald text-white"
+                    : "border-line bg-white text-ink hover:border-emerald/40",
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {scopeKind === "surah" && (
+            <div className="mt-4 grid gap-5 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-bold">من سورة</span>
+                <select
+                  name="fromSurah"
+                  value={fromSurah}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    setFromSurah(value);
+                    if (toSurah < value) setToSurah(value);
+                  }}
+                  className={fieldClass}
+                >
+                  {surahNumbers.map((surah) => (
+                    <option key={surah} value={surah}>
+                      {surahOption(surah)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-bold">إلى سورة</span>
+                <select name="toSurah" value={toSurah} onChange={(event) => setToSurah(Number(event.target.value))} className={fieldClass}>
+                  {surahNumbers
+                    .filter((surah) => surah >= fromSurah)
+                    .map((surah) => (
+                      <option key={surah} value={surah}>
+                        {surahOption(surah)}
+                      </option>
+                    ))}
+                </select>
+                <FieldError message={errors?.toSurah} />
+              </label>
+            </div>
+          )}
+          {scopeKind === "juz" && (
+            <div className="mt-4 grid gap-5 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-bold">من الجزء</span>
+                <select
+                  name="fromJuz"
+                  value={fromJuz}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    setFromJuz(value);
+                    if (toJuz < value) setToJuz(value);
+                  }}
+                  className={fieldClass}
+                >
+                  {juzNumbers.map((juz) => (
+                    <option key={juz} value={juz}>
+                      الجزء {toArabicDigits(juz)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-bold">إلى الجزء</span>
+                <select name="toJuz" value={toJuz} onChange={(event) => setToJuz(Number(event.target.value))} className={fieldClass}>
+                  {juzNumbers
+                    .filter((juz) => juz >= fromJuz)
+                    .map((juz) => (
+                      <option key={juz} value={juz}>
+                        الجزء {toArabicDigits(juz)}
+                      </option>
+                    ))}
+                </select>
+                <FieldError message={errors?.toJuz} />
+              </label>
+            </div>
+          )}
+          {scopeKind !== "all" && <p className="mt-2 text-xs text-muted">{toArabicDigits(totalPages)} صفحة من المصحف.</p>}
+        </fieldset>
+      )}
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         {mode === "amount" ? (

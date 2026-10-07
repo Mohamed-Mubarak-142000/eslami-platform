@@ -29,7 +29,7 @@ export default async function KhatmaPage() {
         description={
           view
             ? "ما عليك قراءته اليوم لتمضي في ختمتك. إن فاتك يوم فالختمة تنتظرك حيث توقفت."
-            : "اقرأ القرآن كاملًا بمقدار يومي تختاره، أو في مدة تحددها، وفي الأيام التي تناسبك."
+            : "اقرأ القرآن كاملًا أو سورًا وأجزاءً تختارها، بمقدار يومي أو في مدة تحددها، وفي الأيام التي تناسبك."
         }
         actions={<LearnerSwitcher />}
       />
@@ -39,7 +39,7 @@ export default async function KhatmaPage() {
         ) : current ? (
           <FormAlert error="تعذّر تحميل بيانات المصحف الآن، حدّث الصفحة بعد قليل." />
         ) : (
-          <CreateKhatmaForm />
+          <CreateKhatmaForm boundaries={boundaries} surahNames={surahNames} />
         )}
       </div>
     </>

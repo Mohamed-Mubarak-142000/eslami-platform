@@ -7,7 +7,7 @@ import { requireSession } from "@/features/auth/session";
 import type { FormState } from "@/features/auth/actions";
 import { planDay } from "@/features/plan/schedule";
 import { loadBoundaries, loadCurrentKhatma } from "./data";
-import { nextPortion, pagesForDuration, PER_SESSION_OPTIONS, TOTAL_AYAHS } from "./schedule";
+import { nextPortion, pagesForDuration, PER_SESSION_OPTIONS, scopeRange, unitsInRange, type KhatmaScope } from "./schedule";
 
 const GENERIC_ERROR = "تعذّر حفظ الختمة، حاول مرة أخرى.";
 const MUSHAF_ERROR = "تعذّر الوصول إلى بيانات المصحف الآن، حاول بعد قليل.";
@@ -28,10 +28,17 @@ const schema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/, "اختر تاريخ الختم")
       .or(z.literal("")),
     days: z.array(z.coerce.number().int().min(0).max(6)).transform((days) => [...new Set(days)].sort()),
+    scope: z.enum(["all", "surah", "juz"]),
+    fromSurah: z.coerce.number().int().min(1).max(114),
+    toSurah: z.coerce.number().int().min(1).max(114),
+    fromJuz: z.coerce.number().int().min(1).max(30),
+    toJuz: z.coerce.number().int().min(1).max(30),
   })
   .superRefine((value, context) => {
     const issue = (path: string, message: string) => context.addIssue({ code: "custom", path: [path], message });
     if (value.days.length === 0) issue("days", "اختر يومًا واحدًا على الأقل للقراءة");
+    if (value.scope === "surah" && value.fromSurah > value.toSurah) issue("toSurah", "سورة النهاية تأتي بعد سورة البداية");
+    if (value.scope === "juz" && value.fromJuz > value.toJuz) issue("toJuz", "جزء النهاية يأتي بعد جزء البداية");
     if (value.mode === "amount" && !PER_SESSION_OPTIONS[value.unit].includes(value.perSession))
       issue("perSession", "اختر مقدارًا من القائمة");
     if (value.mode === "duration") {
@@ -48,17 +55,33 @@ export async function createKhatmaAction(_: FormState | undefined, formData: For
     perSession: formData.get("perSession") ?? 1,
     targetDay: formData.get("targetDay") ?? "",
     days: formData.getAll("days"),
+    scope: formData.get("scope") ?? "all",
+    fromSurah: formData.get("fromSurah") ?? 1,
+    toSurah: formData.get("toSurah") ?? 114,
+    fromJuz: formData.get("fromJuz") ?? 1,
+    toJuz: formData.get("toJuz") ?? 30,
   });
   if (!parsed.success) {
     const issue = parsed.error.issues[0]!;
     return { fieldErrors: { [String(issue.path[0] ?? "form")]: issue.message } };
   }
   const { mode, unit, perSession, targetDay, days } = parsed.data;
+  const scope: KhatmaScope =
+    parsed.data.scope === "surah"
+      ? { kind: "surah", from: parsed.data.fromSurah, to: parsed.data.toSurah }
+      : parsed.data.scope === "juz"
+        ? { kind: "juz", from: parsed.data.fromJuz, to: parsed.data.toJuz }
+        : { kind: "all" };
+
+  const boundaries = await loadBoundaries();
+  if (!boundaries) return { error: MUSHAF_ERROR };
+  const range = scopeRange(boundaries, scope);
+  if (!range) return { fieldErrors: { [scope.kind === "juz" ? "toJuz" : "toSurah"]: "اختر بداية ونهاية صحيحتين" } };
 
   // Duration mode is stored as pages per session, worked out from the reading days left.
   let amount = { unit, perSession };
   if (mode === "duration") {
-    const pages = pagesForDuration(planDay(), targetDay, days);
+    const pages = pagesForDuration(planDay(), targetDay, days, unitsInRange(boundaries, "pages", range.from, range.to));
     if (pages === null) return { fieldErrors: { targetDay: "لا يوم قراءة قبل هذا التاريخ، اختر تاريخًا أبعد أو أيامًا أكثر." } };
     amount = { unit: "pages", perSession: pages };
   }
@@ -78,6 +101,9 @@ export async function createKhatmaAction(_: FormState | undefined, formData: For
     mode,
     target_day: mode === "duration" ? targetDay : null,
     days,
+    start_ayah: range.from,
+    end_ayah: range.to,
+    position: range.from,
   });
   if (error) return { error: GENERIC_ERROR };
   revalidate();
@@ -110,7 +136,7 @@ export async function completeKhatmaTodayAction(): Promise<KhatmaResult> {
   });
   if (logError) return logError.code === UNIQUE_VIOLATION ? {} : { error: GENERIC_ERROR };
 
-  const finished = portion.to >= TOTAL_AYAHS;
+  const finished = portion.to >= khatma.end_ayah;
   const { error } = await supabase
     .from("khatmas")
     .update({ position: portion.to, ...(finished && { status: "completed" as const, completed_at: new Date().toISOString() }) })

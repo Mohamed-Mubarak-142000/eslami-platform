@@ -284,8 +284,11 @@ export type KhatmaRow = {
   target_day: string | null;
   /** Weekdays, 0 = Sunday … 6 = Saturday. */
   days: number[];
-  /** Next ayah to read, 0-based across the mushaf (6236 = finished). */
+  /** Next ayah to read, 0-based across the mushaf; the khatma is finished once it reaches end_ayah. */
   position: number;
+  /** The part of the mushaf it covers, as 0-based ayah positions [start_ayah, end_ayah); 0 and 6236 for all of it. */
+  start_ayah: number;
+  end_ayah: number;
   status: PlanStatus;
   created_at: Timestamp;
   completed_at: Timestamp | null;
@@ -412,7 +415,10 @@ export type Database = {
       memorization_plan_log: TableDef<MemorizationPlanLogRow, Optional<MemorizationPlanLogRow, "done_at">>;
       khatmas: TableDef<
         KhatmaRow,
-        Optional<KhatmaRow, "id" | "mode" | "target_day" | "days" | "position" | "status" | "created_at" | "completed_at">
+        Optional<
+          KhatmaRow,
+          "id" | "mode" | "target_day" | "days" | "position" | "start_ayah" | "end_ayah" | "status" | "created_at" | "completed_at"
+        >
       >;
       khatma_log: TableDef<KhatmaLogRow, Optional<KhatmaLogRow, "done_at">>;
     };

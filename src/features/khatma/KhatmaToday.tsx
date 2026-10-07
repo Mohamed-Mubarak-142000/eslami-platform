@@ -38,7 +38,7 @@ export function KhatmaToday({ view }: { view: KhatmaView }) {
       <section className="rounded-4xl bg-emerald-deep p-6 text-white shadow-lift">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="font-bold">
-            ختمة القرآن · {view.amount} ({view.daysLabel})
+            {view.scope} · {view.amount} ({view.daysLabel})
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-bold">
             <Flame className="size-4 text-gold-soft" aria-hidden /> {toArabicDigits(view.streak)} ورد متتالٍ
@@ -55,7 +55,7 @@ export function KhatmaToday({ view }: { view: KhatmaView }) {
           <div className="h-full rounded-full bg-gold" style={{ width: `${view.percent}%` }} />
         </div>
         <p className="mt-2 text-sm leading-7 text-white/80">
-          {toArabicDigits(view.pagesDone)} من ٦٠٤ صفحة ({toArabicDigits(view.percent)}٪)
+          {toArabicDigits(view.pagesDone)} من {toArabicDigits(view.totalPages)} صفحة ({toArabicDigits(view.percent)}٪)
           {view.status === "active" && view.finishDay && ` — تختم إن شاء الله قرابة ${formatDay(view.finishDay)}`}
           {view.targetDay && ` (هدفك ${formatDay(view.targetDay)})`}
         </p>
@@ -74,7 +74,9 @@ export function KhatmaToday({ view }: { view: KhatmaView }) {
       {view.status === "completed" ? (
         <section className="rounded-4xl border border-gold/60 bg-linear-to-br from-gold-mist to-white p-6 text-center shadow-soft">
           <PartyPopper className="mx-auto size-10 text-gold-deep" aria-hidden />
-          <h2 className="mt-3 text-2xl font-bold text-emerald-deep">ختمتَ القرآن، تقبّل الله منك!</h2>
+          <h2 className="mt-3 text-2xl font-bold text-emerald-deep">
+            {view.scope === "المصحف كاملًا" ? "ختمتَ القرآن" : `أتممتَ ${view.scope}`}، تقبّل الله منك!
+          </h2>
           {/* Agreed upon (al-Bukhari 6464, Muslim 783). */}
           <p className="mt-2 text-sm text-muted">«أحبُّ الأعمالِ إلى اللهِ أدومُها وإن قلَّ» — ابدأ ختمة جديدة متى شئت.</p>
           <button
