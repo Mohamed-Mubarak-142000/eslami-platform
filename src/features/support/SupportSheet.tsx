@@ -283,77 +283,86 @@ function SupportBody() {
   const next = encodeURIComponent(`${pathname}?support`);
 
   return (
-    <div className="space-y-4 px-5 pb-8 pt-5 sm:px-7">
-      {supporter && (
-        <StatusCard icon={Sparkles} tone="done" title="أنت من داعمي المنارة ✓" body="جزاك الله خيرًا. يمكنك الدعم مرة أخرى متى شئت." />
-      )}
+    // Wide screens: the number and the perks on one side, the form on the other.
+    <div className="mx-auto grid max-w-6xl items-start gap-4 px-5 pb-8 pt-5 sm:px-7 lg:grid-cols-2 lg:gap-6">
+      <div className="space-y-4 lg:sticky lg:top-5">
+        {supporter && (
+          <StatusCard icon={Sparkles} tone="done" title="أنت من داعمي المنارة ✓" body="جزاك الله خيرًا. يمكنك الدعم مرة أخرى متى شئت." />
+        )}
+        <InstaPayCard />
+        <PerksCard />
+      </div>
 
-      <InstaPayCard />
-
-      {account.status === "disabled" ? (
-        <p className="rounded-3xl border border-line bg-white p-5 text-sm leading-7 text-muted">
-          بعد التحويل، أرسل صورة التحويل من تطبيق المنارة ليظهر اسمك ضمن الداعمين.
-        </p>
-      ) : account.status === "signed-out" ? (
-        <section className="rounded-3xl border border-line bg-white p-5">
-          <h3 className="font-bold text-ink">سجّل الدخول لإرسال دعمك</h3>
-          <p className="mt-1 text-sm leading-6 text-muted">نحتاج حسابك لنربط التحويل بك ونرسل لك رسالة الشكر بعد التأكد منه.</p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <Link href={`/login?next=${next}`} onClick={closeSupportSheet} className={buttonClass("primary", "md", "w-full")}>
-              <LogIn aria-hidden /> تسجيل الدخول
-            </Link>
-            <Link href="/register" onClick={closeSupportSheet} className={buttonClass("outline", "md", "w-full")}>
-              <UserPlus aria-hidden /> حساب جديد
-            </Link>
+      <div className="space-y-4">
+        {account.status === "disabled" ? (
+          <p className="rounded-3xl border border-line bg-white p-5 text-sm leading-7 text-muted">
+            بعد التحويل، أرسل صورة التحويل من تطبيق المنارة ليظهر اسمك ضمن الداعمين.
+          </p>
+        ) : account.status === "signed-out" ? (
+          <section className="rounded-3xl border border-line bg-white p-5">
+            <h3 className="font-bold text-ink">سجّل الدخول لإرسال دعمك</h3>
+            <p className="mt-1 text-sm leading-6 text-muted">نحتاج حسابك لنربط التحويل بك ونرسل لك رسالة الشكر بعد التأكد منه.</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <Link href={`/login?next=${next}`} onClick={closeSupportSheet} className={buttonClass("primary", "md", "w-full")}>
+                <LogIn aria-hidden /> تسجيل الدخول
+              </Link>
+              <Link href="/register" onClick={closeSupportSheet} className={buttonClass("outline", "md", "w-full")}>
+                <UserPlus aria-hidden /> حساب جديد
+              </Link>
+            </div>
+          </section>
+        ) : account.status === "loading" || loading ? (
+          <div className="grid place-items-center py-8 text-emerald">
+            <Loader2 className="size-7 animate-spin" aria-label="جارٍ التحميل" />
           </div>
-        </section>
-      ) : account.status === "loading" || loading ? (
-        <div className="grid place-items-center py-8 text-emerald">
-          <Loader2 className="size-7 animate-spin" aria-label="جارٍ التحميل" />
-        </div>
-      ) : pending ? (
-        <StatusCard
-          icon={Clock}
-          tone="wait"
-          title="طلبك قيد المراجعة"
-          body="سنتأكد من التحويل ونرسل لك رسالة شكر على بريدك، ثم يظهر اسمك في قسم داعمي المنارة بإذن الله."
-        />
-      ) : latest?.status === "rejected" && !sendAgain ? (
-        <div className="space-y-3">
+        ) : pending ? (
           <StatusCard
-            icon={X}
-            tone="warn"
-            title="لم نتمكن من تأكيد تحويلك"
-            body={latest.reject_reason ?? "راجع بيانات التحويل والصورة ثم أرسلها مرة أخرى."}
+            icon={Clock}
+            tone="wait"
+            title="طلبك قيد المراجعة"
+            body="سنتأكد من التحويل ونرسل لك رسالة شكر على بريدك، ثم يظهر اسمك في قسم داعمي المنارة بإذن الله."
           />
-          <button type="button" onClick={() => setSendAgain(true)} className={buttonClass("outline", "md", "w-full")}>
-            إرسال طلب جديد
-          </button>
-        </div>
-      ) : null}
+        ) : latest?.status === "rejected" && !sendAgain ? (
+          <div className="space-y-3">
+            <StatusCard
+              icon={X}
+              tone="warn"
+              title="لم نتمكن من تأكيد تحويلك"
+              body={latest.reject_reason ?? "راجع بيانات التحويل والصورة ثم أرسلها مرة أخرى."}
+            />
+            <button type="button" onClick={() => setSendAgain(true)} className={buttonClass("outline", "md", "w-full")}>
+              إرسال طلب جديد
+            </button>
+          </div>
+        ) : null}
 
-      {showForm && account.status === "signed-in" && (
-        <DonationForm
-          defaultName={account.account.name}
-          onSent={() => {
-            setSendAgain(false);
-            reload();
-          }}
-        />
-      )}
-
-      <section className="rounded-3xl border border-line bg-white p-5">
-        <h3 className="font-bold text-ink">ماذا يحصل الداعم؟</h3>
-        <ul className="mt-3 space-y-2">
-          {SUPPORTER_PERKS.map((perk) => (
-            <li key={perk} className="flex items-start gap-2 text-sm leading-6 text-ink">
-              <Check className="mt-1 size-4 shrink-0 text-emerald" aria-hidden />
-              {perk}
-            </li>
-          ))}
-        </ul>
-      </section>
+        {showForm && account.status === "signed-in" && (
+          <DonationForm
+            defaultName={account.account.name}
+            onSent={() => {
+              setSendAgain(false);
+              reload();
+            }}
+          />
+        )}
+      </div>
     </div>
+  );
+}
+
+function PerksCard() {
+  return (
+    <section className="rounded-3xl border border-line bg-white p-5">
+      <h3 className="font-bold text-ink">ماذا يحصل الداعم؟</h3>
+      <ul className="mt-3 space-y-2">
+        {SUPPORTER_PERKS.map((perk) => (
+          <li key={perk} className="flex items-start gap-2 text-sm leading-6 text-ink">
+            <Check className="mt-1 size-4 shrink-0 text-emerald" aria-hidden />
+            {perk}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -408,7 +417,7 @@ export function SupportSheet() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="support-title"
-            className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-[2rem] bg-ivory shadow-lift"
+            className="absolute inset-x-0 bottom-0 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[2rem] bg-ivory shadow-lift"
             style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -438,15 +447,17 @@ export function SupportSheet() {
                 <X className="size-5" aria-hidden />
                 <span className="sr-only">إغلاق</span>
               </button>
-              <p className="relative inline-flex items-center gap-1.5 text-sm font-bold text-gold-soft">
-                <HandHeart className="size-4" aria-hidden /> صدقة جارية
-              </p>
-              <h2 id="support-title" className="relative mt-1 text-3xl font-bold">
-                ادعم المنارة
-              </h2>
-              <p className="relative mt-2 text-sm leading-7 text-white/75">
-                المنارة مجانية لكل مسلم وبلا اشتراكات. دعمك يغطي الخوادم ويضيف قرّاءً وروايات ومحتوى للأطفال.
-              </p>
+              <div className="relative mx-auto max-w-6xl sm:px-1">
+                <p className="inline-flex items-center gap-1.5 text-sm font-bold text-gold-soft">
+                  <HandHeart className="size-4" aria-hidden /> صدقة جارية
+                </p>
+                <h2 id="support-title" className="mt-1 text-3xl font-bold">
+                  ادعم المنارة
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-white/75">
+                  المنارة مجانية لكل مسلم وبلا اشتراكات. دعمك يغطي الخوادم ويضيف قرّاءً وروايات ومحتوى للأطفال.
+                </p>
+              </div>
             </header>
             <div className="flex-1 overflow-y-auto overscroll-contain">
               <SupportBody />
