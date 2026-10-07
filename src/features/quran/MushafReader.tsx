@@ -377,7 +377,7 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
   const shownSlider = sliderValue ?? current;
 
   return (
-    <div className="min-h-dvh transition-colors duration-500" style={themeStyle(themeKey)}>
+    <div className="min-h-dvh overflow-x-clip transition-colors duration-500" style={themeStyle(themeKey)}>
       <header
         ref={headerRef}
         className="sticky top-0 z-30 border-b border-current/10 backdrop-blur-md"
@@ -580,9 +580,12 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
         <motion.div
           ref={stageRef}
           className={cn("relative transition-opacity perspective-[1600px]", pending !== null && "opacity-60")}
+          // A swipe turns the page, but the page itself stays still: no sliding or wobbling while reading.
           drag={coarse ? "x" : false}
-          dragSnapToOrigin
-          dragElastic={0.16}
+          dragDirectionLock
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0}
+          dragMomentum={false}
           onDragEnd={onDragEnd}
         >
           {pending !== null && (
