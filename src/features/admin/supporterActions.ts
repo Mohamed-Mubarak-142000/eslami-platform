@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/features/auth/session";
 import type { FormState } from "@/features/auth/actions";
@@ -9,6 +9,7 @@ import { isMailConfigured, sendMail } from "@/lib/mail/smtp";
 import { renderSupporterThanks } from "@/lib/mail/supporterEmail";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SUPPORTERS_TAG } from "@/features/support/supportInfo";
 
 const FAILED = "تعذّر تنفيذ العملية.";
 /** The private bucket the app uploads transfer screenshots to (supabase/migrations/20261007000001_supporters.sql). */
@@ -18,6 +19,7 @@ const reasonSchema = z.string().trim().max(200, "السبب ٢٠٠ حرف بحد
 
 function revalidateSupporters() {
   revalidatePath("/admin/supporters");
+  updateTag(SUPPORTERS_TAG);
 }
 
 async function facebookUrl(): Promise<string | null> {
