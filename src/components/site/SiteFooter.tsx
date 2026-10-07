@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Divider } from "@/components/ui/Ornament";
+import { SupportButton } from "@/features/support/SupportButton";
 import { DeveloperCredit } from "./DeveloperCredit";
 import { Logo } from "./Logo";
 import { NAV_ITEMS } from "./nav";
@@ -40,6 +41,9 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6">
         <Divider tone="light" />
         <DeveloperCredit />
+        <div className="mt-6 flex justify-center">
+          <SupportButton variant="light" />
+        </div>
         <p className="mt-6 flex justify-center gap-5 text-xs">
           <Link href="/privacy" className="text-white/70 transition-colors hover:text-gold-soft">
             سياسة الخصوصية

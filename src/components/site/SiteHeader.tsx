@@ -13,6 +13,7 @@ import { NavDropdown } from "./NavDropdown";
 import { AccountLinks, AccountMenu } from "@/features/auth/ui/AccountMenu";
 import { useAccount } from "@/features/account/AccountProvider";
 import { InstallAppButton } from "@/features/pwa/InstallAppButton";
+import { SupportButton } from "@/features/support/SupportButton";
 
 const noopSubscribe = () => () => {};
 
@@ -142,6 +143,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ms-auto flex items-center gap-2 lg:ms-3">
+          <SupportButton className="hidden md:inline-flex">ادعم</SupportButton>
           <InstallAppButton />
           <AccountMenu />
         </div>
@@ -210,6 +212,7 @@ export function SiteHeader() {
                     )}
                   </div>
                   <div className="space-y-3 border-t border-line px-5 py-4">
+                    <SupportButton size="md" className="w-full" onOpen={close} />
                     <InstallAppButton variant="block" onDone={close} />
                     <p className="text-center text-xs text-muted">المنارة — قرآن · علم · ذكر</p>
                   </div>
