@@ -207,7 +207,7 @@ function DonationForm({ defaultName, onSent }: { defaultName: string; onSent: ()
         ref={fileRef}
         type="file"
         accept={RECEIPT_TYPES}
-        className="sr-only"
+        className="hidden"
         id="support-receipt"
         onChange={(event) => chooseReceipt(event.target.files?.[0] ?? null)}
       />
@@ -417,7 +417,7 @@ export function SupportSheet() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="support-title"
-            className="absolute inset-x-0 bottom-0 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[2rem] bg-ivory shadow-lift"
+            className="absolute inset-x-0 bottom-0 flex max-h-[92dvh] w-full flex-col overflow-clip rounded-t-[2rem] bg-ivory shadow-lift"
             style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
