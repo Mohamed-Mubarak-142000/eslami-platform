@@ -6,6 +6,7 @@ import {
   BookOpenCheck,
   CalendarDays,
   CalendarRange,
+  CircleDot,
   Clapperboard,
   Clock,
   Compass,
@@ -52,6 +53,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/prayer-times", label: "المواقيت", icon: Clock, description: "مواقيت الصلاة واتجاه القبلة" },
   { href: "/calendar", label: "التقويم", icon: CalendarDays, description: "التقويم الهجري والميلادي" },
   { href: "/adhkar", label: "الأذكار", icon: Sparkles, description: "أذكار وأدعية يومك" },
+  { href: "/tasbih", label: "السبحة", icon: CircleDot, description: "سبحة إلكترونية بأذكارك وعددك" },
 ];
 
 /** The learner's own pages — header only, kept out of the footer and home sections. */
@@ -90,7 +92,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   { id: "journey", label: "رحلتي", icon: Compass, items: JOURNEY_ITEMS },
   { id: "stories", label: "القصص والأطفال", icon: Clapperboard, items: ["/stories", "/kids"].map(byHref) },
-  { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar"].map(byHref) },
+  { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar", "/tasbih"].map(byHref) },
 ];
 
 /**
