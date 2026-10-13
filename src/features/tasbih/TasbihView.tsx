@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
@@ -24,8 +24,10 @@ import { buttonClass } from "@/components/ui/button";
 import { PRESET_ADHKAR, TARGET_CHOICES, TASBIH_THEMES, type Dhikr } from "./tasbihData";
 import { allAdhkar, countTap, currentDhikr, localDate, sessionOf, updateTasbih, useTasbih } from "./tasbihStore";
 import { playBead, unlockBead } from "./beadSound";
+import { canHaptic, haptic } from "./haptics";
 
 const BEADS = 33;
+const noSubscribe = () => () => {};
 
 export function TasbihView() {
   const state = useTasbih();
@@ -36,7 +38,11 @@ export function TasbihView() {
   const [sheet, setSheet] = useState<"adhkar" | "themes" | null>(null);
   const [celebrate, setCelebrate] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
+  /** iPhone Safari has no element fullscreen: there we pin the stage over the page instead. */
+  const [pinned, setPinned] = useState(false);
+  const hapticsAvailable = useSyncExternalStore(noSubscribe, canHaptic, () => false);
   const stageRef = useRef<HTMLDivElement>(null);
+  const expanded = fullscreen || pinned;
 
   const progress = session.target > 0 ? session.count / session.target : (session.count % BEADS) / BEADS;
   const litBeads = session.target > 0 ? Math.round(progress * BEADS) : session.count % BEADS;
@@ -44,7 +50,7 @@ export function TasbihView() {
   function tap() {
     const completed = countTap();
     if (state.sound) playBead(completed);
-    if (state.vibrate) navigator.vibrate?.(completed ? [80, 60, 160] : 18);
+    if (state.vibrate && hapticsAvailable) haptic(completed ? "done" : "tap");
     if (completed) setCelebrate((value) => value + 1);
   }
 
@@ -68,9 +74,27 @@ export function TasbihView() {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  useEffect(() => {
+    if (!pinned) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setPinned(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [pinned]);
+
   function toggleFullscreen() {
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void stageRef.current?.requestFullscreen?.().catch(() => {});
+    if (pinned) return setPinned(false);
+    if (document.fullscreenElement) return void document.exitFullscreen();
+    const stage = stageRef.current;
+    if (stage && document.fullscreenEnabled && stage.requestFullscreen) {
+      stage.requestFullscreen().catch(() => setPinned(true));
+    } else {
+      setPinned(true);
+    }
   }
 
   const toolButton = "grid size-11 place-items-center rounded-full ring-1 transition-transform active:scale-90";
@@ -82,7 +106,8 @@ export function TasbihView() {
         ref={stageRef}
         className={cn(
           "relative isolate flex flex-col items-center overflow-hidden px-4 py-6 transition-[background] duration-700 sm:px-8",
-          fullscreen ? "h-dvh justify-center" : "min-h-[38rem] rounded-[2rem] shadow-lift",
+          expanded ? "h-dvh justify-center overflow-y-auto" : "min-h-[38rem] rounded-[2rem] shadow-lift",
+          pinned && "fixed inset-0 z-[75] pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]",
         )}
         style={{ background: theme.background, color: theme.ink }}
       >
@@ -151,24 +176,29 @@ export function TasbihView() {
           <button type="button" onClick={reset} className={toolButton} style={toolStyle} aria-label="تصفير العدّاد">
             <RotateCcw className="size-5" aria-hidden />
           </button>
-          <button
-            type="button"
-            onClick={() => updateTasbih((current) => ({ ...current, vibrate: !current.vibrate }))}
-            className={toolButton}
-            style={toolStyle}
-            aria-pressed={state.vibrate}
-            aria-label="الاهتزاز"
-          >
-            {state.vibrate ? <Vibrate className="size-5" aria-hidden /> : <VibrateOff className="size-5" aria-hidden />}
-          </button>
+          {hapticsAvailable && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!state.vibrate) haptic("tap");
+                updateTasbih((current) => ({ ...current, vibrate: !current.vibrate }));
+              }}
+              className={toolButton}
+              style={toolStyle}
+              aria-pressed={state.vibrate}
+              aria-label="الاهتزاز"
+            >
+              {state.vibrate ? <Vibrate className="size-5" aria-hidden /> : <VibrateOff className="size-5" aria-hidden />}
+            </button>
+          )}
           <button
             type="button"
             onClick={toggleFullscreen}
             className={toolButton}
             style={toolStyle}
-            aria-label={fullscreen ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
+            aria-label={expanded ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
           >
-            {fullscreen ? <Shrink className="size-5" aria-hidden /> : <Expand className="size-5" aria-hidden />}
+            {expanded ? <Shrink className="size-5" aria-hidden /> : <Expand className="size-5" aria-hidden />}
           </button>
         </div>
 

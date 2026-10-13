@@ -6,7 +6,8 @@ let context: AudioContext | null = null;
 export function playBead(completed: boolean) {
   try {
     context ??= new AudioContext();
-    if (context.state === "suspended") void context.resume();
+    // Safari reports "interrupted" (not "suspended") after the app was backgrounded or a call came in.
+    if (context.state !== "running") void context.resume();
     const now = context.currentTime;
     const notes: (readonly [number, number, number])[] = completed
       ? [
@@ -35,7 +36,7 @@ export function playBead(completed: boolean) {
 export function unlockBead() {
   try {
     context ??= new AudioContext();
-    if (context.state === "suspended") void context.resume();
+    if (context.state !== "running") void context.resume();
   } catch {
     // Ignore: sound is a nicety.
   }
