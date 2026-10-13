@@ -36,21 +36,28 @@ async function juzScope(juz: number): Promise<JuzScope | null> {
 
 const CODE_PATTERN = /^[A-Z2-9]{5}-[A-Z2-9]{5}$/;
 
+/** A juz certificate, else a Forty Nawawi one (both share the code format). */
 const findCertificate = cache(async (raw: string) => {
   const code = decodeURIComponent(raw).trim().toUpperCase();
   if (!isSupabaseConfigured || !CODE_PATTERN.test(code)) return null;
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.rpc("verify_certificate", { code });
-  const row = data?.[0];
-  return row ? { ...row, code } : null;
+  const juz = data?.[0];
+  if (juz) return { ...juz, code, subject: `الجزء ${juzOrdinal(juz.juz)}` };
+  const { data: nawawi } = await supabase.rpc("verify_nawawi_certificate", { code });
+  const row = nawawi?.[0];
+  return row ? { ...row, juz: null, code, subject: "الأربعين النووية" } : null;
 });
 
 export async function generateMetadata({ params }: PageProps<"/certificates/[code]">): Promise<Metadata> {
   const certificate = await findCertificate((await params).code);
   if (!certificate) return { title: "شهادة غير موجودة", robots: { index: false } };
   return {
-    title: `شهادة ${certificate.holder_name} — الجزء ${juzOrdinal(certificate.juz)}`,
-    description: `شهادة اجتياز اختبار حفظ الجزء ${juzOrdinal(certificate.juz)} من القرآن الكريم على منصة المنارة.`,
+    title: `شهادة ${certificate.holder_name} — ${certificate.subject}`,
+    description:
+      certificate.juz === null
+        ? "شهادة اجتياز اختبار الأربعين النووية على منصة المنارة."
+        : `شهادة اجتياز اختبار حفظ ${certificate.subject} من القرآن الكريم على منصة المنارة.`,
     robots: { index: false },
   };
 }
@@ -59,7 +66,7 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
   const certificate = await findCertificate((await params).code);
   if (!certificate) notFound();
   const verifyUrl = `${SITE_URL}/certificates/${certificate.code}`;
-  const scope = await juzScope(certificate.juz);
+  const scope = certificate.juz === null ? null : await juzScope(certificate.juz);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-10 sm:px-6">
@@ -78,27 +85,28 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
         )}
         {certificate.revoked
           ? "هذه الشهادة أُلغيت من إدارة المنصة ولم تعد سارية."
-          : `شهادة صحيحة صادرة من منصة المنارة لـ ${certificate.holder_name} — الجزء ${juzOrdinal(certificate.juz)} (${toArabicDigits(certificate.score)}/${toArabicDigits(certificate.total)}).`}
+          : `شهادة صحيحة صادرة من منصة المنارة لـ ${certificate.holder_name} — ${certificate.subject} (${toArabicDigits(certificate.score)}/${toArabicDigits(certificate.total)}).`}
       </div>
 
       <Certificate
         holderName={certificate.holder_name}
-        juz={certificate.juz}
+        course={certificate.juz === null ? { kind: "nawawi" } : { kind: "juz", juz: certificate.juz, scope }}
         score={certificate.score}
         total={certificate.total}
         issuedAt={certificate.issued_at}
         code={certificate.code}
         verifyUrl={verifyUrl}
         revoked={certificate.revoked}
-        scope={scope}
       />
 
       {!certificate.revoked && (
         <div className="flex flex-wrap justify-center gap-3">
           <PrintButton />
-          <Link href="/exams" className={buttonClass("outline", "lg")}>
-            اختبر جزءًا آخر
-          </Link>
+          {certificate.juz !== null && (
+            <Link href="/exams" className={buttonClass("outline", "lg")}>
+              اختبر جزءًا آخر
+            </Link>
+          )}
         </div>
       )}
     </div>

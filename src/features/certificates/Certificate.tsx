@@ -4,6 +4,9 @@ import { toArabicDigits } from "@/lib/arabic";
 import { Divider } from "@/components/ui/Ornament";
 import { BrandMark } from "@/components/site/BrandMark";
 import { FrameCorner } from "@/features/quran/MushafFrame";
+import { CERTIFICATE_QUOTE, NAWAWI } from "@/features/nawawi/nawawiData";
+
+const NAWAWI_COUNT = NAWAWI.length;
 
 const JUZ_ORDINALS = [
   "الأول",
@@ -57,16 +60,18 @@ export interface JuzScope {
   pages?: { start: number; end: number } | undefined;
 }
 
+/** What the certificate is for: a juz of the Quran, or the Forty Nawawi Hadiths. */
+export type CertificateCourse = { kind: "juz"; juz: number; scope?: JuzScope | null } | { kind: "nawawi" };
+
 interface CertificateProps {
   holderName: string;
-  juz: number;
+  course: CertificateCourse;
   score: number;
   total: number;
   issuedAt: string;
   code: string;
   verifyUrl: string;
   revoked: boolean;
-  scope?: JuzScope | null;
 }
 
 function gradeLabel(percent: number): string {
@@ -90,8 +95,54 @@ const TEXT = {
 };
 const CORNER = "size-[max(2.5rem,5.5cqw)]!";
 
-/** Printable certificate (server component): ornate mushaf-style frame, holder, juz, result, dates, QR to verification. */
-export async function Certificate({ holderName, juz, score, total, issuedAt, code, verifyUrl, revoked, scope }: CertificateProps) {
+/** The wording that differs between a juz certificate and the Nawawi one. */
+function courseText(course: CertificateCourse, grade: string) {
+  if (course.kind === "nawawi") {
+    return {
+      label: "شهادة اجتياز اختبار الأربعين النووية",
+      title: "شهادة اجتياز اختبار",
+      badge: "الأربعون النووية",
+      detail: ["عدد الأحاديث", toArabicDigits(NAWAWI_COUNT)] as [string, string],
+      body: (
+        <>
+          قد اجتاز اختبار <span className="font-bold text-emerald-deep">الأربعين النووية</span> للإمام يحيى بن شرف النووي رحمه الله، حفظًا
+          وفهمًا، بتقدير <span className="font-bold text-gold-deep">{grade}</span>، سائلين الله أن ينفعه بما تعلّم، وأن يرزقه العمل به.
+        </>
+      ),
+      quote: CERTIFICATE_QUOTE,
+      note: "الشهادة تقيس الحفظ والفهم، وليست إجازة في رواية الحديث",
+    };
+  }
+  const { juz, scope } = course;
+  return {
+    label: `شهادة اجتياز اختبار حفظ الجزء ${juzOrdinal(juz)}`,
+    title: "شهادة اجتياز اختبار حفظ",
+    badge: `الجزء ${juzOrdinal(juz)}`,
+    detail: (scope?.pages
+      ? ["صفحات المصحف", `${toArabicDigits(scope.pages.start)} – ${toArabicDigits(scope.pages.end)}`]
+      : ["رقم الجزء", toArabicDigits(juz)]) as [string, string],
+    body: (
+      <>
+        قد اجتاز اختبار حفظ <span className="font-bold text-emerald-deep">الجزء {juzOrdinal(juz)}</span> من القرآن الكريم
+        {scope && (
+          <>
+            {" "}
+            (من سورة {scope.from.surah} الآية {toArabicDigits(scope.from.ayah)} إلى سورة {scope.to.surah} الآية{" "}
+            {toArabicDigits(scope.to.ayah)})
+          </>
+        )}{" "}
+        بتقدير <span className="font-bold text-gold-deep">{grade}</span>، سائلين الله أن يجعل القرآن ربيع قلبه ونور صدره، وأن يرزقه العمل
+        به.
+      </>
+    ),
+    // Al-Bukhari (5027).
+    quote: { text: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ", attribution: "رواه البخاري" },
+    note: "الشهادة تقيس الحفظ، وليست إجازة في التلاوة",
+  };
+}
+
+/** Printable certificate (server component): ornate mushaf-style frame, holder, course, result, dates, QR to verification. */
+export async function Certificate({ holderName, course, score, total, issuedAt, code, verifyUrl, revoked }: CertificateProps) {
   const qr = await QRCode.toString(verifyUrl, {
     type: "svg",
     margin: 0,
@@ -100,19 +151,18 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
   });
   const percent = total > 0 ? Math.round((score / total) * 100) : 0;
   const grade = gradeLabel(percent);
+  const text = courseText(course, grade);
   const issued = new Date(issuedAt);
   const details: [string, string][] = [
     ["الدرجة", `${toArabicDigits(score)} من ${toArabicDigits(total)}`],
     ["النسبة", `${toArabicDigits(percent)}٪`],
     ["التقدير", grade],
-    scope?.pages
-      ? ["صفحات المصحف", `${toArabicDigits(scope.pages.start)} – ${toArabicDigits(scope.pages.end)}`]
-      : ["رقم الجزء", toArabicDigits(juz)],
+    text.detail,
   ];
 
   return (
     <article
-      aria-label={`شهادة اجتياز اختبار حفظ الجزء ${juzOrdinal(juz)} — ${holderName}`}
+      aria-label={`${text.label} — ${holderName}`}
       className={cn(
         "print-area @container pattern-stars-light relative mx-auto flex w-full max-w-5xl rounded-4xl bg-emerald-deep p-[max(0.5rem,1.6cqw)] shadow-lift sm:aspect-[1.414] print:rounded-none print:shadow-none",
         revoked && "grayscale",
@@ -121,7 +171,7 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
     >
       <div className="flex min-w-0 flex-1 rounded-[max(1.1rem,2.2cqw)] border-[max(1.5px,0.22cqw)] border-gold p-[max(0.25rem,0.45cqw)]">
         <div
-          className="relative flex min-w-0 flex-1 flex-col items-center justify-between gap-[max(0.75rem,1.2cqw)] overflow-hidden rounded-[max(0.9rem,1.7cqw)] border border-gold/60 px-[max(1rem,6cqw)] py-[max(1.25rem,3cqw)] text-center"
+          className="relative flex min-w-0 flex-1 flex-col items-center justify-between gap-[max(0.75rem,0.9cqw)] overflow-hidden rounded-[max(0.9rem,1.7cqw)] border border-gold/60 px-[max(1rem,6cqw)] py-[max(1.25rem,2.2cqw)] text-center"
           style={{ background: "var(--page-bg)" }}
         >
           <div className="pattern-stars pointer-events-none absolute inset-0 opacity-35" aria-hidden />
@@ -133,16 +183,14 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
           <header className="relative flex flex-col items-center">
             <BrandMark priority className="h-[max(3rem,6cqw)]" />
             <p className={cn("mt-[0.5cqw] font-bold tracking-wide text-gold-deep", TEXT.sm)}>منصة المنارة للقرآن الكريم</p>
-            <h1 className={cn("mt-[0.3cqw] font-display font-bold leading-tight text-emerald-deep", TEXT.title)}>
-              شهادة اجتياز اختبار حفظ
-            </h1>
+            <h1 className={cn("mt-[0.3cqw] font-display font-bold leading-tight text-emerald-deep", TEXT.title)}>{text.title}</h1>
             <p
               className={cn(
                 "mt-[0.8cqw] rounded-full bg-emerald-deep px-[max(1.25rem,2.6cqw)] py-[max(0.2rem,0.35cqw)] font-display font-bold text-gold-soft",
                 TEXT.lg,
               )}
             >
-              الجزء {juzOrdinal(juz)}
+              {text.badge}
             </p>
           </header>
 
@@ -150,18 +198,7 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
             <p className={cn("text-ink/75", TEXT.md)}>تشهد منصة المنارة بأنّ</p>
             <p className={cn("mt-[0.3cqw] font-display font-bold leading-snug text-gold-deep", TEXT.name)}>{holderName}</p>
             <Divider className="mx-auto mt-[0.6cqw] w-[max(10rem,26cqw)]" />
-            <p className={cn("mx-auto mt-[0.9cqw] max-w-[68cqw] leading-relaxed text-ink/85", TEXT.md)}>
-              قد اجتاز اختبار حفظ <span className="font-bold text-emerald-deep">الجزء {juzOrdinal(juz)}</span> من القرآن الكريم
-              {scope && (
-                <>
-                  {" "}
-                  (من سورة {scope.from.surah} الآية {toArabicDigits(scope.from.ayah)} إلى سورة {scope.to.surah} الآية{" "}
-                  {toArabicDigits(scope.to.ayah)})
-                </>
-              )}{" "}
-              بتقدير <span className="font-bold text-gold-deep">{grade}</span>، سائلين الله أن يجعل القرآن ربيع قلبه ونور صدره، وأن يرزقه
-              العمل به.
-            </p>
+            <p className={cn("mx-auto mt-[0.9cqw] max-w-[68cqw] leading-relaxed text-ink/85", TEXT.md)}>{text.body}</p>
           </div>
 
           <dl className="relative grid w-full max-w-[72cqw] grid-cols-2 gap-[max(0.5rem,1cqw)] sm:grid-cols-4">
@@ -177,7 +214,7 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
           </dl>
 
           <p className={cn("relative font-quran text-emerald-deep", TEXT.lg)}>
-            «خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ» <span className={cn("font-sans text-muted", TEXT.xs)}>— رواه البخاري</span>
+            «{text.quote.text}» <span className={cn("font-sans text-muted", TEXT.xs)}>— {text.quote.attribution}</span>
           </p>
 
           <footer className={cn("relative grid w-full grid-cols-[1fr_auto_1fr] items-end gap-[max(0.75rem,2.5cqw)] text-ink/75", TEXT.sm)}>
@@ -197,7 +234,7 @@ export async function Certificate({ holderName, juz, score, total, issuedAt, cod
             <div className="text-end">
               <p className="font-bold text-emerald-deep">التحقق من الشهادة</p>
               <p>امسح الرمز أو أدخل رقم الشهادة</p>
-              <p className={cn("text-muted", TEXT.xs)}>الشهادة تقيس الحفظ، وليست إجازة في التلاوة</p>
+              <p className={cn("text-muted", TEXT.xs)}>{text.note}</p>
             </div>
           </footer>
 

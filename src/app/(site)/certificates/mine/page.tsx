@@ -14,22 +14,30 @@ export const metadata: Metadata = { title: "شهاداتي", robots: { index: fa
 export default async function MyCertificatesPage() {
   const session = await requireSession("/certificates/mine");
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("certificates")
-    .select("learner_id, juz, holder_name, score, total, verification_code, issued_at, revoked_at")
-    .in(
-      "learner_id",
-      session.learners.map((learner) => learner.id),
-    )
-    .order("issued_at", { ascending: false });
-  const certificates = data ?? [];
+  const learnerIds = session.learners.map((learner) => learner.id);
+  const [{ data }, { data: nawawi }] = await Promise.all([
+    supabase
+      .from("certificates")
+      .select("learner_id, juz, holder_name, score, total, verification_code, issued_at, revoked_at")
+      .in("learner_id", learnerIds)
+      .order("issued_at", { ascending: false }),
+    supabase
+      .from("nawawi_certificates")
+      .select("learner_id, holder_name, score, total, verification_code, issued_at, revoked_at")
+      .in("learner_id", learnerIds),
+  ]);
+  // The Forty Nawawi certificate first, then the juz certificates, newest first.
+  const certificates = [
+    ...(nawawi ?? []).map((certificate) => ({ ...certificate, subject: "الأربعون النووية" })),
+    ...(data ?? []).map((certificate) => ({ ...certificate, subject: `الجزء ${juzOrdinal(certificate.juz)}` })),
+  ];
 
   return (
     <>
       <PageHeader
         kicker="شهاداتي"
         icon={<Award className="size-4" aria-hidden />}
-        title="شهادات الأجزاء"
+        title="شهاداتك"
         description="كل شهادة لها رقم تحقق ورمز QR يتيح لأي أحد التأكد من صحتها."
       />
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -37,10 +45,15 @@ export default async function MyCertificatesPage() {
           <div className="rounded-4xl border border-line bg-white p-10 text-center shadow-soft">
             <GraduationCap className="mx-auto size-12 text-gold-deep" aria-hidden />
             <h2 className="mt-4 text-xl font-bold text-emerald-deep">لا توجد شهادات بعد</h2>
-            <p className="mt-2 text-muted">اجتز اختبار أي جزء لتحصل على أول شهادة.</p>
-            <Link href="/exams" className={buttonClass("primary", "lg", "mt-6")}>
-              اختبارات الأجزاء
-            </Link>
+            <p className="mt-2 text-muted">اجتز اختبار أي جزء، أو أتمّ الأربعين النووية، لتحصل على أول شهادة.</p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link href="/exams" className={buttonClass("primary", "lg")}>
+                اختبارات الأجزاء
+              </Link>
+              <Link href="/nawawi" className={buttonClass("outline", "lg")}>
+                الأربعون النووية
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-10">
@@ -60,7 +73,7 @@ export default async function MyCertificatesPage() {
                           className="flex h-full flex-col rounded-3xl border border-gold/50 bg-linear-to-br from-gold-mist to-white p-5 shadow-soft transition-transform hover:-translate-y-0.5"
                         >
                           <Award className="size-8 text-gold-deep" aria-hidden />
-                          <p className="mt-3 font-display text-lg font-bold text-emerald-deep">الجزء {juzOrdinal(certificate.juz)}</p>
+                          <p className="mt-3 font-display text-lg font-bold text-emerald-deep">{certificate.subject}</p>
                           <p className="text-sm text-muted">
                             {certificate.holder_name} · {toArabicDigits(certificate.score)}/{toArabicDigits(certificate.total)} ·{" "}
                             {formatArabicDate(certificate.issued_at)}

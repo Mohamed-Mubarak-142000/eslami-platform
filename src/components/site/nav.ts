@@ -18,6 +18,7 @@ import {
   Landmark,
   MicVocal,
   MoonStar,
+  NotebookText,
   Radio,
   ScrollText,
   ShieldCheck,
@@ -46,6 +47,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/listen", label: "الاستماع", icon: Headphones, description: "تلاوات لأكثر من مئتي قارئ" },
   { href: "/radio", label: "الإذاعة", icon: Radio, description: "إذاعة القرآن الكريم بث مباشر" },
   { href: "/hadith", label: "الأحاديث", icon: ScrollText, description: "أحاديث نبوية مع شرحها وفوائدها" },
+  { href: "/nawawi", label: "الأربعون النووية", icon: NotebookText, description: "الأحاديث الأربعون بشرحها، باختبار وشهادة" },
   { href: "/ibtihalat", label: "ابتهالات", icon: MoonStar, description: "ابتهالات كبار المبتهلين" },
   { href: "/tawasheeh", label: "تواشيح", icon: MicVocal, description: "تواشيح الشيخ سيد النقشبندي", homeHidden: true },
   { href: "/duas", label: "أدعية", icon: HandHeart, description: "أدعية القنوت وختم القرآن مسموعة", homeHidden: true },
@@ -66,7 +68,7 @@ export const JOURNEY_ITEMS: readonly NavItem[] = [
   { href: "/plan", label: "خطة الحفظ", icon: CalendarRange, description: "وردك اليومي وخطتك", signedInOnly: true },
   { href: "/khatma", label: "الختمة", icon: BookMarked, description: "اختم القرآن بوِرد يومي تختاره", signedInOnly: true },
   { href: "/exams", label: "اختبارات الأجزاء", icon: GraduationCap, description: "اختبر حفظك جزءًا جزءًا", signedInOnly: true },
-  { href: "/certificates/mine", label: "شهاداتي", icon: Award, description: "شهادات الأجزاء التي أتممتها", signedInOnly: true },
+  { href: "/certificates/mine", label: "شهاداتي", icon: Award, description: "شهادات الأجزاء والأربعين النووية", signedInOnly: true },
 ];
 
 export interface NavGroup {
@@ -87,7 +89,7 @@ const byHref = (href: string) => {
 
 export const NAV_GROUPS: readonly NavGroup[] = [
   { id: "home", label: "الرئيسية", icon: Home, description: "البداية", href: "/" },
-  { id: "quran", label: "القرآن والسنة", icon: BookOpen, items: ["/quran", "/listen", "/radio", "/hadith"].map(byHref) },
+  { id: "quran", label: "القرآن والسنة", icon: BookOpen, items: ["/quran", "/listen", "/radio", "/hadith", "/nawawi"].map(byHref) },
   {
     id: "sounds",
     label: "أدعية وابتهالات",
