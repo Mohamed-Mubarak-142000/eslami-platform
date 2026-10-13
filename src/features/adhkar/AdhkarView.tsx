@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Check, CloudMoon, Moon, RotateCcw, Sparkles, Sun, Volume2 } from "lucide-react";
+import { Check, CloudMoon, Loader2, Moon, Pause, RotateCcw, Sparkles, Sun, Volume2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
+import { useAudio } from "@/features/audio/AudioProvider";
 import { AdhkarToastToggle } from "./AdhkarToaster";
-import { DUA_CATEGORY_LABELS, DUA_CHAPTERS, DUAS, type Dua, type DuaCategory } from "./duasData";
+import { DUA_CATEGORY_LABELS, DUA_CHAPTERS, DUAS, duaAudioUrl, type Dua, type DuaCategory } from "./duasData";
 
 const CATEGORY_ICONS: Record<DuaCategory, LucideIcon> = {
   morning: Sun,
@@ -20,7 +21,6 @@ const CATEGORY_ICONS: Record<DuaCategory, LucideIcon> = {
 const ORDER: DuaCategory[] = ["morning", "evening", "after-prayer", "sleep", "waking", "general"];
 
 const noopSubscribe = () => () => {};
-const speechSupported = () => typeof window !== "undefined" && "speechSynthesis" in window;
 
 function defaultCategory(): DuaCategory {
   const hour = new Date().getHours();
@@ -33,7 +33,7 @@ export function AdhkarView() {
   const category = chosen ?? initial;
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [chapter, setChapter] = useState(DUA_CHAPTERS[0]?.id ?? 2);
-  const canSpeak = useSyncExternalStore(noopSubscribe, speechSupported, () => false);
+  const audio = useAudio();
 
   const list = useMemo(
     () => DUAS.filter((dua) => dua.category === category && (category !== "general" || dua.chapter === chapter)),
@@ -41,13 +41,22 @@ export function AdhkarView() {
   );
   const done = list.filter((dua) => (counts[dua.id] ?? 0) >= (dua.repeat ?? 1)).length;
 
-  function speak(text: string) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voice = window.speechSynthesis.getVoices().find((entry) => entry.lang.startsWith("ar"));
-    if (voice) utterance.voice = voice;
-    utterance.lang = voice?.lang ?? "ar";
-    window.speechSynthesis.speak(utterance);
+  // Split cards of one source entry share its recording, so the track is keyed by the audio file.
+  const trackId = (dua: Dua) => `dhikr:${duaAudioUrl(dua)}`;
+
+  function listen(dua: Dua) {
+    if (audio.isCurrent(trackId(dua))) {
+      audio.toggle();
+      return;
+    }
+    audio.play({
+      id: trackId(dua),
+      kind: "clip",
+      title: dua.title,
+      subtitle: "حصن المسلم",
+      src: duaAudioUrl(dua),
+      href: "/adhkar",
+    });
   }
 
   return (
@@ -137,8 +146,8 @@ export function AdhkarView() {
               key={dua.id}
               dua={dua}
               count={counts[dua.id] ?? 0}
-              canSpeak={canSpeak}
-              onSpeak={() => speak(dua.text)}
+              listening={audio.isCurrent(trackId(dua)) ? (audio.loading ? "loading" : audio.playing ? "playing" : "paused") : null}
+              onListen={() => listen(dua)}
               onTap={() => setCounts((current) => ({ ...current, [dua.id]: Math.min(dua.repeat ?? 1, (current[dua.id] ?? 0) + 1) }))}
               onReset={() => setCounts((current) => ({ ...current, [dua.id]: 0 }))}
             />
@@ -160,18 +169,20 @@ export function AdhkarView() {
 function DhikrCard({
   dua,
   count,
-  canSpeak,
+  listening,
   onTap,
   onReset,
-  onSpeak,
+  onListen,
 }: {
   dua: Dua;
   count: number;
-  canSpeak: boolean;
+  /** This card's recording state in the shared player, or null when another track is loaded. */
+  listening: "loading" | "playing" | "paused" | null;
   onTap: () => void;
   onReset: () => void;
-  onSpeak: () => void;
+  onListen: () => void;
 }) {
+  const ListenIcon = listening === "loading" ? Loader2 : listening === "playing" ? Pause : Volume2;
   const target = dua.repeat ?? 1;
   const complete = count >= target;
   const radius = 26;
@@ -251,16 +262,17 @@ function DhikrCard({
               ? `اضغط الدائرة مع كل مرة (${toArabicDigits(target - count)} متبقية)`
               : "اضغط الدائرة عند الانتهاء"}
         </p>
-        {canSpeak && (
-          <button
-            type="button"
-            onClick={onSpeak}
-            className="grid size-10 place-items-center rounded-full text-muted hover:bg-white hover:text-emerald"
-            aria-label="استماع بالنطق الآلي"
-          >
-            <Volume2 className="size-5" aria-hidden />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onListen}
+          className={cn(
+            "grid size-10 place-items-center rounded-full hover:bg-white hover:text-emerald",
+            listening ? "text-emerald" : "text-muted",
+          )}
+          aria-label={listening === "playing" ? "إيقاف الاستماع مؤقتًا" : "استماع للذكر"}
+        >
+          <ListenIcon className={cn("size-5", listening === "loading" && "animate-spin")} aria-hidden />
+        </button>
         {count > 0 && (
           <button
             type="button"
