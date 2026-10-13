@@ -7,6 +7,7 @@ import { BookOpen, CalendarOff, Check, Flame, Loader2, PartyPopper, Trophy } fro
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { FormAlert } from "@/features/auth/ui/AuthFields";
+import { KhatmDuas } from "@/features/khatmDua/KhatmDuas";
 import { archiveKhatmaAction, completeKhatmaTodayAction, type KhatmaResult } from "./actions";
 import type { KhatmaView } from "./view";
 
@@ -143,6 +144,15 @@ export function KhatmaToday({ view }: { view: KhatmaView }) {
             )}
           </section>
         )
+      )}
+
+      {view.status === "completed" && view.scope === "المصحف كاملًا" && (
+        <section aria-labelledby="khatm-dua" className="space-y-4">
+          <h2 id="khatm-dua" className="text-2xl font-bold text-emerald-deep">
+            دعاء ختم القرآن
+          </h2>
+          <KhatmDuas />
+        </section>
       )}
 
       {view.status === "active" && (

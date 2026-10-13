@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import {
   Award,
+  BookHeart,
   BookMarked,
   BookOpen,
   BookOpenCheck,
@@ -48,6 +49,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/ibtihalat", label: "ابتهالات", icon: MoonStar, description: "ابتهالات كبار المبتهلين" },
   { href: "/tawasheeh", label: "تواشيح", icon: MicVocal, description: "تواشيح الشيخ سيد النقشبندي", homeHidden: true },
   { href: "/duas", label: "أدعية", icon: HandHeart, description: "أدعية القنوت وختم القرآن مسموعة", homeHidden: true },
+  { href: "/khatm-dua", label: "دعاء ختم القرآن", icon: BookHeart, description: "أدعية جامعة عند ختم القرآن", homeHidden: true },
   { href: "/ruqyah", label: "الرقية الشرعية", icon: ShieldCheck, description: "رقية من القرآن والسنة الصحيحة" },
   { href: "/adhan", label: "أذان", icon: Landmark, description: "الأذان بأصوات من العالم الإسلامي", homeHidden: true },
   { href: "/stories", label: "القصص", icon: Clapperboard, description: "قصص الأنبياء المصوّرة", signedInOnly: true },
@@ -90,7 +92,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: "sounds",
     label: "أدعية وابتهالات",
     icon: HandHeart,
-    items: ["/ibtihalat", "/tawasheeh", "/duas", "/ruqyah", "/adhan"].map(byHref),
+    items: ["/ibtihalat", "/tawasheeh", "/duas", "/khatm-dua", "/ruqyah", "/adhan"].map(byHref),
   },
   { id: "journey", label: "رحلتي", icon: Compass, items: JOURNEY_ITEMS },
   { id: "stories", label: "القصص والأطفال", icon: Clapperboard, items: ["/stories", "/kids"].map(byHref) },

@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  HandHeart,
   Loader2,
   Lock,
   Minus,
@@ -657,6 +658,14 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
             </MushafFrame>
           </div>
         </motion.div>
+        {current === TOTAL_PAGES && (
+          <Link
+            href="/khatm-dua"
+            className="mx-auto mt-5 flex max-w-md items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 font-bold text-emerald-night shadow-gold hover:bg-gold-soft"
+          >
+            <HandHeart className="size-5" aria-hidden /> دعاء ختم القرآن
+          </Link>
+        )}
       </main>
 
       <nav
