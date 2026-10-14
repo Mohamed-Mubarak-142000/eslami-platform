@@ -128,6 +128,8 @@ export async function runReminders({ date, slot, origin, dryRun, startedAt }: Ru
     pending.map((recipient) => buildReminderMessage(recipient, content, origin, settings.facebook_url)),
     {
       deadline: startedAt + TIME_BUDGET_MS,
+      // Spread over the budget (less a margin for the last messages and the bookkeeping after them).
+      spreadUntil: startedAt + TIME_BUDGET_MS - 20_000,
       onProgress: (done) => (attempted = done),
       // Recorded one by one, so a function killed mid-run still knows who already got it.
       onSent: async (index) => {

@@ -182,6 +182,25 @@ export interface BulkOptions {
   onSent?: (index: number) => void | Promise<void>;
   /** Epoch ms; no new message is started after it, so a serverless function can return in time. */
   deadline?: number;
+  /**
+   * Epoch ms to spread the messages across: each waits a few seconds (with jitter) instead of all leaving
+   * in the same second, which Gmail's filters read as a blast from a personal account and send to spam.
+   * The pause shrinks as the time runs out, so pacing never costs a message.
+   */
+  spreadUntil?: number;
+}
+
+/** The longest pause between two messages, and its random spread (the gap varies like a person's would). */
+const MAX_PAUSE_MS = 4_000;
+const PAUSE_JITTER = 0.4;
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** How long to wait before the next of `left` messages, given the time left until `spreadUntil`. */
+export function pacingDelay(now: number, spreadUntil: number | undefined, left: number, random = Math.random()): number {
+  if (spreadUntil === undefined || left <= 0) return 0;
+  const share = Math.max(0, spreadUntil - now) / left;
+  const base = Math.min(MAX_PAUSE_MS, share);
+  return Math.round(base * (1 - PAUSE_JITTER / 2 + PAUSE_JITTER * random));
 }
 
 /**
@@ -189,11 +208,13 @@ export interface BulkOptions {
  * A rejected recipient is skipped; a dropped connection is reopened; a quota reply stops the run.
  */
 export async function sendBulkMail(messages: MailMessage[], options: BulkOptions = {}): Promise<BulkResult> {
-  const { onProgress, onSent, deadline } = options;
+  const { onProgress, onSent, deadline, spreadUntil } = options;
   const result: BulkResult = { sent: 0, failed: [], stoppedByQuota: false, stoppedByDeadline: false };
   let session: Awaited<ReturnType<typeof openSession>> | null = null;
   try {
     for (const [index, message] of messages.entries()) {
+      // Never before the first message: a single mail goes out at once.
+      if (index > 0) await pause(pacingDelay(Date.now(), spreadUntil, messages.length - index));
       if (deadline !== undefined && Date.now() >= deadline) {
         result.stoppedByDeadline = true;
         break;

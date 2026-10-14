@@ -13,6 +13,9 @@ import { isValidUnsubscribeToken, oneClickUnsubscribeUrl, parseMailingList, site
 import { MAX_RECIPIENTS } from "./limits";
 
 const FAILED = "تعذّر تنفيذ العملية.";
+/** Pacing for a send from the admin page (maxDuration 300 s): spread over 3.5 minutes, nothing new after 4.5. */
+const ANNOUNCEMENT_SPREAD_MS = 210_000;
+const ANNOUNCEMENT_DEADLINE_MS = 270_000;
 
 const lines = (value: string) =>
   value
@@ -165,7 +168,12 @@ export async function sendAnnouncementAction(_: FormState | undefined, formData:
   if (logError) return { error: FAILED };
 
   const [origin, facebook] = await Promise.all([siteOrigin(), facebookUrl()]);
-  const result = await sendBulkMail(recipients.map((recipient) => buildMessage(recipient, parsed.data.subject, content, origin, facebook)));
+  // Paced over at most ~3.5 minutes (the page allows 300 s), not all in one second; see spreadUntil.
+  const startedAt = Date.now();
+  const result = await sendBulkMail(
+    recipients.map((recipient) => buildMessage(recipient, parsed.data.subject, content, origin, facebook)),
+    { spreadUntil: startedAt + ANNOUNCEMENT_SPREAD_MS, deadline: startedAt + ANNOUNCEMENT_DEADLINE_MS },
+  );
   await admin
     .from("announcements")
     .update({ sent_count: result.sent, failed_count: result.failed.length, finished_at: new Date().toISOString() })
@@ -174,6 +182,10 @@ export async function sendAnnouncementAction(_: FormState | undefined, formData:
 
   const summary = `أُرسلت الرسالة إلى ${toArabicDigits(result.sent)} من ${toArabicDigits(recipients.length)} مستلم.`;
   if (result.stoppedByQuota) return { error: `${summary} توقف الإرسال لأن Gmail وصل لحده اليومي.` };
+  if (result.stoppedByDeadline) {
+    const unsent = recipients.length - result.sent - result.failed.length;
+    return { error: `${summary} انتهى الوقت المتاح قبل ${toArabicDigits(unsent)} مستلم؛ أرسلها لهم باختيار «مستلمون محددون».` };
+  }
   if (result.failed.length) return { error: `${summary} تعذّر الإرسال إلى: ${result.failed.join("، ")}` };
   return { message: summary };
 }
