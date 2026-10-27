@@ -19,6 +19,7 @@ import {
   MicVocal,
   MoonStar,
   NotebookText,
+  Plane,
   Radio,
   ScrollText,
   ShieldCheck,
@@ -59,6 +60,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/prayer-times", label: "المواقيت", icon: Clock, description: "مواقيت الصلاة واتجاه القبلة" },
   { href: "/calendar", label: "التقويم", icon: CalendarDays, description: "التقويم الهجري والميلادي" },
   { href: "/adhkar", label: "الأذكار", icon: Sparkles, description: "أذكار وأدعية يومك" },
+  { href: "/umrah", label: "العمرة والسفر", icon: Plane, description: "مناسك العمرة خطوة بخطوة وأدعية السفر" },
   { href: "/tasbih", label: "السبحة", icon: CircleDot, description: "سبحة إلكترونية بأذكارك وعددك" },
 ];
 
@@ -98,7 +100,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   { id: "journey", label: "رحلتي", icon: Compass, items: JOURNEY_ITEMS },
   { id: "stories", label: "القصص والأطفال", icon: Clapperboard, items: ["/stories", "/kids"].map(byHref) },
-  { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar", "/tasbih"].map(byHref) },
+  { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar", "/tasbih", "/umrah"].map(byHref) },
 ];
 
 /**
