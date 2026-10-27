@@ -35,7 +35,9 @@ import { AyahSheet } from "./AyahSheet";
 import { JumpSheet } from "./JumpSheet";
 import { MushafFrame, SurahBanner } from "./MushafFrame";
 import { saveLastRead } from "./lastReadStorage";
-import { TOTAL_PAGES, type MushafAyah, type MushafIndex, type MushafPageData, type PageRun } from "./mushafPageTypes";
+import { TOTAL_PAGES, type GlyphEdition, type MushafAyah, type MushafIndex, type MushafPageData, type PageRun } from "./mushafPageTypes";
+import { MushafGlyphPage } from "./MushafGlyphPage";
+import { loadGlyphFont, type GlyphPalette } from "./glyphFonts";
 import {
   DEFAULT_FONT_STEP,
   FONT_STEPS,
@@ -209,6 +211,19 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
   const surahNames = useMemo(() => Object.fromEntries(index.surahs.map((surah) => [surah.id, surah.name])), [index.surahs]);
   const themeKey: ReaderTheme = SUPPORTER_THEMES.includes(prefs.theme) && !supporter ? "light" : prefs.theme;
   const showTajweed = prefs.tajweed && hafs;
+  /** The tajweed switch in the settings controls the layout on screen. */
+  const tajweedOn = prefs.layout === "printed" ? prefs.printedTajweed : prefs.tajweed;
+  // Hafs pages as printed: the 1405 print, or its tajweed-coloured edition (drawn on the 1421 print).
+  const edition: GlyphEdition = prefs.printedTajweed ? "tajweed" : "v1";
+  const palette: GlyphPalette = themeKey === "night" || themeKey === "dusk" ? "dark" : themeKey === "sepia" ? "sepia" : "light";
+  const [glyphFailed, setGlyphFailed] = useState<string | null>(null);
+  const glyphLines = hafs && prefs.layout === "printed" ? (data.glyphs?.[edition] ?? null) : null;
+  const printed = glyphLines !== null && glyphFailed !== `${current}:${edition}`;
+  const onGlyphFail = useCallback(() => setGlyphFailed(`${current}:${edition}`), [current, edition]);
+  const ayahById = useMemo(
+    () => new Map(data.runs.flatMap((run) => run.ayahs.map((ayah) => [ayah.number, { ayah, run }] as const))),
+    [data],
+  );
   const firstRun = data.runs[0]!;
   const bookmarked = bookmarks.some((entry) => entry.riwaya === riwaya.key && entry.page === current);
 
@@ -258,10 +273,14 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
     [current, load],
   );
 
-  // Keep the neighbours ready so turning a page is instant.
+  // Keep the neighbours ready so turning a page is instant: their text, and their printed fonts.
   useEffect(() => {
-    for (const page of [current + 1, current - 1, current + 2]) if (page >= 1 && page <= TOTAL_PAGES) void load(page);
-  }, [current, load]);
+    for (const page of [current + 1, current - 1, current + 2]) {
+      if (page < 1 || page > TOTAL_PAGES) continue;
+      void load(page);
+      if (hafs && prefs.layout === "printed") void loadGlyphFont(page, edition, palette);
+    }
+  }, [current, load, hafs, prefs.layout, edition, palette]);
 
   // Where you are: in the address bar (shareable, and opened again on reload) and as the last read page.
   useEffect(() => {
@@ -453,6 +472,39 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
                     </select>
                   </label>
 
+                  {hafs && (
+                    <>
+                      <p className="mt-5 text-xs font-bold text-muted">شكل الصفحة</p>
+                      <div className="mt-2 grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="شكل الصفحة">
+                        {(
+                          [
+                            ["printed", "كالمصحف المطبوع"],
+                            ["flow", "نص بحجم تختاره"],
+                          ] as const
+                        ).map(([key, label]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            role="radio"
+                            aria-checked={prefs.layout === key}
+                            onClick={() => setReaderPrefs({ layout: key })}
+                            className={cn(
+                              "rounded-2xl border-2 px-2 py-2.5 text-sm font-bold",
+                              prefs.layout === key ? "border-emerald bg-emerald-mist text-emerald-deep" : "border-line",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
+                        {prefs.layout === "printed"
+                          ? "خط مجمع الملك فهد وسطوره كما في مصحف المدينة، صفحةً صفحة."
+                          : "النص ينساب ويكبر بحجم الخط الذي تختاره."}
+                      </p>
+                    </>
+                  )}
+
                   <p className="mt-5 text-xs font-bold text-muted">لون الصفحة</p>
                   <div className="mt-2 grid grid-cols-5 gap-1.5">
                     {(Object.keys(READER_THEMES) as ReaderTheme[]).map((key) => {
@@ -497,55 +549,66 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
                     </button>
                   )}
 
-                  <p className="mt-5 text-xs font-bold text-muted">حجم الخط</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setReaderPrefs({ fontStep: Math.max(0, prefs.fontStep - 1) })}
-                      disabled={prefs.fontStep === 0}
-                      className="grid size-9 place-items-center rounded-full border border-line disabled:opacity-40"
-                      aria-label="تصغير الخط"
-                    >
-                      <Minus className="size-4" aria-hidden />
-                    </button>
-                    <p
-                      className="quran-text flex-1 truncate rounded-2xl bg-ivory px-2 text-center leading-[1.8]"
-                      style={{ fontSize: Math.min(FONT_STEPS[prefs.fontStep] ?? 30, 34) }}
-                      aria-hidden
-                    >
-                      {SIZE_PREVIEW}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setReaderPrefs({ fontStep: Math.min(FONT_STEPS.length - 1, prefs.fontStep + 1) })}
-                      disabled={prefs.fontStep === FONT_STEPS.length - 1}
-                      className="grid size-9 place-items-center rounded-full border border-line disabled:opacity-40"
-                      aria-label="تكبير الخط"
-                    >
-                      <Plus className="size-4" aria-hidden />
-                    </button>
-                  </div>
-                  <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
-                    {prefs.fontStep <= DEFAULT_FONT_STEP ? "تظهر الصفحة كاملة على الشاشة." : "الخط الأكبر قد يحتاج إلى التمرير."}
-                  </p>
+                  {!(hafs && prefs.layout === "printed") && (
+                    <>
+                      <p className="mt-5 text-xs font-bold text-muted">حجم الخط</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setReaderPrefs({ fontStep: Math.max(0, prefs.fontStep - 1) })}
+                          disabled={prefs.fontStep === 0}
+                          className="grid size-9 place-items-center rounded-full border border-line disabled:opacity-40"
+                          aria-label="تصغير الخط"
+                        >
+                          <Minus className="size-4" aria-hidden />
+                        </button>
+                        <p
+                          className="quran-text flex-1 truncate rounded-2xl bg-ivory px-2 text-center leading-[1.8]"
+                          style={{ fontSize: Math.min(FONT_STEPS[prefs.fontStep] ?? 30, 34) }}
+                          aria-hidden
+                        >
+                          {SIZE_PREVIEW}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setReaderPrefs({ fontStep: Math.min(FONT_STEPS.length - 1, prefs.fontStep + 1) })}
+                          disabled={prefs.fontStep === FONT_STEPS.length - 1}
+                          className="grid size-9 place-items-center rounded-full border border-line disabled:opacity-40"
+                          aria-label="تكبير الخط"
+                        >
+                          <Plus className="size-4" aria-hidden />
+                        </button>
+                      </div>
+                      <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
+                        {prefs.fontStep <= DEFAULT_FONT_STEP ? "تظهر الصفحة كاملة على الشاشة." : "الخط الأكبر قد يحتاج إلى التمرير."}
+                      </p>
+                    </>
+                  )}
 
                   {hafs && (
                     <>
                       <button
                         type="button"
-                        aria-pressed={prefs.tajweed}
-                        onClick={() => setReaderPrefs({ tajweed: !prefs.tajweed })}
+                        aria-pressed={tajweedOn}
+                        onClick={() =>
+                          setReaderPrefs(prefs.layout === "printed" ? { printedTajweed: !tajweedOn } : { tajweed: !tajweedOn })
+                        }
                         className={cn(
                           "mt-5 flex w-full items-center justify-between rounded-2xl border p-3 text-sm font-bold",
-                          prefs.tajweed ? "border-emerald bg-emerald-mist text-emerald-deep" : "border-line",
+                          tajweedOn ? "border-emerald bg-emerald-mist text-emerald-deep" : "border-line",
                         )}
                       >
                         <span className="inline-flex items-center gap-2">
                           <Palette className="size-4" aria-hidden /> ألوان أحكام التجويد
                         </span>
-                        <span>{prefs.tajweed ? "مفعّل" : "متوقف"}</span>
+                        <span>{tajweedOn ? "مفعّل" : "متوقف"}</span>
                       </button>
-                      {prefs.tajweed && (
+                      {prefs.layout === "printed" && tajweedOn && (
+                        <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
+                          مصحف التجويد الملوّن من طبعة ١٤٢١هـ، وتبدأ فيه ٢٥ صفحة بآية تختلف قليلًا عن طبعة ١٤٠٥هـ.
+                        </p>
+                      )}
+                      {prefs.layout !== "printed" && prefs.tajweed && (
                         <ul className="mt-3 flex flex-wrap gap-1.5 text-[0.7rem]" aria-label="دليل ألوان التجويد">
                           {TAJWEED_LEGEND.map((rule) => (
                             <li key={rule.color} className="inline-flex items-center gap-1 rounded-full bg-ivory px-2 py-0.5 font-bold">
@@ -597,64 +660,93 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
           )}
           <div data-mushaf-page>
             <MushafFrame headerStart={`سورة ${firstRun.name}`} headerEnd={headerEnd} page={current}>
-              {data.runs.map((run) => (
-                <section key={run.surah} aria-label={`سورة ${run.name}`}>
-                  {run.opensSurah && (
-                    <>
-                      <SurahBanner name={run.name} />
-                      {run.basmala && (
-                        <p className="quran-text mb-1 text-center" style={textStyle}>
-                          {run.basmala}
-                        </p>
-                      )}
-                    </>
-                  )}
-                  <p className="quran-text text-justify [text-align-last:center]" style={textStyle}>
-                    {run.ayahs.map((ayah) => {
-                      const segments = showTajweed ? ayah.tajweed : null;
-                      const reciting = playingAyah === ayah.number;
-                      return (
-                        <span key={ayah.number}>
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSelected({ ayah, run })}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                setSelected({ ayah, run });
-                              }
-                            }}
-                            className={cn(
-                              "cursor-pointer rounded-lg transition-colors duration-300 hover:bg-gold/15 focus-visible:bg-gold/15",
-                              reciting && "bg-[color-mix(in_srgb,var(--page-accent)_18%,transparent)]",
-                              selected?.ayah.number === ayah.number && "bg-gold/25",
-                            )}
-                          >
-                            {segments
-                              ? segments.map((segment, segmentIndex) =>
-                                  segment.ruleClass ? (
-                                    <span key={segmentIndex} style={{ color: TAJWEED_RULES[segment.ruleClass]?.color }}>
-                                      {segment.text}
-                                    </span>
-                                  ) : (
-                                    <span key={segmentIndex}>{segment.text}</span>
-                                  ),
-                                )
-                              : ayah.text}
-                            {ayah.sajda && (
-                              <span className="ayah-mark" title="موضع سجدة">
-                                ۩
-                              </span>
-                            )}
-                            <AyahNumber number={ayah.numberInSurah} riwayaFont={riwayaFont} />
-                          </span>{" "}
-                        </span>
-                      );
-                    })}
-                  </p>
-                </section>
-              ))}
+              {printed && glyphLines && (
+                <>
+                  <MushafGlyphPage
+                    key={`${current}-${edition}-${palette}`}
+                    page={current}
+                    lines={glyphLines}
+                    edition={edition}
+                    palette={palette}
+                    ink={READER_THEMES[themeKey].ink}
+                    selectedAyah={selected?.ayah.number ?? null}
+                    playingAyah={playingAyah}
+                    onSelect={(id) => {
+                      const found = ayahById.get(id);
+                      if (found) setSelected(found);
+                    }}
+                    onFail={onGlyphFail}
+                  />
+                  {/* The glyphs are a picture of the print; screen readers get the same page as text. */}
+                  <div className="sr-only">
+                    {data.runs.map((run) => (
+                      <p key={run.surah}>
+                        {run.opensSurah && `سورة ${run.name}. `}
+                        {run.ayahs.map((ayah) => `${ayah.text} (${ayah.numberInSurah}) `).join("")}
+                      </p>
+                    ))}
+                  </div>
+                </>
+              )}
+              {!printed &&
+                data.runs.map((run) => (
+                  <section key={run.surah} aria-label={`سورة ${run.name}`}>
+                    {run.opensSurah && (
+                      <>
+                        <SurahBanner name={run.name} />
+                        {run.basmala && (
+                          <p className="quran-text mb-1 text-center" style={textStyle}>
+                            {run.basmala}
+                          </p>
+                        )}
+                      </>
+                    )}
+                    <p className="quran-text text-justify [text-align-last:center]" style={textStyle}>
+                      {run.ayahs.map((ayah) => {
+                        const segments = showTajweed ? ayah.tajweed : null;
+                        const reciting = playingAyah === ayah.number;
+                        return (
+                          <span key={ayah.number}>
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setSelected({ ayah, run })}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  setSelected({ ayah, run });
+                                }
+                              }}
+                              className={cn(
+                                "cursor-pointer rounded-lg transition-colors duration-300 hover:bg-gold/15 focus-visible:bg-gold/15",
+                                reciting && "bg-[color-mix(in_srgb,var(--page-accent)_18%,transparent)]",
+                                selected?.ayah.number === ayah.number && "bg-gold/25",
+                              )}
+                            >
+                              {segments
+                                ? segments.map((segment, segmentIndex) =>
+                                    segment.ruleClass ? (
+                                      <span key={segmentIndex} style={{ color: TAJWEED_RULES[segment.ruleClass]?.color }}>
+                                        {segment.text}
+                                      </span>
+                                    ) : (
+                                      <span key={segmentIndex}>{segment.text}</span>
+                                    ),
+                                  )
+                                : ayah.text}
+                              {ayah.sajda && (
+                                <span className="ayah-mark" title="موضع سجدة">
+                                  ۩
+                                </span>
+                              )}
+                              <AyahNumber number={ayah.numberInSurah} riwayaFont={riwayaFont} />
+                            </span>{" "}
+                          </span>
+                        );
+                      })}
+                    </p>
+                  </section>
+                ))}
             </MushafFrame>
           </div>
         </motion.div>

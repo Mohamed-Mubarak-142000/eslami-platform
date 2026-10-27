@@ -6,6 +6,7 @@ import { TOTAL_PAGES } from "./mushafPageTypes";
 import { loadRiwaya } from "./riwayaText";
 import { findRiwaya, type OtherRiwayaKey, type RiwayaKey } from "./riwayat";
 import { getSurahTajweedAyahs } from "./tajweedApi";
+import { getGlyphLines } from "./glyphApi";
 import { getJuzStarts, getMushafPageStarts, getSurahAyahs, getSurahTafsir, type AyahRef } from "./textApi";
 
 type SurahInfo = { id: number; name: string; meccan: boolean };
@@ -64,7 +65,13 @@ async function hafsPage(page: number): Promise<MushafPageData | null> {
   const present = runs.filter((run): run is PageRun => run !== null);
   const lead = present[0]?.ayahs[0];
   if (!lead) return null;
-  return { riwaya: "hafs", page, juz: lead.juz, hizbQuarter: lead.hizbQuarter, runs: present, recitation: null };
+  // The printed page is a bonus over the text: if quran.com can't be reached, the page still shows.
+  const name = (id: number) => info(surahs, id).name;
+  const [v1, tajweed] = await Promise.all([
+    getGlyphLines(page, "v1", name).catch(() => null),
+    getGlyphLines(page, "tajweed", name).catch(() => null),
+  ]);
+  return { riwaya: "hafs", page, juz: lead.juz, hizbQuarter: lead.hizbQuarter, runs: present, glyphs: { v1, tajweed }, recitation: null };
 }
 
 async function riwayaPage(key: OtherRiwayaKey, page: number): Promise<MushafPageData | null> {

@@ -23,6 +23,20 @@ export interface PageRun {
   ayahs: MushafAyah[];
 }
 
+/** The printed page's font: the 1405 Madinah print (V1), or the tajweed-coloured 1421 print (V4 on V2's layout). */
+export type GlyphEdition = "v1" | "tajweed";
+
+/** A word as a glyph of the page's own font; `ayah` is the global ayah number (1…6236). */
+export interface GlyphWord {
+  code: string;
+  ayah: number;
+  /** The ayah-end ornament with its number. */
+  end: boolean;
+}
+
+/** One of the page's printed lines. */
+export type MushafLine = { kind: "words"; words: GlyphWord[] } | { kind: "surah"; surah: number; name: string } | { kind: "basmala" };
+
 export interface MushafPageData {
   riwaya: RiwayaKey;
   page: number;
@@ -30,6 +44,8 @@ export interface MushafPageData {
   /** Null for a riwaya's own mushaf, which carries no hizb data. */
   hizbQuarter: number | null;
   runs: PageRun[];
+  /** Hafs only: the page as printed, in each edition; null when it couldn't load (the text still shows). */
+  glyphs?: Record<GlyphEdition, MushafLine[] | null> | null;
   /** Another riwaya: a full-surah recitation of the page's first surah in that riwaya, when one exists. */
   recitation: { surah: number; reciter: string; src: string } | null;
 }

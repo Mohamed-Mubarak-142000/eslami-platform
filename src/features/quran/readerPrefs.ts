@@ -43,10 +43,17 @@ export const FONT_STEPS = [22, 26, 30, 35, 41] as const;
 /** At this step and below the page shrinks to fit the screen whole, like a printed page; larger ones scroll. */
 export const DEFAULT_FONT_STEP = 2;
 
+/** Hafs pages as printed (the King Fahd Complex's per-page font), or as flowing text that resizes. */
+export type ReaderLayout = "printed" | "flow";
+
 export interface ReaderPrefs {
   theme: ReaderTheme;
   fontStep: number;
+  /** Tajweed colours on the flowing text. */
   tajweed: boolean;
+  layout: ReaderLayout;
+  /** Tajweed colours on the printed page (the coloured edition of the font); off, it reads like the print. */
+  printedTajweed: boolean;
 }
 
 export interface PageBookmark {
@@ -58,7 +65,7 @@ export interface PageBookmark {
 
 const PREFS_KEY = "al-manara:mushaf-prefs:v1";
 const BOOKMARKS_KEY = "al-manara:mushaf-bookmarks:v1";
-const DEFAULT_PREFS: ReaderPrefs = { theme: "light", fontStep: DEFAULT_FONT_STEP, tajweed: true };
+const DEFAULT_PREFS: ReaderPrefs = { theme: "light", fontStep: DEFAULT_FONT_STEP, tajweed: true, layout: "printed", printedTajweed: false };
 const NO_BOOKMARKS: PageBookmark[] = [];
 
 function createStore<T>(key: string, fallback: T, valid: (value: unknown) => T | null) {
@@ -97,6 +104,8 @@ const prefsStore = createStore<ReaderPrefs>(PREFS_KEY, DEFAULT_PREFS, (value) =>
     theme: v.theme && v.theme in READER_THEMES ? v.theme : DEFAULT_PREFS.theme,
     fontStep: Number.isInteger(v.fontStep) && v.fontStep! >= 0 && v.fontStep! < FONT_STEPS.length ? v.fontStep! : DEFAULT_PREFS.fontStep,
     tajweed: typeof v.tajweed === "boolean" ? v.tajweed : DEFAULT_PREFS.tajweed,
+    layout: v.layout === "flow" ? "flow" : DEFAULT_PREFS.layout,
+    printedTajweed: typeof v.printedTajweed === "boolean" ? v.printedTajweed : DEFAULT_PREFS.printedTajweed,
   };
 });
 
