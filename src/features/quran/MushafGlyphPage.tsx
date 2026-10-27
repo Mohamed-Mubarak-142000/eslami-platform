@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { BASMALA } from "./textApi";
-import { glyphFont, loadGlyphFont, type GlyphPalette } from "./glyphFonts";
+import { loadGlyphFont, type GlyphPalette } from "./glyphFonts";
 import type { GlyphEdition, MushafLine } from "./mushafPageTypes";
 
 /** A printed line's height, in units of the glyph size. */
@@ -57,27 +57,28 @@ function SurahTitle({ name }: { name: string }) {
  */
 export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAyah, playingAyah, onSelect, onFail }: MushafGlyphPageProps) {
   const boxRef = useRef<HTMLDivElement>(null);
-  const { family } = glyphFont(page, edition, palette);
+  // The family the page's font loaded under — known once it has loaded and been seen to draw.
+  const [family, setFamily] = useState<string | null>(null);
+  const ready = family !== null;
   // Only the COLRv1 tajweed font has palettes to choose from (Safari's OT-SVG one is picked by file).
-  const paletteName = family.startsWith("qcf4-p") ? `--${family}-ink` : null;
+  const paletteName = family?.startsWith("qcf4-p") ? `--${family}-ink` : null;
   const paletteRule = paletteName
     ? `@font-palette-values ${paletteName} { font-family: "${family}"; base-palette: ${palette === "dark" ? DARK_PALETTE : 0}; override-colors: ${INK_ENTRIES.map((entry) => `${entry} ${ink}`).join(", ")}; }`
     : null;
-  const [readyFamily, setReadyFamily] = useState<string | null>(null);
-  const ready = readyFamily === family;
   const [fitted, setFitted] = useState(false);
+  const sample = lines.find((line) => line.kind === "words")?.words[0]?.code;
 
   useEffect(() => {
     let cancelled = false;
-    void loadGlyphFont(page, edition, palette).then((ok) => {
+    void loadGlyphFont(page, edition, palette, sample).then((loaded) => {
       if (cancelled) return;
-      if (ok) setReadyFamily(family);
+      if (loaded) setFamily(loaded);
       else onFail();
     });
     return () => {
       cancelled = true;
     };
-  }, [page, edition, palette, family, onFail]);
+  }, [page, edition, palette, sample, onFail]);
 
   useLayoutEffect(() => {
     const box = boxRef.current;
@@ -146,7 +147,12 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
             <div
               data-glyph-line
               className="flex w-full items-center"
-              style={{ fontFamily: family, fontSize: "var(--glyph-size)", lineHeight: 1, ...(paletteName && { fontPalette: paletteName }) }}
+              style={{
+                fontFamily: family ?? undefined,
+                fontSize: "var(--glyph-size)",
+                lineHeight: 1,
+                ...(paletteName && { fontPalette: paletteName }),
+              }}
             >
               {line.words.map((word, wordIndex) => {
                 const tint = word.ayah === playingAyah ? "playing" : word.ayah === selectedAyah ? "selected" : null;
