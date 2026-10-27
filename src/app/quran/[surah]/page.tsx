@@ -31,7 +31,8 @@ export async function generateMetadata({ params }: PageProps<"/quran/[surah]">):
 
 /**
  * The mushaf opened at a page: `?page=` when given (khatma, plan and last-read links carry it),
- * otherwise where the surah begins. From there the reader turns through all 604 pages.
+ * otherwise where the surah begins. From there the reader turns through all 604 pages — or, with
+ * `?until=&wird=`, only through the day's portion.
  */
 export default async function SurahPage({ params, searchParams }: PageProps<"/quran/[surah]">) {
   const number = parseSurah((await params).surah);
@@ -49,6 +50,13 @@ export default async function SurahPage({ params, searchParams }: PageProps<"/qu
   }
   const surahStart = index?.surahs[number - 1]?.startPage ?? 1;
   const page = Number.isInteger(pageParam) && pageParam >= 1 && pageParam <= TOTAL_PAGES ? pageParam : surahStart;
+  // A day's portion (khatma or plan "اقرأ الآن"): the reader keeps to pages page..until.
+  const untilParam = Number(Array.isArray(query.until) ? query.until[0] : query.until);
+  const wirdParam = Array.isArray(query.wird) ? query.wird[0] : query.wird;
+  const portion =
+    Number.isInteger(untilParam) && untilParam >= page && untilParam <= TOTAL_PAGES && (wirdParam === "khatma" || wirdParam === "plan")
+      ? { from: page, to: untilParam, kind: wirdParam as "khatma" | "plan" }
+      : null;
   const data = index ? await getMushafPage(riwaya.key, page) : null;
 
   if (!index || !data) {
@@ -67,13 +75,14 @@ export default async function SurahPage({ params, searchParams }: PageProps<"/qu
   return (
     <MushafReader
       // A new riwaya or a link to another page starts the reader afresh.
-      key={`${riwaya.key}-${page}`}
+      key={`${riwaya.key}-${page}-${portion?.to ?? ""}`}
       initialPage={data}
       index={index}
       riwaya={riwaya.key === "hafs" ? HAFS : { key: riwaya.key, label: riwaya.label, short: riwaya.short }}
       riwayaFailed={chosen.key !== riwaya.key}
       failedRiwayaLabel={chosen.label}
       riwayaFont={riwaya.key !== "hafs" ? riwayaFontFamily(riwaya.key) : null}
+      portion={portion}
     />
   );
 }

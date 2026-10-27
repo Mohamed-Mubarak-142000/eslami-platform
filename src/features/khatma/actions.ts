@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireSession } from "@/features/auth/session";
 import type { FormState } from "@/features/auth/actions";
-import { planDay } from "@/features/plan/schedule";
+import { missedDay, planDay } from "@/features/plan/schedule";
 import { loadBoundaries, loadCurrentKhatma } from "./data";
 import { nextPortion, pagesForDuration, PER_SESSION_OPTIONS, scopeRange, unitsInRange, type KhatmaScope } from "./schedule";
 
@@ -116,14 +116,28 @@ export interface KhatmaResult {
 
 /** Marks today's portion read and moves on; the last one finishes the khatma. Safe to press twice. */
 export async function completeKhatmaTodayAction(): Promise<KhatmaResult> {
+  return logKhatmaPortion("today");
+}
+
+/**
+ * Records a portion read on a day the learner forgot to record (the latest such reading day of the
+ * last week): the next portion is logged against that day, so today's stays open.
+ */
+export async function completeKhatmaMissedAction(): Promise<KhatmaResult> {
+  return logKhatmaPortion("missed");
+}
+
+async function logKhatmaPortion(which: "today" | "missed"): Promise<KhatmaResult> {
   const { activeLearner } = await requireSession("/khatma");
   const supabase = await createSupabaseServerClient();
   const [current, boundaries] = await Promise.all([loadCurrentKhatma(supabase, activeLearner.id), loadBoundaries()]);
   if (!current || current.khatma.status !== "active") return { error: "لا توجد ختمة جارية." };
   if (!boundaries) return { error: MUSHAF_ERROR };
   const { khatma, log } = current;
-  const today = planDay();
-  if (log.some((row) => row.day === today)) return {};
+  const days = log.map((row) => row.day);
+  const today = which === "today" ? planDay() : missedDay(days, planDay(), khatma.days, planDay(new Date(khatma.created_at)));
+  if (!today) return { error: "لا يوجد يوم فائت في الأسبوع الماضي لتسجيله." };
+  if (days.includes(today)) return {};
   const portion = nextPortion(khatma, boundaries);
   if (!portion) return {};
 

@@ -12,10 +12,10 @@ import { DaysPicker, FieldError } from "./FormBits";
 import { SurahPicker, type KnownSelection, type PickerJuz, type PickerSurah } from "./SurahPicker";
 import { ALL_DAYS, finishDay, PAGES_PER_DAY_OPTIONS, pagesLabel, planDay, rangePages, unitsLabel, type JuzPages } from "./schedule";
 
-const fieldClass =
+export const fieldClass =
   "h-12 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink outline-none focus:border-emerald/50 focus:shadow-soft";
-const FAR_OPTIONS = [0, 1, 2, 3, 5, 10, 20];
-const REVIEW_OPTIONS = [1, 2, 3, 4, 5, 10, 20];
+export const FAR_OPTIONS = [0, 1, 2, 3, 5, 10, 20];
+export const REVIEW_OPTIONS = [1, 2, 3, 4, 5, 10, 20];
 const FINISH_FORMAT = new Intl.DateTimeFormat("ar-EG", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 type Kind = "memorize" | "review";

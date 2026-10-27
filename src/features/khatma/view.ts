@@ -1,5 +1,15 @@
 import "server-only";
-import { daysLabel, finishDay, nextScheduledDay, planDay, shiftDay, streak, weekday, WEEKDAY_NAMES } from "@/features/plan/schedule";
+import {
+  daysLabel,
+  finishDay,
+  missedDay,
+  nextScheduledDay,
+  planDay,
+  shiftDay,
+  streak,
+  weekday,
+  WEEKDAY_NAMES,
+} from "@/features/plan/schedule";
 import type { KhatmaWithLog } from "./data";
 import { toArabicDigits } from "@/lib/arabic";
 import {
@@ -42,6 +52,8 @@ export interface KhatmaView {
   streak: number;
   finished: number;
   portion: KhatmaPortion | null;
+  /** A reading day of the last week with nothing recorded: "أمس" or "يوم السبت". */
+  missed: string | null;
 }
 
 export function buildKhatmaView(
@@ -61,6 +73,15 @@ export function buildKhatmaView(
   const pagesDone = khatma.position >= khatma.end_ayah ? totalPages : unitsInRange(boundaries, "pages", khatma.start_ayah, khatma.position);
   const next = nextScheduledDay(khatma.days, shiftDay(today, 1));
   const juzHint = khatma.unit === "pages" ? pagesInJuz(khatma.per_session) : null;
+  const missed =
+    khatma.status === "active"
+      ? missedDay(
+          log.map((row) => row.day),
+          today,
+          khatma.days,
+          planDay(new Date(khatma.created_at)),
+        )
+      : null;
 
   return {
     status: khatma.status === "completed" ? "completed" : "active",
@@ -80,13 +101,15 @@ export function buildKhatmaView(
       khatma.days,
     ),
     finished,
+    missed: missed === null ? null : missed === shiftDay(today, -1) ? "أمس" : `يوم ${WEEKDAY_NAMES[weekday(missed)]}`,
     portion: range && {
       done: logged !== undefined,
       from: end(range.from),
       to: end(range.to - 1),
       startPage: pageOfIndex(boundaries, range.from),
       endPage: pageOfIndex(boundaries, range.to - 1),
-      href: `/quran/${toRef(range.from).surah}?page=${pageOfIndex(boundaries, range.from)}`,
+      // Only the portion's pages, so the reader sees where today's reading ends.
+      href: `/quran/${toRef(range.from).surah}?page=${pageOfIndex(boundaries, range.from)}&until=${pageOfIndex(boundaries, range.to - 1)}&wird=khatma`,
     },
   };
 }

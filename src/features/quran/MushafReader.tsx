@@ -99,7 +99,20 @@ interface MushafReaderProps {
   failedRiwayaLabel: string;
   /** The typeface of the riwaya's own mushaf; null for Hafs. */
   riwayaFont: string | null;
+  /** Today's khatma or plan portion: the reader keeps to these pages and says when it's done. */
+  portion?: ReaderPortion | null;
 }
+
+export interface ReaderPortion {
+  from: number;
+  to: number;
+  kind: "khatma" | "plan";
+}
+
+const PORTION_HOME: Record<ReaderPortion["kind"], { href: Route; label: string }> = {
+  khatma: { href: "/khatma", label: "الختمة" },
+  plan: { href: "/plan", label: "خطة الحفظ" },
+};
 
 function readStoredRiwaya(): string | null {
   try {
@@ -117,9 +130,13 @@ function storeRiwaya(key: RiwayaKey) {
   }
 }
 
-function pageHref(surah: number, page: number, riwaya: RiwayaKey): Route {
+function pageHref(surah: number, page: number, riwaya: RiwayaKey, portion?: ReaderPortion | null): Route {
   const params = new URLSearchParams({ page: String(page) });
   if (riwaya !== "hafs") params.set("riwaya", riwaya);
+  if (portion) {
+    params.set("until", String(portion.to));
+    params.set("wird", portion.kind);
+  }
   return `/quran/${surah}?${params.toString()}` as Route;
 }
 
@@ -177,12 +194,60 @@ function RiwayaBar({
   );
 }
 
+/** In a portion: where you are in it, and — past its last page — that it's done. */
+function PortionBar({ portion, current, done, onExit }: { portion: ReaderPortion; current: number; done: boolean; onExit: () => void }) {
+  const total = portion.to - portion.from + 1;
+  const position = Math.min(total, current - portion.from + 1);
+  const home = PORTION_HOME[portion.kind];
+  if (done) {
+    return (
+      <div className="mb-4 rounded-3xl border border-gold/50 bg-gold-mist p-5 text-center text-ink" role="status">
+        <p className="text-lg font-bold text-emerald-deep">أتممت وِردك، تقبّل الله منك</p>
+        <p className="mt-1 text-sm text-muted">ارجع إلى {home.label} لتسجّل أنك قرأته.</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Link href={home.href} className="inline-flex h-10 items-center rounded-full bg-emerald px-5 text-sm font-bold text-white">
+            سجّل الورد في {home.label}
+          </Link>
+          <button
+            type="button"
+            onClick={onExit}
+            className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold text-muted hover:bg-current/5"
+          >
+            تابع القراءة في المصحف
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-2xl border border-current/10 px-4 py-2.5 text-sm">
+      <span className="shrink-0 font-bold">
+        ورد اليوم: صفحة {toArabicDigits(position)} من {toArabicDigits(total)}
+      </span>
+      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-current/10" aria-hidden>
+        <span className="block h-full rounded-full bg-gold" style={{ width: `${(position / total) * 100}%` }} />
+      </span>
+      <button type="button" onClick={onExit} className="shrink-0 text-xs font-bold opacity-70 hover:opacity-100">
+        المصحف كاملًا
+      </button>
+    </div>
+  );
+}
+
 /**
  * The mushaf read as one book: pages 1–604 of the chosen riwaya, each with every surah printed on it.
  * Pages load from /api/mushaf as they're turned (the neighbours ahead of time). At the normal text size
  * and below, a page shrinks to show whole on the screen, like a printed page.
  */
-export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedRiwayaLabel, riwayaFont }: MushafReaderProps) {
+export function MushafReader({
+  initialPage,
+  index,
+  riwaya,
+  riwayaFailed,
+  failedRiwayaLabel,
+  riwayaFont,
+  portion = null,
+}: MushafReaderProps) {
   const router = useRouter();
   const audio = useAudio();
   const prefs = useReaderPrefs();
@@ -201,6 +266,10 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [jumpOpen, setJumpOpen] = useState(false);
   const [selected, setSelected] = useState<{ ayah: MushafAyah; run: PageRun } | null>(null);
+  /** Turned past the portion's last page: the "portion done" panel shows. */
+  const [portionDone, setPortionDone] = useState(false);
+  const firstPage = portion?.from ?? 1;
+  const lastPage = portion?.to ?? TOTAL_PAGES;
   const directionRef = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -250,7 +319,9 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
 
   const goTo = useCallback(
     (page: number, direction?: 1 | -1) => {
-      if (page < 1 || page > TOTAL_PAGES || page === current) return;
+      if (portion && page > portion.to) return setPortionDone(true);
+      setPortionDone(false);
+      if (page < firstPage || page > lastPage || page === current) return;
       const show = (loaded: MushafPageData) => {
         directionRef.current = direction ?? (page > current ? 1 : -1);
         setFailed(null);
@@ -270,23 +341,24 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
         }
       });
     },
-    [current, load],
+    [current, load, portion, firstPage, lastPage],
   );
 
   // Keep the neighbours ready so turning a page is instant: their text, and their printed fonts.
   useEffect(() => {
     for (const page of [current + 1, current - 1, current + 2]) {
-      if (page < 1 || page > TOTAL_PAGES) continue;
+      if (page < firstPage || page > lastPage) continue;
       void load(page);
       if (hafs && prefs.layout === "printed") void loadGlyphFont(page, edition, palette);
     }
-  }, [current, load, hafs, prefs.layout, edition, palette]);
+  }, [current, load, hafs, prefs.layout, edition, palette, firstPage, lastPage]);
 
   // Where you are: in the address bar (shareable, and opened again on reload) and as the last read page.
   useEffect(() => {
     saveLastRead({ surahId: firstRun.surah, surahName: firstRun.name, page: current });
-    window.history.replaceState(window.history.state, "", pageHref(firstRun.surah, current, riwaya.key));
-  }, [current, firstRun.surah, firstRun.name, riwaya.key]);
+    // In a portion the address keeps its first page, so a reload reopens the whole portion.
+    window.history.replaceState(window.history.state, "", pageHref(firstRun.surah, portion ? portion.from : current, riwaya.key, portion));
+  }, [current, firstRun.surah, firstRun.name, riwaya.key, portion]);
 
   // Opening the mushaf without ?riwaya= keeps the riwaya chosen last time.
   useEffect(() => {
@@ -641,6 +713,14 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
           </p>
         )}
         {!hafs && <RiwayaBar riwaya={riwaya} data={data} audio={audio} />}
+        {portion && (
+          <PortionBar
+            portion={portion}
+            current={current}
+            done={portionDone}
+            onExit={() => router.push(pageHref(firstRun.surah, current, riwaya.key))}
+          />
+        )}
         <motion.div
           ref={stageRef}
           className={cn("relative transition-opacity perspective-[1600px]", pending !== null && "opacity-60")}
@@ -770,7 +850,7 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
           <button
             type="button"
             onClick={() => goTo(current - 1, -1)}
-            disabled={current === 1}
+            disabled={current === firstPage}
             className="inline-flex h-11 items-center gap-1 rounded-full px-3 text-sm font-bold hover:bg-current/5 disabled:opacity-30 sm:px-4"
           >
             <ChevronRight className="size-5" aria-hidden /> السابقة
@@ -782,12 +862,14 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
               onClick={() => setJumpOpen(true)}
               className="rounded-full px-3 py-0.5 text-xs font-bold opacity-80 hover:bg-current/5 hover:opacity-100"
             >
-              صفحة {toArabicDigits(shownSlider)} من ٦٠٤ · انتقل
+              {portion
+                ? `صفحة ${toArabicDigits(shownSlider - portion.from + 1)} من ${toArabicDigits(portion.to - portion.from + 1)} من وردك`
+                : `صفحة ${toArabicDigits(shownSlider)} من ٦٠٤ · انتقل`}
             </button>
             <input
               type="range"
-              min={1}
-              max={TOTAL_PAGES}
+              min={firstPage}
+              max={lastPage}
               value={shownSlider}
               onChange={(event) => setSliderValue(Number(event.target.value))}
               onPointerUp={() => {
@@ -807,10 +889,10 @@ export function MushafReader({ initialPage, index, riwaya, riwayaFailed, failedR
           <button
             type="button"
             onClick={() => goTo(current + 1, 1)}
-            disabled={current === TOTAL_PAGES}
+            disabled={current === TOTAL_PAGES || portionDone}
             className="inline-flex h-11 items-center gap-1 rounded-full bg-emerald px-4 text-sm font-bold text-white shadow-soft hover:bg-emerald-deep disabled:opacity-40 sm:px-5"
           >
-            التالية <ChevronLeft className="size-5" aria-hidden />
+            {portion && current === portion.to ? "أتممت الورد" : "التالية"} <ChevronLeft className="size-5" aria-hidden />
           </button>
         </div>
       </nav>

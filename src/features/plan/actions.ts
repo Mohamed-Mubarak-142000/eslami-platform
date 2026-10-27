@@ -181,6 +181,82 @@ export async function createPlanAction(_: PlanFormState | undefined, formData: F
   };
 }
 
+const editSchema = z.object({
+  unitsPerDay: z.coerce
+    .number()
+    .int()
+    .refine((value) => (PAGES_PER_DAY_OPTIONS as readonly number[]).includes(value), "اختر مقدارًا من القائمة"),
+  farPages: z.coerce.number().int().min(0, "اختر عددًا من القائمة").max(20, "اختر عددًا من القائمة"),
+  priorSurahs: planSchema.shape.priorSurahs,
+  priorJuz: planSchema.shape.priorJuz,
+  newDays: daysSchema,
+  reviewDays: daysSchema,
+});
+
+/**
+ * Changes the current plan in place: the daily amount, the review size, the days, and what was known
+ * before — so memorizing more surahs elsewhere adds them to the review without starting over. Progress,
+ * the log and the review rotation are kept.
+ */
+export async function updatePlanAction(_: PlanFormState | undefined, formData: FormData): Promise<PlanFormState> {
+  const { activeLearner } = await requireSession("/plan");
+  const supabase = await createSupabaseServerClient();
+  const current = await loadCurrentPlan(supabase, activeLearner.id);
+  if (!current || current.plan.status !== "active") return { error: "لا توجد خطة نشطة." };
+  const { plan } = current;
+  const parsed = editSchema.safeParse({
+    unitsPerDay: formData.get("unitsPerDay") ?? plan.units_per_day,
+    farPages: formData.get("farPages"),
+    priorSurahs: formData.getAll("priorSurahs"),
+    priorJuz: formData.getAll("priorJuz"),
+    newDays: formData.getAll("newDays"),
+    reviewDays: formData.getAll("reviewDays"),
+  });
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]!;
+    return { fieldErrors: { [String(issue.path[0] ?? "form")]: issue.message } };
+  }
+  const { unitsPerDay, farPages, priorSurahs, priorJuz, newDays, reviewDays } = parsed.data;
+  const memorize = plan.kind === "memorize";
+  if (memorize && newDays.length === 0) return { fieldErrors: { newDays: "اختر يومًا واحدًا على الأقل للحفظ" } };
+  if (!memorize && priorSurahs.length === 0 && priorJuz.length === 0) return { fieldErrors: { priorSurahs: PICK_PRIOR } };
+  if (!memorize && farPages < 1) return { fieldErrors: { farPages: "اختر عدد صفحات المراجعة" } };
+  if (reviewDays.length === 0) return { fieldErrors: { reviewDays: "اختر يومًا واحدًا على الأقل للمراجعة" } };
+
+  const [juzStarts, pageStarts] = await Promise.all([getJuzStarts(), getMushafPageStarts()]);
+  const juzPages = buildJuzPages(juzStarts, pageStarts);
+  const juzRanges = buildJuzRanges(juzStarts);
+  if (juzPages.length === 0 || juzRanges.length === 0) return { error: "تعذّر الوصول إلى بيانات المصحف الآن، حاول بعد قليل." };
+  // As when the plan was made: the plan's own pages come into review as they're memorized.
+  const juzPrior = priorJuz.flatMap((juz) => {
+    const { startPage, endPage } = juzPages[juz - 1]!;
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  });
+  const priorPages = [...new Set([...surahsToPages(pageStarts, priorSurahs, getSurahAyahCount), ...juzPrior])]
+    .filter((page) => plan.start_page === null || plan.end_page === null || page < plan.start_page || page > plan.end_page)
+    .sort((a, b) => a - b);
+  if (!memorize && priorPages.length === 0) return { fieldErrors: { priorSurahs: PICK_PRIOR } };
+
+  const { error } = await supabase
+    .from("memorization_plans")
+    .update({
+      units_per_day: memorize ? unitsPerDay : plan.units_per_day,
+      far_review_pages: farPages,
+      prior_surahs: priorSurahs,
+      prior_juz: priorJuz,
+      prior_pages: priorPages,
+      new_days: memorize ? newDays : [],
+      review_days: reviewDays,
+    })
+    .eq("id", plan.id);
+  if (error) return { error: GENERIC_ERROR };
+  revalidate();
+  // Only what was just added counts as newly memorized in the learner's progress.
+  const addedSurahs = priorSurahs.filter((surah) => !plan.prior_surahs.includes(surah));
+  const addedJuz = priorJuz.filter((juz) => !plan.prior_juz.includes(juz));
+  return { message: "حُفظت التعديلات على خطتك.", memorized: knownAyahs(addedSurahs, addedJuz, juzRanges) };
+}
+
 export interface CompleteResult {
   error?: string;
   /** The ayahs just memorized, so the client marks them in the learner's progress. */

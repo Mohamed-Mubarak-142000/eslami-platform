@@ -3,12 +3,12 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { useState, useTransition } from "react";
-import { BookOpen, CalendarOff, Check, Flame, Loader2, PartyPopper, Trophy } from "lucide-react";
+import { BookOpen, CalendarOff, Check, Flame, History, Loader2, PartyPopper, Trophy } from "lucide-react";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { FormAlert } from "@/features/auth/ui/AuthFields";
 import { KhatmDuas } from "@/features/khatmDua/KhatmDuas";
-import { archiveKhatmaAction, completeKhatmaTodayAction, type KhatmaResult } from "./actions";
+import { archiveKhatmaAction, completeKhatmaMissedAction, completeKhatmaTodayAction, type KhatmaResult } from "./actions";
 import type { KhatmaView } from "./view";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("ar-EG", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -16,10 +16,10 @@ const formatDay = (day: string) => DATE_FORMAT.format(new Date(day));
 
 export function KhatmaToday({ view }: { view: KhatmaView }) {
   const [pending, startTransition] = useTransition();
-  const [running, setRunning] = useState<"read" | "archive" | null>(null);
+  const [running, setRunning] = useState<"read" | "missed" | "archive" | null>(null);
   const [error, setError] = useState<string | undefined>();
 
-  function run(kind: "read" | "archive", action: () => Promise<KhatmaResult>) {
+  function run(kind: "read" | "missed" | "archive", action: () => Promise<KhatmaResult>) {
     setRunning(kind);
     setError(undefined);
     startTransition(async () => {
@@ -144,6 +144,23 @@ export function KhatmaToday({ view }: { view: KhatmaView }) {
             )}
           </section>
         )
+      )}
+
+      {view.status === "active" && view.missed && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-gold/40 bg-gold-mist/70 p-4">
+          <p className="flex items-start gap-2 text-sm leading-7 text-ink">
+            <History className="mt-1 size-4 shrink-0 text-gold-deep" aria-hidden />
+            <span>نسيت تسجيل ورد {view.missed}؟ إن كنت قرأته فسجّله، ويُحسب لك الورد الذي يليه دون أن يأخذ مكان ورد اليوم.</span>
+          </p>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => run("missed", completeKhatmaMissedAction)}
+            className={buttonClass("outline", "sm", "shrink-0")}
+          >
+            {spinner("missed") ?? <Check aria-hidden />} قرأت ورد {view.missed}
+          </button>
+        </section>
       )}
 
       {view.status === "completed" && view.scope === "المصحف كاملًا" && (

@@ -1,6 +1,6 @@
 import "server-only";
 import { toArabicDigits } from "@/lib/arabic";
-import type { AyahRef } from "@/features/quran/textApi";
+import { getPageAyahs, type AyahRef } from "@/features/quran/textApi";
 import { loggedOn, type PlanWithLog } from "./data";
 import { planBounds, resolveSegments } from "./portion";
 import {
@@ -38,6 +38,15 @@ export interface PortionPart extends PageLink {
   opening: string;
 }
 
+/** A stretch of one surah to recite in the tasmee page. */
+export interface Recitation {
+  surah: number;
+  surahName: string;
+  from: number;
+  to: number;
+  href: string;
+}
+
 export interface DaySchedule {
   /** Whether today is one of the chosen days. */
   today: boolean;
@@ -67,11 +76,27 @@ export interface TodayView {
   pool: { pages: number; position: number };
   newDays: DaySchedule;
   reviewDays: DaySchedule;
-  /** Null when there's nothing new to memorize; `parts` is null when the Quran API is unreachable. */
-  newPortion: { done: boolean; parts: PortionPart[] | null } | null;
+  /**
+   * Null when there's nothing new to memorize; `parts` is null when the Quran API is unreachable.
+   * `readHref` opens the reader on just the portion's pages.
+   */
+  newPortion: { done: boolean; parts: PortionPart[] | null; readHref: string | null } | null;
   recent: PageLink[];
   far: PageLink[];
+  /** Today's review as surah stretches, for "سمّع المراجعة"; empty when the Quran API is unreachable. */
+  recitations: Recitation[];
+  /** The recent review opened on its pages only (they follow each other). */
+  recentHref: string | null;
   reviewDone: boolean;
+  /** The plan's current settings, for the edit form. */
+  settings: {
+    unitsPerDay: number;
+    farPages: number;
+    newDays: number[];
+    reviewDays: number[];
+    priorSurahs: number[];
+    priorJuz: number[];
+  };
 }
 
 function schedule(days: number[], today: string): DaySchedule {
@@ -81,6 +106,28 @@ function schedule(days: number[], today: string): DaySchedule {
     label: daysLabel(days),
     next: next === null ? null : next === shiftDay(today, 1) ? "غدًا" : `يوم ${WEEKDAY_NAMES[weekday(next)]}`,
   };
+}
+
+/** The review pages' ayahs, merged into one stretch per run of consecutive ayahs of a surah. */
+async function recitationsFor(pages: number[], name: (surah: number) => string): Promise<Recitation[]> {
+  const unique = [...new Set(pages)].sort((a, b) => a - b);
+  const ayahs = (await Promise.all(unique.map((page) => getPageAyahs(page)))).flat();
+  const stretches: Omit<Recitation, "surahName" | "href">[] = [];
+  for (const ayah of ayahs) {
+    const last = stretches.at(-1);
+    if (last && last.surah === ayah.surah && last.to === ayah.numberInSurah - 1) last.to = ayah.numberInSurah;
+    else stretches.push({ surah: ayah.surah, from: ayah.numberInSurah, to: ayah.numberInSurah });
+  }
+  return stretches.map((stretch) => ({
+    ...stretch,
+    surahName: name(stretch.surah),
+    href: `/tasmee?surah=${stretch.surah}&from=${stretch.from}&to=${stretch.to}`,
+  }));
+}
+
+/** The reader on pages first..last only, returning to the plan when they're read. */
+function boundedHref(surah: number, first: number, last: number): string {
+  return `/quran/${surah}?page=${first}&until=${last}&wird=plan`;
 }
 
 export async function buildTodayView(
@@ -103,8 +150,14 @@ export async function buildTodayView(
   if (range && bounds) {
     const segments = unitsToSegments(plan, range);
     const resolved = await resolveSegments(segments, bounds);
+    const firstPage = segments[0]?.page;
+    const lastPage = segments.at(-1)?.page;
     newPortion = {
       done: newToday !== null,
+      readHref:
+        firstPage === undefined || lastPage === undefined
+          ? null
+          : boundedHref(resolved?.[0]?.spans[0]?.surah ?? surahAtPage(pageStarts, firstPage), firstPage, lastPage),
       parts:
         resolved?.map((segment) => {
           const first = segment.spans[0]?.surah ?? surahAtPage(pageStarts, segment.page);
@@ -127,6 +180,12 @@ export async function buildTodayView(
 
   const pool = farPool(plan, recent.from).length;
   const memorize = plan.kind === "memorize";
+  const recentPages = plan.status === "active" ? unitsToSegments(plan, recent).map(link) : [];
+  const farLinks = plan.status === "active" ? farPages(plan, recent.from, cursor).map((page) => link({ page, half: "full" })) : [];
+  const recitations = await recitationsFor(
+    [...recentPages, ...farLinks].map((entry) => entry.page),
+    name,
+  ).catch(() => []);
 
   return {
     kind: plan.kind,
@@ -157,8 +216,21 @@ export async function buildTodayView(
     newDays: schedule(plan.new_days, today),
     reviewDays: schedule(plan.review_days, today),
     newPortion,
-    recent: plan.status === "active" ? unitsToSegments(plan, recent).map(link) : [],
-    far: plan.status === "active" ? farPages(plan, recent.from, cursor).map((page) => link({ page, half: "full" })) : [],
+    recent: recentPages,
+    far: farLinks,
+    recitations,
+    recentHref:
+      recentPages.length > 0
+        ? boundedHref(surahAtPage(pageStarts, recentPages[0]!.page), recentPages[0]!.page, recentPages.at(-1)!.page)
+        : null,
     reviewDone: reviewToday !== null,
+    settings: {
+      unitsPerDay: plan.units_per_day,
+      farPages: plan.far_review_pages,
+      newDays: plan.new_days,
+      reviewDays: plan.review_days,
+      priorSurahs: plan.prior_surahs,
+      priorJuz: plan.prior_juz,
+    },
   };
 }

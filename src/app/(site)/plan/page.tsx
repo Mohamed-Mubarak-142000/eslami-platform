@@ -65,7 +65,7 @@ export default async function PlanPage() {
       />
       <div className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6">
         {view ? (
-          <TodayWird view={view} />
+          <TodayWird view={view} surahs={pickerSurahs} juzList={juzList} />
         ) : juzPages.length > 0 ? (
           <CreatePlanForm
             juzPages={juzPages}

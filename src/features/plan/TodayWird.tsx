@@ -3,13 +3,15 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { useState, useTransition, type ReactNode } from "react";
-import { BookOpen, BookOpenCheck, CalendarOff, Check, Flame, History, Loader2, Mic, Repeat, Trophy } from "lucide-react";
+import { BookOpen, BookOpenCheck, CalendarOff, Check, Flame, History, Loader2, Mic, Pencil, Repeat, Trophy } from "lucide-react";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { FormAlert } from "@/features/auth/ui/AuthFields";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
 import { archivePlanAction, completeNewAction, completeReviewAction, type CompleteResult } from "./actions";
 import type { DaySchedule, PageLink, TodayView } from "./view";
+import { EditPlanForm } from "./EditPlanForm";
+import type { PickerJuz, PickerSurah } from "./SurahPicker";
 
 const HALF_LABEL: Record<PageLink["half"], string> = { full: "", first: " (النصف الأول)", second: " (النصف الثاني)" };
 const FINISH_FORMAT = new Intl.DateTimeFormat("ar-EG", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -84,7 +86,8 @@ function Card({
   );
 }
 
-export function TodayWird({ view }: { view: TodayView }) {
+export function TodayWird({ view, surahs, juzList }: { view: TodayView; surahs: PickerSurah[]; juzList: PickerJuz[] }) {
+  const [editing, setEditing] = useState(false);
   const { setAyahsMemorized } = useKidsProgress();
   const [pending, startTransition] = useTransition();
   const [running, setRunning] = useState<"new" | "review" | "archive" | null>(null);
@@ -216,6 +219,11 @@ export function TodayWird({ view }: { view: TodayView }) {
                   ))}
                 </ul>
               )}
+              {view.newPortion?.readHref && (
+                <Link href={view.newPortion.readHref as Route} className={buttonClass("outline", "md", "mt-4")}>
+                  <BookOpen aria-hidden /> اقرأ ورد اليوم في المصحف
+                </Link>
+              )}
               {!view.newPortion?.done && (
                 <button
                   type="button"
@@ -248,6 +256,14 @@ export function TodayWird({ view }: { view: TodayView }) {
                       <History className="size-4 text-emerald" aria-hidden /> القريب — ما حفظته في آخر أيام الحفظ
                     </h3>
                     <PageChips pages={view.recent} />
+                    {view.recentHref && (
+                      <Link
+                        href={view.recentHref as Route}
+                        className="mt-2 inline-block text-sm font-bold text-emerald underline-offset-4 hover:underline"
+                      >
+                        اقرأ صفحات القريب متتابعة
+                      </Link>
+                    )}
                   </div>
                 )}
                 {view.far.length > 0 && (
@@ -257,6 +273,32 @@ export function TodayWird({ view }: { view: TodayView }) {
                       {memorize ? "البعيد — مما حفظته سابقًا، بالتناوب" : "وِرد التثبيت اليوم"}
                     </h3>
                     <PageChips pages={view.far} />
+                  </div>
+                )}
+                {view.recitations.length > 0 && (
+                  <div className="mt-5 rounded-3xl bg-emerald-mist/60 p-4">
+                    <h3 className="flex items-center gap-2 font-bold text-emerald-deep">
+                      <Mic className="size-4" aria-hidden /> سمّع المراجعة
+                    </h3>
+                    <p className="mt-1 text-xs leading-6 text-muted">
+                      المراجعة بالتسميع أثبت من القراءة: سمّع كل جزء من حفظك، ونوقفك عند الخطأ.
+                    </p>
+                    <ul className="mt-3 flex flex-wrap gap-2">
+                      {view.recitations.map((recitation) => (
+                        <li key={`${recitation.surah}-${recitation.from}`}>
+                          <Link
+                            href={recitation.href as Route}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-emerald-deep ring-1 ring-emerald/20 hover:ring-emerald/50"
+                          >
+                            <Mic className="size-4 text-emerald" aria-hidden />
+                            سورة {recitation.surahName}{" "}
+                            {recitation.from === recitation.to
+                              ? `(${toArabicDigits(recitation.from)})`
+                              : `(${toArabicDigits(recitation.from)}–${toArabicDigits(recitation.to)})`}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
                 {!view.reviewDone && (
@@ -273,7 +315,20 @@ export function TodayWird({ view }: { view: TodayView }) {
             )}
           </Card>
 
-          <div className="text-center">
+          {editing && (
+            <EditPlanForm kind={view.kind} settings={view.settings} surahs={surahs} juzList={juzList} onDone={() => setEditing(false)} />
+          )}
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
+            {!editing && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="inline-flex items-center gap-2 text-sm font-bold text-emerald underline-offset-4 hover:underline"
+              >
+                <Pencil className="size-4" aria-hidden /> تعديل الخطة
+              </button>
+            )}
             <button
               type="button"
               disabled={pending}
