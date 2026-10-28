@@ -12,23 +12,6 @@ export function FrameCorner({ className }: { className: string }) {
   );
 }
 
-export function PageMedallion({ page }: { page: number }) {
-  return (
-    <span className="relative mx-auto grid size-10 place-items-center sm:size-12">
-      <svg viewBox="0 0 48 48" className="absolute inset-0 size-full text-gold" aria-hidden>
-        <path
-          d="M24 2l5.6 13.5L44 10l-5.5 14L44 38l-14.4-5.5L24 46l-5.6-13.5L4 38l5.5-14L4 10l14.4 5.5z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        />
-        <circle cx="24" cy="24" r="12" fill="currentColor" opacity="0.14" />
-      </svg>
-      <span className="relative font-display text-sm font-bold">{toArabicDigits(page)}</span>
-    </span>
-  );
-}
-
 interface MushafFrameProps {
   headerStart: ReactNode;
   headerEnd: ReactNode;
@@ -36,33 +19,21 @@ interface MushafFrameProps {
   children: ReactNode;
 }
 
-/** Ornamental mushaf page: double gold rule, corner rosettes, running header, page medallion. */
+/** A plain mushaf page, as printed: the running header above the text and the page number under it, no frame. */
 export function MushafFrame({ headerStart, headerEnd, page, children }: MushafFrameProps) {
   return (
-    <div className="pattern-stars relative rounded-[1.75rem] p-1.5 shadow-lift sm:p-3" style={{ background: "var(--frame-bg)" }}>
-      <div className="rounded-[1.35rem] border-2 border-gold/70 p-1 sm:p-1.5">
-        <div
-          className="relative rounded-[1rem] border border-gold/45 px-3 pb-2 pt-2.5 sm:px-10 sm:pb-4 sm:pt-4"
-          style={{ background: "var(--page-bg)", color: "var(--page-ink)" }}
-        >
-          <FrameCorner className="right-1 top-1 -scale-x-100" />
-          <FrameCorner className="left-1 top-1" />
-          <FrameCorner className="bottom-1 right-1 rotate-180" />
-          <FrameCorner className="bottom-1 left-1 -scale-y-100" />
-
-          <div
-            className="relative flex items-center justify-between gap-3 border-b border-gold/30 px-6 pb-2 text-xs font-bold sm:text-sm"
-            style={{ color: "var(--page-accent)" }}
-          >
-            <span>{headerStart}</span>
-            <span>{headerEnd}</span>
-          </div>
-          <div className="relative px-1 py-3 sm:px-3 sm:py-5">{children}</div>
-          <div className="relative border-t border-gold/30 pt-2" style={{ color: "var(--page-accent)" }}>
-            <PageMedallion page={page} />
-          </div>
-        </div>
+    <div
+      className="relative px-2 pb-2 pt-2 sm:rounded-[1.25rem] sm:px-10 sm:pb-4 sm:pt-4"
+      style={{ background: "var(--page-bg)", color: "var(--page-ink)" }}
+    >
+      <div className="flex items-center justify-between gap-3 px-2 text-xs font-bold sm:text-sm" style={{ color: "var(--page-accent)" }}>
+        <span>{headerStart}</span>
+        <span>{headerEnd}</span>
       </div>
+      <div className="px-1 py-3 sm:px-3 sm:py-5">{children}</div>
+      <p className="text-center font-display text-sm font-bold" style={{ color: "var(--page-accent)" }}>
+        {toArabicDigits(page)}
+      </p>
     </div>
   );
 }
