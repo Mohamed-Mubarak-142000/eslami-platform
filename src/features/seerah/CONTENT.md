@@ -31,9 +31,12 @@ copied unchanged into the app (almanara-mobile `src/core/seerah/`), with both JS
   other waypoint is checked to be on land.
 - **Pictures:** every beat off the map has a scene of its own, composed in `seerahContent.ts`
   from the parts in `SeerahScenes.tsx`.
-  - **People:** in the scenes they are faceless silhouettes of ordinary crowds. In a panorama
-    chapter (the Hijrah, as a trial) characters have simple cartoon faces, but only:
-    - ordinary people (the people of Makkah and Madinah, the workers on the mosque);
+  - **People:** every chapter is told as a panorama, with characters drawn with simple cartoon faces.
+    Groups standing for companions a beat names (Ja'far's party, the archers at Uhud) and prayer rows
+    stay faceless silhouettes. Faces are drawn only for:
+    - ordinary people (the people of Makkah and Madinah, the workers on the mosque and the trench,
+      pilgrims, the unnamed ranks of armies on both sides);
+    - Thaqif, Hawazin and the people of Khaybar;
     - Quraysh and its pursuers;
     - Suraqa before his Islam;
     - the guide, the lookout on the tower, and kings such as the Najashi and Heraclius.
@@ -47,8 +50,7 @@ copied unchanged into the app (almanara-mobile `src/core/seerah/`), with both JS
     doorway.
 
   - **Angels** are not drawn either; a light or a cloud stands for them.
-  - **Tap notes** on the scenes are short facts drawn from the same sources as the narration. They
-    are part of the review.
+  - **Tap notes, choices and quizzes** (three questions a chapter, four «what did he do?» choices) are short facts drawn from the same sources as the narration. They are part of the review.
 - **Sounds** are synthesized in the browser (`seerahSound.ts`): wind, crickets, waves, a crowd's murmur,
   birdsong, camel bells and a few chimes. There are no recordings and nothing to license. Sound is
   off until the reader turns it on. There is no music.

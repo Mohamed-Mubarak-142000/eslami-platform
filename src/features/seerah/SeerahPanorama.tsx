@@ -12,7 +12,7 @@ import {
   type MotionValue,
 } from "framer-motion";
 import { NightContext, PARTS, Shadow, depthOf } from "./SeerahScenes";
-import type { Interaction, Panorama, SceneItem } from "./seerahContent";
+import type { Interaction, Panorama, ScenePart, SceneItem } from "./seerahContent";
 import { seerahSfx } from "./seerahSound";
 
 /*
@@ -96,7 +96,17 @@ function Item({
 }
 
 /** The travellers, walking to where the beat puts them. */
-function Party({ at, camera, half }: { at: number | undefined; camera: MotionValue<number>; half: MotionValue<number> }) {
+function Party({
+  part,
+  at,
+  camera,
+  half,
+}: {
+  part: ScenePart;
+  at: number | undefined;
+  camera: MotionValue<number>;
+  half: MotionValue<number>;
+}) {
   const reduce = useReducedMotion();
   const position = useMotionValue(at ?? 0);
   const y = 262;
@@ -113,37 +123,53 @@ function Party({ at, camera, half }: { at: number | undefined; camera: MotionVal
   return (
     <motion.g style={{ x }} initial={false} animate={{ opacity: at === undefined ? 0 : 1 }} transition={{ duration: 0.6 }}>
       <g transform={`translate(0 ${y})`}>
-        <Shadow part="party" scale={scale} />
-        <g transform={`scale(${scale})`}>{PARTS.party.draw({ part: "party", x: 0 })}</g>
+        <Shadow part={part} scale={scale} />
+        <g transform={`scale(${scale})`}>{PARTS[part].draw({ part, x: 0 })}</g>
       </g>
     </motion.g>
   );
 }
 
+const MOODS = {
+  night: { color: "#011a15", level: 0.62, stars: true },
+  dawn: { color: "#5b4a7a", level: 0.22, stars: false },
+  dusk: { color: "#7a3b2a", level: 0.28, stars: false },
+} as const;
+
 /**
- * Night over the start of the journey: dark while the camera is within it, the dawn coming up as
- * the camera travels on. Tied to the camera rather than drawn into the land, so every layer of the
- * scene shares the same hour whatever its depth.
+ * A stretch under another sky than day: full while the camera is within it, fading over 150 units
+ * on either side. Tied to the camera rather than drawn into the land, so every layer of the scene
+ * shares the same hour whatever its depth.
  */
-function NightOver({ night, camera, viewWidth }: { night: [number, number]; camera: MotionValue<number>; viewWidth: number }) {
-  const [, to] = night;
-  const dark = useTransform(camera, [to, to + 300], [0.62, 0], { clamp: true });
-  const stars = useTransform(dark, [0, 0.62], [0, 1]);
+function Mood({
+  mood,
+  camera,
+  viewWidth,
+}: {
+  mood: NonNullable<Panorama["moods"]>[number];
+  camera: MotionValue<number>;
+  viewWidth: number;
+}) {
+  const { color, level, stars } = MOODS[mood.sky];
+  const amount = useTransform(camera, [mood.from - 150, mood.from, mood.to, mood.to + 150], [0, level, level, 0], { clamp: true });
+  const starsShown = useTransform(amount, [0, level], [0, 1]);
   return (
     <g pointerEvents="none">
-      <motion.rect width={viewWidth} height={HEIGHT} fill="#011a15" style={{ opacity: dark }} />
-      <motion.g fill="#ffffff" style={{ opacity: stars }}>
-        {Array.from({ length: Math.round(viewWidth / 8) }, (_, index) => (
-          <circle
-            key={index}
-            cx={(index * 97) % viewWidth}
-            cy={(index * 53) % 170}
-            r={0.5 + (index % 3) * 0.4}
-            opacity={0.5 + (index % 2) * 0.4}
-          />
-        ))}
-        <path d={`M${viewWidth - 60} 48a20 20 0 1 0 17 31 16 16 0 1 1-17-31Z`} fill="#e8d7a6" />
-      </motion.g>
+      <motion.rect width={viewWidth} height={HEIGHT} fill={color} style={{ opacity: amount }} />
+      {stars && (
+        <motion.g fill="#ffffff" style={{ opacity: starsShown }}>
+          {Array.from({ length: Math.round(viewWidth / 8) }, (_, index) => (
+            <circle
+              key={index}
+              cx={(index * 97) % viewWidth}
+              cy={(index * 53) % 170}
+              r={0.5 + (index % 3) * 0.4}
+              opacity={0.5 + (index % 2) * 0.4}
+            />
+          ))}
+          <path d={`M${viewWidth - 60} 48a20 20 0 1 0 17 31 16 16 0 1 1-17-31Z`} fill="#e8d7a6" />
+        </motion.g>
+      )}
     </g>
   );
 }
@@ -258,7 +284,7 @@ function EraseTracks({ interaction }: { interaction: Extract<Interaction, { kind
   );
 }
 
-function ChooseRoute({ interaction }: { interaction: Extract<Interaction, { kind: "choose-route" }> }) {
+function ChooseRoute({ interaction }: { interaction: Extract<Interaction, { kind: "choose-route" | "choice" }> }) {
   const [picked, setPicked] = useState<number | null>(null);
   const choice = picked === null ? null : interaction.options[picked]!;
   return (
@@ -384,14 +410,16 @@ export function SeerahPanorama({
               active={note === item.note}
             />
           ))}
-          <Party at={party} camera={camera} half={half} />
+          <Party part={panorama.traveller ?? "party"} at={party} camera={camera} half={half} />
           <Foreground width={panorama.width} camera={camera} half={half} />
-          {panorama.night && <NightOver night={panorama.night} camera={camera} viewWidth={viewWidth} />}
+          {panorama.moods?.map((mood) => (
+            <Mood key={mood.from} mood={mood} camera={camera} viewWidth={viewWidth} />
+          ))}
         </NightContext.Provider>
       </svg>
 
       {interaction?.kind === "erase-tracks" && <EraseTracks key={pan} interaction={interaction} />}
-      {interaction?.kind === "choose-route" && <ChooseRoute key={pan} interaction={interaction} />}
+      {(interaction?.kind === "choose-route" || interaction?.kind === "choice") && <ChooseRoute key={pan} interaction={interaction} />}
 
       <AnimatePresence mode="wait">
         {note ? (

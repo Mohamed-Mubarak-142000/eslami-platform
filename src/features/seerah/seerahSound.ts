@@ -287,6 +287,25 @@ export const seerahSfx = {
     source.start(at);
     source.stop(at + 1.3);
   },
+  /** A gust of wind rising and dying away. */
+  gust() {
+    const at = now();
+    if (at === null || !context || !master) return;
+    const source = context.createBufferSource();
+    source.buffer = noise("brown");
+    const filter = context.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(300, at);
+    filter.frequency.linearRampToValueAtTime(1400, at + 1);
+    filter.frequency.linearRampToValueAtTime(300, at + 2.4);
+    const amp = context.createGain();
+    amp.gain.setValueAtTime(0.0001, at);
+    amp.gain.exponentialRampToValueAtTime(0.7, at + 0.9);
+    amp.gain.exponentialRampToValueAtTime(0.0001, at + 2.5);
+    source.connect(filter).connect(amp).connect(master);
+    source.start(at);
+    source.stop(at + 2.6);
+  },
   /** The chapter's badge. */
   fanfare() {
     const at = now();

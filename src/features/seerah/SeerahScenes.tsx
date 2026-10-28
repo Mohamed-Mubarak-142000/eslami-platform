@@ -158,7 +158,7 @@ function Diggers() {
   return (
     <g>
       {[-60, -25, 15, 50].map((x, index) => (
-        <Figure key={x} x={x} height={24} carry={index % 2 === 0} seed={index + 3} />
+        <Person key={x} x={x} pose={index % 2 === 0 ? "carry" : "stand"} seed={index + 3} flip={index % 2 === 1} />
       ))}
     </g>
   );
@@ -179,7 +179,7 @@ function ClothStone() {
         <ellipse cx="0" cy="-19" rx="6" ry="4" fill="#111" />
       </motion.g>
       {[-34, -14, 14, 34].map((x, index) => (
-        <Figure key={x} x={x} height={24} seed={index + 11} />
+        <Person key={x} x={x} seed={index + 11} flip={x > 0} />
       ))}
     </g>
   );
@@ -1094,6 +1094,118 @@ function Coast() {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Backdrops a panorama station stands in front of, and more people.
+
+/** Flat roofs of a town along the horizon. */
+function Skyline() {
+  return (
+    <g fill="#c2a172">
+      {[-180, -140, -105, -60, -20, 30, 70, 110, 150, 185].map((x, index) => (
+        <rect key={x} x={x} y={-18 - (index % 3) * 6} width={26 + (index % 2) * 10} height={18 + (index % 3) * 6} />
+      ))}
+    </g>
+  );
+}
+
+/** Groves of palms far off: an oasis. */
+function PalmRow() {
+  return (
+    <g fill="#3f6b4a">
+      {[-170, -130, -90, -40, 40, 90, 130, 170].map((x) => (
+        <g key={x}>
+          <rect x={x - 1} y="-14" width="2" height="14" fill="#5a3f22" />
+          <ellipse cx={x} cy="-16" rx="12" ry="5" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** Steep valley walls on either side. */
+function Cliffs() {
+  return (
+    <g fill="#7a6048">
+      <path d="M-220 0V-110l60 30 40 80Z" />
+      <path d="M220 0V-120l-70 40-40 80Z" />
+    </g>
+  );
+}
+
+function Dunes() {
+  return (
+    <g>
+      <path d="M-220 0q110-30 220 0t220 0Z" fill="#e8cf99" />
+      <path d="M-200 0q90-18 180 0" fill="#ddc088" />
+    </g>
+  );
+}
+
+/** An army on the march, faces and spears, banners over them. */
+function Soldiers({ count = 2 }: { count?: number | undefined }) {
+  return (
+    <g>
+      {Array.from({ length: count }, (_, row) => (
+        <g key={row} transform={`translate(${row * 10} ${-row * 7}) scale(${0.85 - row * 0.12})`}>
+          {Array.from({ length: 8 }, (_, index) => (
+            <g key={index} transform={`translate(${(index - 3.5) * 12} 0)`}>
+              <path d="M7 -38V2" stroke={WOOD} strokeWidth="1.2" />
+              <path d="M7 -38l-1.6 4h3.2Z" fill="#9aa0a8" />
+              <Person seed={row * 8 + index + 90} flip={index % 2 === 0} />
+            </g>
+          ))}
+        </g>
+      ))}
+      <g transform="translate(-52 -6)">
+        <Banner />
+      </g>
+      <g transform="translate(40 -10) scale(0.9)">
+        <Banner color="#1f1f1f" />
+      </g>
+    </g>
+  );
+}
+
+/** Pilgrims in the white of ihram, walking together. */
+function Pilgrims({ count = 7 }: { count?: number | undefined }) {
+  const reduce = useReducedMotion();
+  return (
+    <g>
+      {Array.from({ length: count }, (_, index) => (
+        <g key={index} transform={`translate(${(index - (count - 1) / 2) * 12} ${(index % 2) * 3})`}>
+          <motion.g animate={reduce ? {} : { y: [0, -1, 0] }} transition={{ duration: 0.8 + (index % 3) * 0.15, repeat: Infinity }}>
+            <path d="M-6 -22q6-2 12 0l3 22h-18Z" fill="#f6f1e4" stroke="#00000020" strokeWidth="0.6" />
+            <path d="M-6 -20l12 6" stroke="#e2d9c4" strokeWidth="2" />
+            <circle cx="0" cy="-27" r="4.6" fill={SKINS[index % SKINS.length]} />
+            <circle cx="-1.7" cy="-27.3" r="0.6" fill="#2b1d14" />
+            <circle cx="1.7" cy="-27.3" r="0.6" fill="#2b1d14" />
+            {index % 3 !== 2 && <path d="M-3.8 -25.8q3.8 6 7.6 0q-0.8 4-3.8 4.2q-3-0.2-3.8-4.2Z" fill="#2b1d14" />}
+            <path d="M-4.4 -30.5q4.4-4 8.8 0" stroke="#2b1d14" strokeWidth="1.6" fill="none" />
+          </motion.g>
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** Abraha's elephant, turned back from the House. */
+function Elephant() {
+  const reduce = useReducedMotion();
+  return (
+    <motion.g animate={reduce ? {} : { x: [0, -10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+      {[-16, -6, 8, 18].map((x) => (
+        <rect key={x} x={x - 3.5} y="-18" width="7" height="18" rx="2" fill="#7d7a76" />
+      ))}
+      <ellipse cx="0" cy="-26" rx="26" ry="16" fill="#8a8781" />
+      <ellipse cx="24" cy="-32" rx="11" ry="10" fill="#8a8781" />
+      <path d="M33 -30q6 10 2 22" stroke="#8a8781" strokeWidth="5" strokeLinecap="round" fill="none" />
+      <ellipse cx="20" cy="-34" rx="6" ry="8" fill="#76736e" />
+      <circle cx="28" cy="-35" r="1" fill="#2b1d14" />
+      <path d="M-8 -42h20v6h-20Z" fill="#7a2e2e" />
+    </motion.g>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
 // Shadows: how wide a soft shadow each standing part casts, so nothing floats. Sky things, ground
 // marks and the land itself cast none.
 
@@ -1133,6 +1245,9 @@ export const SHADOWS: Partial<Record<ScenePart, number>> = {
   suraqa: 30,
   party: 80,
   "brick-carriers": 56,
+  soldiers: 60,
+  pilgrims: 50,
+  elephant: 30,
   banner: 6,
   lantern: 4,
   fire: 10,
@@ -1211,6 +1326,13 @@ export const PARTS: Record<ScenePart, { draw: (item: SceneItem) => ReactNode; he
   "brick-carriers": { draw: () => <BrickCarriers />, height: 40 },
   harrah: { draw: () => <Harrah />, height: 14 },
   coast: { draw: () => <Coast />, height: 16 },
+  skyline: { draw: () => <Skyline />, height: 30 },
+  "palm-row": { draw: () => <PalmRow />, height: 22 },
+  cliffs: { draw: () => <Cliffs />, height: 110 },
+  dunes: { draw: () => <Dunes />, height: 12 },
+  soldiers: { draw: (item) => <Soldiers count={item.count} />, height: 44 },
+  pilgrims: { draw: (item) => <Pilgrims count={item.count} />, height: 34 },
+  elephant: { draw: () => <Elephant />, height: 48 },
 };
 
 // ---------------------------------------------------------------------------------------------
