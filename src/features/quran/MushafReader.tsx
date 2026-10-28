@@ -349,9 +349,9 @@ export function MushafReader({
     for (const page of [current + 1, current - 1, current + 2]) {
       if (page < firstPage || page > lastPage) continue;
       void load(page);
-      if (hafs && prefs.layout === "printed") void loadGlyphFont(page, edition, palette);
+      if (hafs && prefs.layout === "printed") void loadGlyphFont(page, edition);
     }
-  }, [current, load, hafs, prefs.layout, edition, palette, firstPage, lastPage]);
+  }, [current, load, hafs, prefs.layout, edition, firstPage, lastPage]);
 
   // Where you are: in the address bar (shareable, and opened again on reload) and as the last read page.
   useEffect(() => {

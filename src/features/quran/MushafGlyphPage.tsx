@@ -62,7 +62,7 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
   // The family the page's font loaded under, once it has loaded.
   const [family, setFamily] = useState<string | null>(null);
   const ready = family !== null;
-  // Only the COLRv1 tajweed font has palettes to choose from (Safari's OT-SVG one is picked by file).
+  // Only the tajweed font has palettes to choose from.
   const paletteName = family?.startsWith("qcf4-p") ? `--${family}-ink` : null;
   const paletteRule = paletteName
     ? `@font-palette-values ${paletteName} { font-family: "${family}"; base-palette: ${palette === "dark" ? DARK_PALETTE : 0}; override-colors: ${INK_ENTRIES.map((entry) => `${entry} ${ink}`).join(", ")}; }`
@@ -73,7 +73,7 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
 
   useEffect(() => {
     let cancelled = false;
-    void loadGlyphFont(page, edition, palette).then((loaded) => {
+    void loadGlyphFont(page, edition).then((loaded) => {
       if (cancelled) return;
       if (GLYPH_DEBUG) setDebug(`font load: ${loaded ?? "failed"}`);
       if (loaded) setFamily(loaded);
@@ -82,7 +82,7 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
     return () => {
       cancelled = true;
     };
-  }, [page, edition, palette, onFail]);
+  }, [page, edition, onFail]);
 
   useLayoutEffect(() => {
     const box = boxRef.current;
