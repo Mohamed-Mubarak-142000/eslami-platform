@@ -43,12 +43,15 @@ function initialState(ayahs: Ayah[]): AyahState[] {
   return ayahs.map((ayah) => ({ ayah, words: splitAyahWords(ayah.text), revealed: 0, mark: null }));
 }
 
-/** A hidden word keeps its real text (transparent) so the placeholder is exactly its width. */
+/**
+ * A hidden word keeps its real text so the placeholder is exactly its width. The text is made
+ * invisible rather than transparent: iPhone still drew transparent text (seen on a device).
+ */
 function Word({ text, shown }: { text: string; shown: boolean }) {
   if (shown) return <span>{text}</span>;
   return (
-    <span className="rounded-lg bg-emerald-soft/70 text-transparent select-none" aria-hidden>
-      {text}
+    <span className="rounded-lg bg-emerald-soft/70 select-none" aria-hidden>
+      <span className="invisible">{text}</span>
     </span>
   );
 }
