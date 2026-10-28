@@ -17,6 +17,7 @@ import {
   Home,
   Landmark,
   MicVocal,
+  Milestone,
   MoonStar,
   NotebookText,
   Plane,
@@ -61,6 +62,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/calendar", label: "التقويم", icon: CalendarDays, description: "التقويم الهجري والميلادي" },
   { href: "/adhkar", label: "الأذكار", icon: Sparkles, description: "أذكار وأدعية يومك" },
   { href: "/umrah", label: "العمرة والسفر", icon: Plane, description: "مناسك العمرة خطوة بخطوة وأدعية السفر" },
+  { href: "/seerah", label: "السيرة النبوية", icon: Milestone, description: "سيرة النبي ﷺ فصولًا تفاعلية على الخريطة" },
   { href: "/tasbih", label: "السبحة", icon: CircleDot, description: "سبحة إلكترونية بأذكارك وعددك" },
 ];
 
