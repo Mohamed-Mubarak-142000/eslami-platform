@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DragRow, HiddenRow, ReaderFrameRow, RealPageRow, TurnRow } from "./ReaderParts";
 
 /*
  * Temporary diagnostic: which way of loading the King Fahd Complex page fonts draws on this device.
@@ -202,6 +203,11 @@ export function FontTest() {
       ))}
       <StageTest when="before" />
       <StageTest when="after" />
+      <DragRow />
+      <TurnRow />
+      <HiddenRow />
+      <RealPageRow />
+      <ReaderFrameRow />
     </div>
   );
 }
