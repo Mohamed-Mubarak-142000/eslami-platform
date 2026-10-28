@@ -11,6 +11,8 @@ const LINE_HEIGHT = 1.8;
 /** Below this share of the page's widest line, a line is set centred (a surah's last line, pages 1–2). */
 const CENTRE_BELOW = 0.8;
 const MIN_SIZE = 14;
+/** `?glyphdebug=1` on the first URL (read once: the reader rewrites the address as soon as it opens). */
+const GLYPH_DEBUG = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("glyphdebug");
 /** The page never shrinks below this to fit a short screen; it scrolls instead. */
 const READABLE_SIZE = 22;
 /**
@@ -66,11 +68,14 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
     ? `@font-palette-values ${paletteName} { font-family: "${family}"; base-palette: ${palette === "dark" ? DARK_PALETTE : 0}; override-colors: ${INK_ENTRIES.map((entry) => `${entry} ${ink}`).join(", ")}; }`
     : null;
   const [fitted, setFitted] = useState(false);
+  /** `?glyphdebug=1`: what the page knows about itself, under it — to diagnose devices we can't test on. */
+  const [debug, setDebug] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     void loadGlyphFont(page, edition, palette).then((loaded) => {
       if (cancelled) return;
+      if (GLYPH_DEBUG) setDebug(`font load: ${loaded ?? "failed"}`);
       if (loaded) setFamily(loaded);
       else onFail();
     });
@@ -104,12 +109,27 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
         row.style.gap = centred ? "0.18em" : "0";
       });
       setFitted(true);
+      if (GLYPH_DEBUG) {
+        const first = box.querySelector<HTMLElement>("[data-glyph-line]");
+        const style = first ? getComputedStyle(first) : null;
+        const fontCheck = family ? document.fonts.check(`20px "${family}"`) : "-";
+        setDebug(
+          [
+            `family=${family} check=${fontCheck}`,
+            `size=${size.toFixed(1)} byWidth=${byWidth.toFixed(1)} byHeight=${byHeight.toFixed(1)}`,
+            `widest=${widest.toFixed(0)} box=${box.clientWidth}x${box.clientHeight}`,
+            `rows=${rows.length} spans=${box.querySelectorAll("[data-glyph-line] span").length}`,
+            `palette=${paletteName ?? "none"} font=${style?.fontFamily} color=${style?.color}`,
+            `visibility=${getComputedStyle(box).visibility} opacity=${getComputedStyle(box).opacity}`,
+          ].join(" | "),
+        );
+      }
     };
     fit();
     const observer = new ResizeObserver(fit);
     observer.observe(box);
     return () => observer.disconnect();
-  }, [ready, lines, page]);
+  }, [ready, lines, page, family, paletteName]);
 
   const lineStyle: CSSProperties = { height: `calc(var(--glyph-size) * ${LINE_HEIGHT})` };
 
@@ -181,6 +201,11 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
           </div>
         );
       })}
+      {debug && (
+        <p className="visible mt-2 break-all rounded-lg bg-white p-2 text-left font-mono text-[10px] leading-4 text-black" dir="ltr">
+          {debug}
+        </p>
+      )}
     </div>
   );
 }
