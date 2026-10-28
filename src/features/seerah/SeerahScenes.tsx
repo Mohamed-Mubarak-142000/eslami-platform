@@ -25,7 +25,7 @@ const GOLD = "#cda23e";
 const GOLD_SOFT = "#e8d7a6";
 
 /** Night darkens the ground and the people; parts read it to pick their colours. */
-const NightContext = createContext(false);
+export const NightContext = createContext(false);
 const useNight = () => useContext(NightContext);
 const useInk = () => (useNight() ? NIGHT_INK : INK);
 
@@ -806,9 +806,247 @@ function Seal() {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Characters with faces, drawn simply: ordinary people, Quraysh, and those the rule in CONTENT.md
+// allows. Never the Prophet ﷺ, a prophet, or the companions it lists.
+
+const SKINS = ["#d9a77a", "#c48b5c", "#a8744a", "#8a5a3a"];
+const HEADCLOTHS = ["#efe6d2", "#7a2e2e", "#c9a878", "#5e6e5a", "#3b2a1e"];
+
+type Pose = "stand" | "wave" | "point" | "carry" | "sit";
+
+function Person({
+  x = 0,
+  seed = 1,
+  pose = "stand",
+  beard = true,
+  flip = false,
+}: {
+  x?: number;
+  seed?: number;
+  pose?: Pose;
+  beard?: boolean;
+  flip?: boolean;
+}) {
+  const reduce = useReducedMotion();
+  const skin = SKINS[seed % SKINS.length]!;
+  const cloth = HEADCLOTHS[(seed * 3) % HEADCLOTHS.length]!;
+  const robe = ROBES[(seed * 5) % ROBES.length]!;
+  const sitting = pose === "sit";
+  const body = sitting ? "M-6 -16h12l4 10h-20Z" : "M-6 -22h12l3 22h-18Z";
+  const headY = sitting ? -21 : -27;
+  return (
+    <g transform={`translate(${x} 0) scale(${flip ? -1 : 1} 1)`}>
+      <Bob by={0.6} seconds={2.2 + (seed % 4) * 0.4} delay={(seed % 5) * 0.3}>
+        {sitting && <ellipse cx="0" cy="-5" rx="11" ry="4" fill={robe} />}
+        <path d={body} fill={robe} stroke="#00000026" strokeWidth="0.6" />
+        {/* Arms in the robe's shade. */}
+        {pose === "stand" && <path d="M-5 -19l-3 11M5 -19l3 11" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />}
+        {pose === "point" && <path d="M-5 -19l-3 11M5 -19l11 -3" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />}
+        {pose === "carry" && (
+          <g>
+            <path d="M-5 -19l-2 -10M5 -19l2 -10" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />
+            <rect x="-7" y="-37" width="14" height="5" rx="1" fill={MUD} stroke={MUD_DARK} strokeWidth="0.6" />
+          </g>
+        )}
+        {pose === "wave" && (
+          <>
+            <path d="M-5 -19l-3 11" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />
+            <motion.path
+              d="M5 -19l6 -10"
+              stroke="#00000030"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              style={{ originX: "5px", originY: "-19px" }}
+              animate={reduce ? {} : { rotate: [-15, 20, -15] }}
+              transition={{ duration: 0.9 + (seed % 3) * 0.2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </>
+        )}
+        {sitting && <path d="M-5 -14l-5 6M5 -14l5 6" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />}
+        {/* The head: a face of a few strokes, under a headcloth. */}
+        <circle cx="0" cy={headY} r="4.6" fill={skin} />
+        <circle cx="-1.7" cy={headY - 0.3} r="0.6" fill="#2b1d14" />
+        <circle cx="1.7" cy={headY - 0.3} r="0.6" fill="#2b1d14" />
+        <path d={`M-2.6 ${headY - 1.8}h1.8M0.8 ${headY - 1.8}h1.8`} stroke="#2b1d14" strokeWidth="0.5" strokeLinecap="round" />
+        {beard ? (
+          <path d={`M-3.8 ${headY + 1.2}q3.8 6 7.6 0q-0.8 4-3.8 4.2q-3-0.2-3.8-4.2Z`} fill="#2b1d14" />
+        ) : (
+          <path d={`M-1 ${headY + 2}h2`} stroke="#7a3b2a" strokeWidth="0.6" strokeLinecap="round" />
+        )}
+        <path d={`M-5.4 ${headY + 1}q0-8 5.4-8q5.4 0 5.4 8l1 5h-2.2l-0.6-4.4q-3.6-4-7.2 0l-0.6 4.4h-2.2Z`} fill={cloth} />
+        <path d={`M-4.6 ${headY - 3}h9.2`} stroke="#00000040" strokeWidth="0.9" />
+      </Bob>
+    </g>
+  );
+}
+
+function People({ count = 5, pose = "stand" }: { count?: number | undefined; pose?: Pose }) {
+  return (
+    <g>
+      {Array.from({ length: count }, (_, index) => (
+        <Person
+          key={index}
+          x={(index - (count - 1) / 2) * 13}
+          seed={index + 2}
+          pose={pose}
+          beard={index % 3 !== 2}
+          flip={index % 2 === 1}
+        />
+      ))}
+    </g>
+  );
+}
+
+/** The people of Madinah who came out each morning to wait, and welcomed him. */
+function Wavers({ count = 6 }: { count?: number | undefined }) {
+  return (
+    <g>
+      {Array.from({ length: count }, (_, index) => (
+        <Person
+          key={index}
+          x={(index - (count - 1) / 2) * 13}
+          seed={index + 7}
+          pose={index % 2 ? "wave" : "stand"}
+          beard={index % 3 !== 1}
+        />
+      ))}
+    </g>
+  );
+}
+
+/** Quraysh's elders sitting in council, one of them standing to speak. */
+function Council() {
+  return (
+    <g>
+      {[-30, -15, 15, 30].map((x, index) => (
+        <Person key={x} x={x} seed={index + 21} pose="sit" flip={x > 0} />
+      ))}
+      <Person x={0} seed={25} pose="point" />
+    </g>
+  );
+}
+
+/** The pursuers searching the mountain, one pointing at the ground. */
+function Searchers() {
+  return (
+    <g>
+      <Person x={-14} seed={31} pose="point" />
+      <Person x={2} seed={32} />
+      <Person x={16} seed={33} pose="point" flip />
+    </g>
+  );
+}
+
+/** A watchtower (utum) of Madinah, the man on it calling out that the travellers had come. */
+function Lookout() {
+  return (
+    <g>
+      <path d="M-14 0V-64h28V0Z" fill="#7d7468" />
+      <path d="M-17 -64h34v-4h-34Z" fill="#6a6257" />
+      <path d="M-4 0v-12h8V0Z" fill="#3d2a18" />
+      <g transform="translate(0 -68)">
+        <Person seed={41} pose="wave" />
+      </g>
+    </g>
+  );
+}
+
+/** Suraqa's mare sunk to her knees in the sand, Suraqa still in the saddle. */
+function Suraqa() {
+  const reduce = useReducedMotion();
+  return (
+    <g>
+      <motion.g animate={reduce ? {} : { y: [0, 3, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}>
+        <ellipse cx="0" cy="-12" rx="17" ry="7" fill="#6b3f22" />
+        <path d="M14 -14q7-3 9-14" stroke="#6b3f22" strokeWidth="5" strokeLinecap="round" fill="none" />
+        <path d="M21 -30l5-2-1 6Z" fill="#6b3f22" />
+        <path d="M-17 -12q-6 2-8 8" stroke="#3b2a1e" strokeWidth="2" fill="none" />
+        <g transform="translate(-2 -16)">
+          <Person seed={51} pose="sit" />
+        </g>
+      </motion.g>
+      <path d="M-30 0q30-12 60 0Z" fill="#d9b874" />
+      <Dust />
+    </g>
+  );
+}
+
+/**
+ * The travellers: the guide leading on his camel, and the two camels behind him with a light above
+ * each saddle, for those who are never drawn.
+ */
+function Party() {
+  return (
+    <g>
+      <g transform="translate(48 0)">
+        <Camel load />
+        <g transform="translate(-1 -28)">
+          <Person seed={61} pose="sit" />
+        </g>
+      </g>
+      {[0, -48].map((x) => (
+        <g key={x} transform={`translate(${x} 0)`}>
+          <Camel load />
+          <Pulse from={0.45} to={0.85} seconds={3}>
+            <circle cx="0" cy="-42" r="8" fill={GOLD_SOFT} />
+            <circle cx="0" cy="-42" r="16" fill={GOLD} opacity={0.2} />
+          </Pulse>
+        </g>
+      ))}
+    </g>
+  );
+}
+
+function BrickCarriers() {
+  return (
+    <g>
+      {[-36, -12, 12, 36].map((x, index) => (
+        <Person key={x} x={x} seed={index + 71} pose={index % 2 ? "carry" : "stand"} flip={index % 2 === 0} />
+      ))}
+      <path d="M-60 0h16v-8h-16ZM44 0h16v-10H44Z" fill={MUD} stroke={MUD_DARK} strokeWidth="0.8" />
+    </g>
+  );
+}
+
+/** The harra: Madinah's fields of black volcanic stone. */
+function Harrah() {
+  const next = seeded(83);
+  return (
+    <g>
+      {Array.from({ length: 22 }, (_, index) => (
+        <ellipse
+          key={index}
+          cx={(next() - 0.5) * 220}
+          cy={-next() * 10}
+          rx={4 + next() * 9}
+          ry={2 + next() * 4}
+          fill={index % 3 ? "#3a3530" : "#2b2622"}
+        />
+      ))}
+    </g>
+  );
+}
+
+/** The Red Sea along the horizon, for the coastal road. */
+function Coast() {
+  return (
+    <g>
+      <rect x="-320" y="-16" width="640" height="16" fill="#2a7f9e" />
+      <path
+        d="M-300 -10q20-4 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0"
+        stroke="#cfe8ef"
+        strokeOpacity={0.5}
+        strokeWidth="1.5"
+        fill="none"
+      />
+    </g>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
 // The registry: how to draw each part, and how tall it stands (for its tap marker).
 
-const PARTS: Record<ScenePart, { draw: (item: SceneItem) => ReactNode; height: number }> = {
+export const PARTS: Record<ScenePart, { draw: (item: SceneItem) => ReactNode; height: number }> = {
   house: { draw: () => <House />, height: 28 },
   "house-2": { draw: () => <House floors={2} />, height: 52 },
   "house-lit": { draw: () => <House lit />, height: 28 },
@@ -858,6 +1096,16 @@ const PARTS: Record<ScenePart, { draw: (item: SceneItem) => ReactNode; height: n
   "idols-falling": { draw: () => <IdolsFalling />, height: 18 },
   scroll: { draw: () => <Scroll />, height: 78 },
   seal: { draw: () => <Seal />, height: 70 },
+  people: { draw: (item) => <People count={item.count} />, height: 34 },
+  wavers: { draw: (item) => <Wavers count={item.count} />, height: 36 },
+  council: { draw: () => <Council />, height: 34 },
+  searchers: { draw: () => <Searchers />, height: 34 },
+  lookout: { draw: () => <Lookout />, height: 102 },
+  suraqa: { draw: () => <Suraqa />, height: 44 },
+  party: { draw: () => <Party />, height: 58 },
+  "brick-carriers": { draw: () => <BrickCarriers />, height: 40 },
+  harrah: { draw: () => <Harrah />, height: 14 },
+  coast: { draw: () => <Coast />, height: 16 },
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -1013,7 +1261,7 @@ function LandLayer({ land }: { land: Land }) {
 // Composing a scene
 
 /** Far things sit small near the horizon, near things large at the bottom. */
-function depthOf(y: number) {
+export function depthOf(y: number) {
   return Math.min(1, Math.max(0, (y - 200) / 90));
 }
 

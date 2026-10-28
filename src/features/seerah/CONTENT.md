@@ -31,10 +31,21 @@ copied unchanged into the app (almanara-mobile `src/core/seerah/`), with both JS
   other waypoint is checked to be on land.
 - **Pictures:** every beat off the map has a scene of its own, composed in `seerahContent.ts`
   from the parts in `SeerahScenes.tsx`.
-  - **People** are faceless silhouettes of ordinary crowds only: the people of Makkah, pilgrims,
-    armies, rows at prayer.
-  - **The Prophet ﷺ, his family, and every companion a beat names are never drawn.** Where the
-    story is about him, a light, his camel or a lit doorway stands in his place.
+  - **People:** in the scenes they are faceless silhouettes of ordinary crowds. In a panorama
+    chapter (the Hijrah, as a trial) characters have simple cartoon faces, but only:
+    - ordinary people (the people of Makkah and Madinah, the workers on the mosque);
+    - Quraysh and its pursuers;
+    - Suraqa before his Islam;
+    - the guide, the lookout on the tower, and kings such as the Najashi and Heraclius.
+  - **Never drawn, with a face or without:**
+    - the Prophet ﷺ and the other prophets;
+    - the Prophet's household and the Mothers of the Believers;
+    - the ten promised Paradise, among them the four caliphs;
+    - any other companion a beat names, such as Abu Ayyub and Amir ibn Fuhayra.
+
+    Where the story is about one of them, a trace stands in their place: a light, a camel, a lit
+    doorway.
+
   - **Angels** are not drawn either; a light or a cloud stands for them.
   - **Tap notes** on the scenes are short facts drawn from the same sources as the narration. They
     are part of the review.

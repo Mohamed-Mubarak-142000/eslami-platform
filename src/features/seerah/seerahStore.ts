@@ -10,11 +10,13 @@ const seerahSchema = z.object({
   last: z.object({ event: z.string(), beat: z.number().int().min(0) }).nullable(),
   /** Chapters read to the end. */
   read: z.array(z.string()),
+  /** Chapters whose questions were all answered. */
+  badges: z.array(z.string()).default([]),
 });
 
 export type SeerahState = z.infer<typeof seerahSchema>;
 
-const DEFAULT_STATE: SeerahState = { last: null, read: [] };
+const DEFAULT_STATE: SeerahState = { last: null, read: [], badges: [] };
 
 let cached: SeerahState | undefined;
 const listeners = new Set<() => void>();

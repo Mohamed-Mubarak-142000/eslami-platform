@@ -273,7 +273,18 @@ export type ScenePart =
   | "idols"
   | "idols-falling"
   | "scroll"
-  | "seal";
+  | "seal"
+  // Characters with faces: ordinary people, and those the rule allows (see CONTENT.md)
+  | "people"
+  | "wavers"
+  | "council"
+  | "searchers"
+  | "lookout"
+  | "suraqa"
+  | "party"
+  | "brick-carriers"
+  | "harrah"
+  | "coast";
 
 export interface SceneItem {
   part: ScenePart;
@@ -310,6 +321,34 @@ export interface Beat {
   stage: Stage;
   hadith?: HadithKey;
   verse?: VerseKey;
+  /** In a chapter told as a panorama: where the camera looks, across the panorama's width. */
+  pan?: number;
+  /** Where the travellers are on the panorama; hidden when left out. */
+  party?: number;
+  /** Something the reader does with their own hands at this beat. */
+  interaction?: Interaction;
+}
+
+export type Interaction =
+  /** Wipe the footprints away, as the shepherd's flock did. */
+  | { kind: "erase-tracks"; prompt: string; done: string }
+  /** Pick the way, then read why the travellers took the one they did. */
+  | { kind: "choose-route"; prompt: string; options: { label: string; feedback: string; right: boolean }[] };
+
+/** One long drawn landscape a chapter travels through, beat by beat. */
+export interface Panorama {
+  width: number;
+  /** The stretch [from, to] under a night sky, fading into day after `to`. */
+  night?: [number, number];
+  items: SceneItem[];
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  answer: number;
+  /** Why, shown once answered: the chapter's own words, not new claims. */
+  why: string;
 }
 
 export interface Era {
@@ -334,6 +373,10 @@ export interface SeerahEvent {
   /** The chapter; an event without beats is on the timeline and its chapter is still being written. */
   beats: Beat[];
   lesson?: string;
+  /** Told over one long landscape instead of separate maps and scenes; the map shrinks to a corner. */
+  panorama?: Panorama;
+  /** A few questions after the chapter; answering them all earns its badge. */
+  quiz?: QuizQuestion[];
 }
 
 export const ERAS: Era[] = [
@@ -931,21 +974,82 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     age: 53,
     exactAge: true,
     summary: "خرج من مكة مع أبي بكر الصديق، فاختبأ في غار ثور ثلاثًا، ثم سلك طريق الساحل حتى بلغ قباء ثم المدينة.",
+    panorama: {
+      width: 2700,
+      night: [0, 720],
+      items: [
+        { part: "house", x: 40, y: 236 },
+        { part: "house-2", x: 130, y: 248, note: "دار الندوة: مجلس قريش للتشاور" },
+        { part: "council", x: 150, y: 274, note: "اجتمعت قريش تتشاور في أمره: أيحبسونه، أم يقتلونه، أم يخرجونه؟" },
+        { part: "house", x: 220, y: 240 },
+        { part: "kaaba", x: 310, y: 250 },
+        { part: "house-lit", x: 430, y: 256, note: "بيت أبي بكر: منه خرجا إلى غار ثور ليلًا" },
+        { part: "lantern", x: 452, y: 254 },
+        { part: "house", x: 485, y: 238 },
+        { part: "mount-thawr", x: 660, y: 262, size: 1.25, note: "غار ثور: جنوب مكة، مكثا فيه ثلاث ليال" },
+        { part: "searchers", x: 700, y: 226, note: "جاء الطلب حتى وقفوا على باب الغار" },
+        { part: "sheep", x: 585, y: 278, count: 5, move: 30, note: "كان عامر بن فهيرة يرعى الغنم فوقهما فيعفّي الأثر" },
+        { part: "bush", x: 770, y: 272 },
+        { part: "coast", x: 1080, y: 214 },
+        { part: "coast", x: 1460, y: 214 },
+        { part: "acacia", x: 880, y: 250 },
+        { part: "bush", x: 1010, y: 276 },
+        { part: "tent", x: 1120, y: 240, note: "بنو مدلج قوم سراقة: كانت مجالسهم قرب الساحل" },
+        { part: "suraqa", x: 1215, y: 270, note: "سراقة بن مالك: ساخت قوائم فرسه في الأرض، فطلب الأمان" },
+        { part: "acacia", x: 1420, y: 250 },
+        { part: "harrah", x: 1640, y: 262, note: "الحرّة: كان أهل المدينة يخرجون إليها كل صباح ينتظرونه حتى يردّهم الحر" },
+        { part: "wavers", x: 1745, y: 274, count: 7 },
+        { part: "lookout", x: 1840, y: 246, note: "رجل على أُطُم رآهم مقبلين فنادى: هذا جدّكم الذي تنتظرون" },
+        { part: "palm", x: 1950, y: 256 },
+        { part: "mosque", x: 2030, y: 254, note: "قباء: أقام فيها بضع عشرة ليلة وأسّس المسجد" },
+        { part: "palm", x: 2120, y: 250 },
+        { part: "palm", x: 2200, y: 248 },
+        { part: "people", x: 2290, y: 270, count: 5, note: "الأنصار: قاسموا المهاجرين ثمار أموالهم" },
+        { part: "wavers", x: 2330, y: 286, count: 4 },
+        { part: "camel-kneeling", x: 2400, y: 266, note: "بركت الناقة في مِربد لغلامين يتيمين، فاشتراه وبنى عليه المسجد" },
+        { part: "brick-carriers", x: 2480, y: 276, note: "بنوا المسجد باللَّبِن، وكان ﷺ ينقل معهم" },
+        { part: "house-2", x: 2580, y: 254, note: "بيت أبي أيوب الأنصاري: من طبقتين" },
+        { part: "palm", x: 2660, y: 256 },
+      ],
+    },
+    quiz: [
+      {
+        question: "أين اختبأ النبي ﷺ وصاحبه ثلاث ليال؟",
+        options: ["غار حراء", "غار ثور", "جبل أحد"],
+        answer: 1,
+        why: "اتّجها جنوبًا إلى غار ثور، على غير طريق المدينة، ومكثا فيه ثلاث ليال.",
+      },
+      {
+        question: "أيّ طريق سلكوا إلى المدينة؟",
+        options: ["الطريق المعهود شمالًا", "طريق الساحل بمحاذاة البحر", "طريق الشام"],
+        answer: 1,
+        why: "سلكوا طريق الساحل: غربًا نحو البحر، ثم شمالًا بمحاذاته، بعيدًا عن الطريق المعهود.",
+      },
+      {
+        question: "أين أقام ﷺ أولًا وأسّس أول مسجد؟",
+        options: ["قباء", "مكة", "بدر"],
+        answer: 0,
+        why: "بلغ قباء يوم الاثنين في ربيع الأول، فأقام فيها وأسّس أول مسجد.",
+      },
+    ],
     lesson:
       "لم تكن الهجرة فرارًا بلا تدبير؛ أخذ ﷺ بكل سبب: صاحبٌ أمين، ودليلٌ خبير، وطريقٌ غير مطروق، ومن يعفّي الأثر ويأتي بالخبر. ثم توكّل على الله توكّلًا تامًّا: «ما ظنك باثنين الله ثالثهما».",
     beats: [
       {
         text: "ثلاث عشرة سنة يدعو في مكة، ثم أُذن له بالهجرة. وكان أصحابه قد سبقوه إلى يثرب سرًّا، أفرادًا وجماعات.",
+        pan: 290,
         stage: { kind: "map", focus: ["makkah", "madinah"], glow: ["makkah", "madinah"] },
         hadith: "mission-years",
       },
       {
         text: "خرج المسلمون الأولون يُقرئون أهلها القرآن، ثم تتابع المهاجرون، حتى لم يبق بمكة إلا قليل.",
+        pan: 2290,
         stage: { kind: "map", focus: ["makkah", "madinah"], glow: ["madinah"] },
         hadith: "first-emigrants",
       },
       {
         text: "واجتمعت قريش تتشاور في أمره: أيحبسونه، أم يقتلونه، أم يخرجونه؟ واتفقوا على قتله ليلًا.",
+        pan: 150,
         stage: {
           kind: "scene",
           sky: "night",
@@ -961,10 +1065,18 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "في تلك الليلة خرج ﷺ ومعه صاحبه أبو بكر الصديق، فاتّجها جنوبًا إلى غار ثور، على غير طريق المدينة.",
+        pan: 520,
+        party: 540,
         stage: { kind: "map", focus: ["makkah", "thawr"], span: 24, route: "to-thawr", glow: ["thawr"] },
       },
       {
         text: "مكثا في الغار ثلاث ليال، وجاء الطلب حتى وقفوا على باب الغار. قال أبو بكر: لو نظر أحدهم إلى قدميه لأبصرنا.",
+        pan: 650,
+        interaction: {
+          kind: "erase-tracks",
+          prompt: "امسح بإصبعك على آثار الأقدام أمام الغار لتخفيها عن الطلب",
+          done: "هكذا كان عامر بن فهيرة يرعى الغنم فوقهما، فيُعفّي على آثارهما.",
+        },
         stage: {
           kind: "scene",
           sky: "night",
@@ -980,20 +1092,39 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وبعد ثلاث جاءهما الدليل الذي استأجراه بالراحلتين، فسلكوا طريق الساحل: غربًا نحو البحر، ثم شمالًا بمحاذاته، بعيدًا عن الطريق المعهود.",
+        pan: 960,
+        party: 960,
+        interaction: {
+          kind: "choose-route",
+          prompt: "قريش ترصد الطرق، وجعلت لمن يأتي بهما دية كل واحد منهما. أيّ طريق تسلك إلى يثرب؟",
+          options: [
+            { label: "الطريق المعهود شمالًا", feedback: "هذا ما توقّعته قريش ورصدته.", right: false },
+            {
+              label: "طريق الساحل بمحاذاة البحر",
+              feedback: "هذا ما فعلوه: غربًا نحو البحر ثم شمالًا بمحاذاته، بعيدًا عن الطريق المعهود، والدليل يقودهم.",
+              right: true,
+            },
+          ],
+        },
         stage: { kind: "map", focus: ["makkah", "madinah"], route: "hijrah", upTo: 0.35 },
       },
       {
         text: "وجعلت قريش لمن يأتي بهما دية كل واحد منهما. فلحقهم سراقة بن مالك على فرسه، فساخت قوائمها في الأرض، فطلب الأمان، وسأله ﷺ أن يُخفي عنهم.",
+        pan: 1220,
+        party: 1310,
         stage: { kind: "map", focus: ["makkah", "madinah"], route: "hijrah", upTo: 0.55 },
         hadith: "arrival",
       },
       {
         text: "وكان أهل المدينة يخرجون كل صباح إلى الحرّة ينتظرونه حتى يردّهم الحرّ، حتى بلغ قباء يوم الاثنين في ربيع الأول، فأقام فيها وأسّس أول مسجد.",
+        pan: 1780,
+        party: 1930,
         stage: { kind: "map", focus: ["quba", "madinah"], span: 40, route: "hijrah", glow: ["quba"] },
         hadith: "quba-and-mosque",
       },
       {
         text: "ثم دخل المدينة والناس حوله، حتى بركت ناقته في مِربد لغلامين يتيمين، فاشتراه منهما وبنى عليه مسجده، وكان ينقل اللَّبِن بيده مع أصحابه.",
+        pan: 2400,
         stage: {
           kind: "scene",
           sky: "day",
@@ -1010,6 +1141,7 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "ونزل ضيفًا على أبي أيوب الأنصاري، فكان أبو أيوب يتحرّج أن يمشي فوق رأسه، حتى تحوّل ﷺ إلى العلو.",
+        pan: 2570,
         stage: {
           kind: "scene",
           sky: "day",
@@ -1025,12 +1157,14 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وقدم المهاجرون وليس في أيديهم شيء، فقاسمهم الأنصار ثمار أموالهم، فكانت المدينة أول مجتمع للمسلمين.",
+        pan: 2290,
         stage: { kind: "map", focus: ["madinah"], glow: ["madinah"] },
         hadith: "ansar-share",
         verse: "ansar",
       },
       {
         text: "وأصابت حمّى المدينة بعض أصحابه، فدعا: «اللهم حبّب إلينا المدينة كحبنا مكة أو أشد».",
+        pan: 2160,
         stage: {
           kind: "scene",
           sky: "dusk",

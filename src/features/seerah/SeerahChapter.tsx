@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ExternalLink, Lightbulb, ScrollText } from "lucide-react";
+import { ArrowLeft, ExternalLink, Lightbulb, Map as MapIcon, ScrollText, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { SeerahMap, stageFrame } from "./SeerahMap";
+import { SeerahPanorama } from "./SeerahPanorama";
+import { SeerahQuiz } from "./SeerahQuiz";
 import { SeerahScene } from "./SeerahScenes";
 import { CHAPTERS, HADITHS, VERSES, WHOLE_MAP, routesAt, type HadithKey, type SeerahEvent, type VerseKey } from "./seerahContent";
 import { updateSeerah } from "./seerahStore";
@@ -79,6 +81,8 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
   const beatRefs = useRef<(HTMLElement | null)[]>([]);
   const stage = useStage(event, beat);
   const next = CHAPTERS[CHAPTERS.findIndex((chapter) => chapter.id === event.id) + 1];
+  const [mapOpen, setMapOpen] = useState(false);
+  const current = event.beats[beat]!;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -95,6 +99,7 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
 
   useEffect(() => {
     updateSeerah((current) => ({
+      ...current,
       last: { event: event.id, beat },
       read: beat === event.beats.length - 1 && !current.read.includes(event.id) ? [...current.read, event.id] : current.read,
     }));
@@ -103,9 +108,32 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12">
       <div className="sticky top-16 z-10 -mx-4 h-[42vh] overflow-hidden border-b border-line bg-emerald-mist lg:top-24 lg:mx-0 lg:h-[calc(100vh-8rem)] lg:rounded-[2rem] lg:border">
-        <SeerahMap frame={stage.frame} routes={stage.routes} named={stage.named} glow={stage.glow} />
+        {event.panorama ? (
+          <>
+            <SeerahPanorama panorama={event.panorama} pan={current.pan ?? 0} party={current.party} interaction={current.interaction} />
+            {/* The map, shrunk to a corner: where on the way this moment is. Tap to open it. Out of the way while the reader is doing something. */}
+            {!current.interaction && (
+              <button
+                type="button"
+                onClick={() => setMapOpen((open) => !open)}
+                aria-label={mapOpen ? "إغلاق الخريطة" : "افتح الخريطة"}
+                className={cn(
+                  "absolute overflow-hidden border-2 border-white bg-emerald-mist shadow-lg transition-all duration-500",
+                  mapOpen ? "inset-3 top-8 rounded-3xl" : "end-3 top-8 size-24 rounded-2xl",
+                )}
+              >
+                <SeerahMap frame={stage.frame} routes={stage.routes} named={mapOpen ? stage.named : []} glow={stage.glow} />
+                <span className="absolute bottom-1 end-1 grid size-6 place-items-center rounded-full bg-white/90 text-emerald-deep">
+                  {mapOpen ? <X className="size-4" aria-hidden /> : <MapIcon className="size-3.5" aria-hidden />}
+                </span>
+              </button>
+            )}
+          </>
+        ) : (
+          <SeerahMap frame={stage.frame} routes={stage.routes} named={stage.named} glow={stage.glow} />
+        )}
         <AnimatePresence>
-          {stage.scene && (
+          {stage.scene && !event.panorama && (
             <motion.div
               key={beat}
               className="absolute inset-0"
@@ -118,7 +146,7 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
             </motion.div>
           )}
         </AnimatePresence>
-        {stage.approximate && (
+        {stage.approximate && !event.panorama && (
           <span className="absolute bottom-3 start-3 rounded-full bg-white/85 px-3 py-1 text-xs text-muted backdrop-blur">
             المسار تقريبي
           </span>
@@ -164,6 +192,7 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
             </div>
           </aside>
         )}
+        {event.quiz && <SeerahQuiz event={{ ...event, quiz: event.quiz }} />}
         <div className="mt-8 flex flex-wrap gap-3">
           {next && (
             <Link href={`/seerah/${next.id}`} className={buttonClass("primary", "lg")}>
