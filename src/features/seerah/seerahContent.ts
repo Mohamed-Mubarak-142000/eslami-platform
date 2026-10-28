@@ -327,6 +327,8 @@ export interface Beat {
   party?: number;
   /** Something the reader does with their own hands at this beat. */
   interaction?: Interaction;
+  /** A sound when the beat arrives: camel bells as the travellers set off, the ground giving way. */
+  cue?: "bells" | "rumble";
 }
 
 export type Interaction =
@@ -335,9 +337,14 @@ export type Interaction =
   /** Pick the way, then read why the travellers took the one they did. */
   | { kind: "choose-route"; prompt: string; options: { label: string; feedback: string; right: boolean }[] };
 
+/** The background sounds a place calls for (synthesized, see seerahSound.ts). */
+export type Ambience = "wind" | "crickets" | "waves" | "crowd" | "birds";
+
 /** One long drawn landscape a chapter travels through, beat by beat. */
 export interface Panorama {
   width: number;
+  /** What is heard along the way: each stretch [from, to) with its layers. */
+  ambience?: { from: number; to: number; sounds: Ambience[] }[];
   /** The stretch [from, to] under a night sky, fading into day after `to`. */
   night?: [number, number];
   items: SceneItem[];
@@ -976,6 +983,12 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     summary: "خرج من مكة مع أبي بكر الصديق، فاختبأ في غار ثور ثلاثًا، ثم سلك طريق الساحل حتى بلغ قباء ثم المدينة.",
     panorama: {
       width: 2700,
+      ambience: [
+        { from: 0, to: 800, sounds: ["crickets", "wind"] },
+        { from: 800, to: 1500, sounds: ["waves", "wind"] },
+        { from: 1500, to: 1900, sounds: ["crowd", "wind"] },
+        { from: 1900, to: 2700, sounds: ["birds", "crowd"] },
+      ],
       night: [0, 720],
       items: [
         { part: "house", x: 40, y: 236 },
@@ -1093,6 +1106,7 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       {
         text: "وبعد ثلاث جاءهما الدليل الذي استأجراه بالراحلتين، فسلكوا طريق الساحل: غربًا نحو البحر، ثم شمالًا بمحاذاته، بعيدًا عن الطريق المعهود.",
         pan: 960,
+        cue: "bells",
         party: 960,
         interaction: {
           kind: "choose-route",
@@ -1111,6 +1125,7 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       {
         text: "وجعلت قريش لمن يأتي بهما دية كل واحد منهما. فلحقهم سراقة بن مالك على فرسه، فساخت قوائمها في الأرض، فطلب الأمان، وسأله ﷺ أن يُخفي عنهم.",
         pan: 1220,
+        cue: "rumble",
         party: 1310,
         stage: { kind: "map", focus: ["makkah", "madinah"], route: "hijrah", upTo: 0.55 },
         hadith: "arrival",
@@ -1118,6 +1133,7 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       {
         text: "وكان أهل المدينة يخرجون كل صباح إلى الحرّة ينتظرونه حتى يردّهم الحرّ، حتى بلغ قباء يوم الاثنين في ربيع الأول، فأقام فيها وأسّس أول مسجد.",
         pan: 1780,
+        cue: "bells",
         party: 1930,
         stage: { kind: "map", focus: ["quba", "madinah"], span: 40, route: "hijrah", glow: ["quba"] },
         hadith: "quba-and-mosque",

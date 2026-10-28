@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import type { SeerahEvent } from "./seerahContent";
 import { updateSeerah, useSeerah } from "./seerahStore";
+import { seerahSfx } from "./seerahSound";
 
 /** A few questions after a chapter, one at a time; answering them all earns the chapter's badge. */
 export function SeerahQuiz({ event }: { event: SeerahEvent & { quiz: NonNullable<SeerahEvent["quiz"]> } }) {
@@ -20,15 +21,19 @@ export function SeerahQuiz({ event }: { event: SeerahEvent & { quiz: NonNullable
   function pick(option: number) {
     if (picked !== null || !question) return;
     setPicked(option);
-    if (option === question.answer) setScore((value) => value + 1);
+    if (option === question.answer) {
+      seerahSfx.chime();
+      setScore((value) => value + 1);
+    } else seerahSfx.wrong();
   }
 
   function next() {
     const last = index === event.quiz.length - 1;
     setIndex((value) => value + 1);
     setPicked(null);
-    if (last)
-      updateSeerah((current) => (current.badges.includes(event.id) ? current : { ...current, badges: [...current.badges, event.id] }));
+    if (!last) return;
+    seerahSfx.fanfare();
+    updateSeerah((current) => (current.badges.includes(event.id) ? current : { ...current, badges: [...current.badges, event.id] }));
   }
 
   return (

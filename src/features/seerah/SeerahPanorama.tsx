@@ -11,8 +11,9 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { NightContext, PARTS, depthOf } from "./SeerahScenes";
+import { NightContext, PARTS, Shadow, depthOf } from "./SeerahScenes";
 import type { Interaction, Panorama, SceneItem } from "./seerahContent";
+import { seerahSfx } from "./seerahSound";
 
 /*
  * A chapter told across one long landscape. The camera travels to where each beat looks; near
@@ -57,6 +58,7 @@ function Item({
           animate={item.move && !reduce ? { x: [0, item.move, 0] } : {}}
           transition={{ duration: Math.max(4, Math.abs(item.move ?? 0) / 8), repeat: Infinity, ease: "easeInOut" }}
         >
+          <Shadow part={item.part} scale={scale} />
           <g transform={`scale(${item.flip ? -scale : scale} ${scale})`}>{part.draw(item)}</g>
           {note && (
             <g
@@ -110,7 +112,10 @@ function Party({ at, camera, half }: { at: number | undefined; camera: MotionVal
 
   return (
     <motion.g style={{ x }} initial={false} animate={{ opacity: at === undefined ? 0 : 1 }} transition={{ duration: 0.6 }}>
-      <g transform={`translate(0 ${y}) scale(${scale})`}>{PARTS.party.draw({ part: "party", x: 0 })}</g>
+      <g transform={`translate(0 ${y})`}>
+        <Shadow part="party" scale={scale} />
+        <g transform={`scale(${scale})`}>{PARTS.party.draw({ part: "party", x: 0 })}</g>
+      </g>
     </motion.g>
   );
 }
@@ -155,6 +160,56 @@ function Hills({ width, camera, half }: { width: number; camera: MotionValue<num
   );
 }
 
+/** A nearer, paler range: between the far hills and the road. */
+function MidHills({ width, camera, half }: { width: number; camera: MotionValue<number>; half: MotionValue<number> }) {
+  const x = useTransform([camera, half], ([c, h]: number[]) => h! - c! * 0.5);
+  const points = [];
+  for (let at = -200; at <= width + 400; at += 90) points.push(`${at} ${208 - ((at * 53) % 26)}`);
+  return (
+    <motion.g style={{ x }}>
+      <path d={`M-200 218L${points.join("L")}L${width + 400} 218Z`} fill="#b39672" opacity={0.75} />
+    </motion.g>
+  );
+}
+
+/** Clouds high up, barely moving with the camera. */
+function Clouds({ width, camera, half }: { width: number; camera: MotionValue<number>; half: MotionValue<number> }) {
+  const x = useTransform([camera, half], ([c, h]: number[]) => h! - c! * 0.12);
+  return (
+    <motion.g style={{ x }} opacity={0.85}>
+      {Array.from({ length: Math.ceil(width / 500) }, (_, index) => (
+        <g key={index} transform={`translate(${index * 420 + 120} ${50 + (index % 3) * 22}) scale(${0.8 + (index % 2) * 0.4})`}>
+          {PARTS.cloud.draw({ part: "cloud", x: 0 })}
+        </g>
+      ))}
+    </motion.g>
+  );
+}
+
+/** Stones and tufts of grass at the reader's feet, sliding past faster than the road. */
+function Foreground({ width, camera, half }: { width: number; camera: MotionValue<number>; half: MotionValue<number> }) {
+  const x = useTransform([camera, half], ([c, h]: number[]) => h! - c! * 1.25);
+  return (
+    <motion.g style={{ x }} pointerEvents="none">
+      {Array.from({ length: Math.ceil((width * 1.25) / 70) }, (_, index) => {
+        const at = index * 70 + ((index * 37) % 30);
+        return index % 3 === 0 ? (
+          <path key={index} d={`M${at - 8} 300q2-12 6-4q2-14 5-1q3-10 5 5Z`} fill="#7d8f4a" />
+        ) : (
+          <ellipse
+            key={index}
+            cx={at}
+            cy={296 - (index % 2) * 3}
+            rx={6 + (index % 4) * 2}
+            ry={3 + (index % 3)}
+            fill={index % 2 ? "#a08a66" : "#8c7a5c"}
+          />
+        );
+      })}
+    </motion.g>
+  );
+}
+
 /** Wipe across the footprints to erase them. */
 function EraseTracks({ interaction }: { interaction: Extract<Interaction, { kind: "erase-tracks" }> }) {
   const tracks = Array.from({ length: 12 }, (_, index) => ({ x: 140 + index * 11, y: 262 + (index % 2 ? -5 : 4) }));
@@ -169,13 +224,14 @@ function EraseTracks({ interaction }: { interaction: Extract<Interaction, { kind
     point.x = event.clientX;
     point.y = event.clientY;
     const { x, y } = point.matrixTransform(element.getScreenCTM()!.inverse());
-    setErased((current) => {
-      const next = new Set(current);
-      tracks.forEach((track, index) => {
-        if (Math.hypot(track.x - x, track.y - y) < 22) next.add(index);
-      });
-      return next.size === current.size ? current : next;
+    const next = new Set(erased);
+    tracks.forEach((track, index) => {
+      if (Math.hypot(track.x - x, track.y - y) < 22) next.add(index);
     });
+    if (next.size === erased.size) return;
+    if (next.size === tracks.length) seerahSfx.chime();
+    else seerahSfx.swish();
+    setErased(next);
   }
 
   return (
@@ -195,7 +251,7 @@ function EraseTracks({ interaction }: { interaction: Extract<Interaction, { kind
           />
         ))}
       </svg>
-      <p className="absolute inset-x-3 top-8 rounded-2xl bg-black/55 px-4 py-2 text-center text-sm leading-7 text-white backdrop-blur">
+      <p className="absolute inset-x-3 top-[4.5rem] rounded-2xl bg-black/55 px-4 py-2 text-center text-sm leading-7 text-white backdrop-blur">
         {done ? interaction.done : interaction.prompt}
       </p>
     </div>
@@ -206,7 +262,7 @@ function ChooseRoute({ interaction }: { interaction: Extract<Interaction, { kind
   const [picked, setPicked] = useState<number | null>(null);
   const choice = picked === null ? null : interaction.options[picked]!;
   return (
-    <div className="absolute inset-x-3 top-8 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur">
+    <div className="absolute inset-x-3 top-[4.5rem] rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur">
       <p className="text-sm leading-7 text-ink">{choice ? choice.feedback : interaction.prompt}</p>
       {!choice && (
         <div className="mt-3 grid gap-2">
@@ -214,7 +270,11 @@ function ChooseRoute({ interaction }: { interaction: Extract<Interaction, { kind
             <button
               key={option.label}
               type="button"
-              onClick={() => setPicked(index)}
+              onClick={() => {
+                if (option.right) seerahSfx.chime();
+                else seerahSfx.wrong();
+                setPicked(index);
+              }}
               className="rounded-xl border border-gold/50 bg-gold-mist px-3 py-2 text-sm font-bold text-emerald-deep transition-colors hover:bg-gold-soft"
             >
               {option.label}
@@ -307,7 +367,9 @@ export function SeerahPanorama({
           </defs>
           <rect width={viewWidth} height={HEIGHT} fill="url(#panorama-sky)" />
           <circle cx={viewWidth - 70} cy="62" r="22" fill="#fbe7a8" />
+          <Clouds width={panorama.width} camera={camera} half={half} />
           <Hills width={panorama.width} camera={camera} half={half} />
+          <MidHills width={panorama.width} camera={camera} half={half} />
           <rect x="0" y="216" width={viewWidth} height={HEIGHT - 216} fill="#d9c08f" />
           {sorted.map((item, index) => (
             <Item
@@ -315,11 +377,15 @@ export function SeerahPanorama({
               item={item}
               camera={camera}
               half={half}
-              onNote={(text) => setNote(note === text ? null : text)}
+              onNote={(text) => {
+                if (note !== text) seerahSfx.chime();
+                setNote(note === text ? null : text);
+              }}
               active={note === item.note}
             />
           ))}
           <Party at={party} camera={camera} half={half} />
+          <Foreground width={panorama.width} camera={camera} half={half} />
           {panorama.night && <NightOver night={panorama.night} camera={camera} viewWidth={viewWidth} />}
         </NightContext.Provider>
       </svg>

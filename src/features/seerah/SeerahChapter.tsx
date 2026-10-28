@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ExternalLink, Lightbulb, Map as MapIcon, ScrollText, X } from "lucide-react";
+import { ArrowLeft, ExternalLink, Lightbulb, Map as MapIcon, ScrollText, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
@@ -11,8 +11,35 @@ import { SeerahMap, stageFrame } from "./SeerahMap";
 import { SeerahPanorama } from "./SeerahPanorama";
 import { SeerahQuiz } from "./SeerahQuiz";
 import { SeerahScene } from "./SeerahScenes";
-import { CHAPTERS, HADITHS, VERSES, WHOLE_MAP, routesAt, type HadithKey, type SeerahEvent, type VerseKey } from "./seerahContent";
+import {
+  CHAPTERS,
+  HADITHS,
+  VERSES,
+  WHOLE_MAP,
+  routesAt,
+  type Ambience,
+  type HadithKey,
+  type SeerahEvent,
+  type VerseKey,
+} from "./seerahContent";
 import { updateSeerah } from "./seerahStore";
+import { seerahSfx, setAmbience, setSeerahSound, useSeerahSound } from "./seerahSound";
+
+/** What is heard at a beat: the panorama's stretch, a scene's sky and land, or quiet over the map. */
+function ambienceAt(event: SeerahEvent, beat: number): Ambience[] {
+  const entry = event.beats[beat]!;
+  if (event.panorama) {
+    const pan = entry.pan ?? 0;
+    return event.panorama.ambience?.find((stretch) => pan >= stretch.from && pan < stretch.to)?.sounds ?? [];
+  }
+  if (entry.stage.kind !== "scene") return [];
+  const { sky, land } = entry.stage;
+  if (sky === "night") return ["crickets", "wind"];
+  if (land === "sea") return ["waves", "wind"];
+  if (land === "town") return ["crowd"];
+  if (land === "oasis") return ["birds"];
+  return ["wind"];
+}
 
 function VerseCard({ verseKey }: { verseKey: VerseKey }) {
   const verse = VERSES[verseKey];
@@ -83,6 +110,17 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
   const next = CHAPTERS[CHAPTERS.findIndex((chapter) => chapter.id === event.id) + 1];
   const [mapOpen, setMapOpen] = useState(false);
   const current = event.beats[beat]!;
+  const sound = useSeerahSound();
+  const ambience = ambienceAt(event, beat).join();
+
+  // The place's sounds follow the beat; leaving the chapter lets them fade.
+  useEffect(() => {
+    setAmbience(ambience ? (ambience.split(",") as Ambience[]) : []);
+  }, [ambience, sound]);
+  useEffect(() => () => setAmbience([]), []);
+  useEffect(() => {
+    if (current.cue) seerahSfx[current.cue]();
+  }, [current]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -151,6 +189,19 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
             المسار تقريبي
           </span>
         )}
+        <button
+          type="button"
+          onClick={() => setSeerahSound(!sound)}
+          aria-label={sound ? "إيقاف الأصوات" : "تشغيل الأصوات"}
+          aria-pressed={sound}
+          title={sound ? "إيقاف الأصوات" : "تشغيل الأصوات"}
+          className={cn(
+            "absolute start-3 top-8 grid size-9 place-items-center rounded-full text-white backdrop-blur transition-colors",
+            sound ? "bg-emerald/80" : "bg-black/40 hover:bg-black/55",
+          )}
+        >
+          {sound ? <Volume2 className="size-4" aria-hidden /> : <VolumeX className="size-4" aria-hidden />}
+        </button>
         <div className="absolute inset-x-0 top-0 flex gap-1 p-3" aria-hidden>
           {event.beats.map((_, index) => (
             <span

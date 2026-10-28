@@ -49,6 +49,9 @@ copied unchanged into the app (almanara-mobile `src/core/seerah/`), with both JS
   - **Angels** are not drawn either; a light or a cloud stands for them.
   - **Tap notes** on the scenes are short facts drawn from the same sources as the narration. They
     are part of the review.
+- **Sounds** are synthesized in the browser (`seerahSound.ts`): wind, crickets, waves, a crowd's murmur,
+  birdsong, camel bells and a few chimes. There are no recordings and nothing to license. Sound is
+  off until the reader turns it on. There is no music.
 
 ## Review
 

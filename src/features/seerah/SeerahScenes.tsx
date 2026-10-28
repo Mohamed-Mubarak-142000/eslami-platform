@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform, type MotionValue } from "framer-motion";
 import type { Land, ScenePart, SceneItem, Sky } from "./seerahContent";
+import { seerahSfx } from "./seerahSound";
 
 /*
  * The stage when a beat isn't on the map: a scene drawn for that beat from a library of parts on a
@@ -190,13 +191,23 @@ function ClothStone() {
 function House({ lit = false, floors = 1 }: { lit?: boolean; floors?: number }) {
   const night = useNight();
   const height = 24 * floors;
+  const wall = night ? "#5e4630" : MUD;
   return (
     <g>
-      <path d={`M-18 0V${-height}h36V0Z`} fill={night ? "#5e4630" : MUD} />
+      <path d={`M-18 0V${-height}h36V0Z`} fill={wall} />
+      {/* Light falls from the left: the right side of the wall in shade. */}
+      <path d={`M8 0V${-height}h10V0Z`} fill="#00000014" />
+      {/* Plaster patches and the courses of mud brick. */}
+      <path d={`M-14 ${-height + 9}h7M-12 ${-height + 15}h5M4 -8h6`} stroke="#00000018" strokeWidth="1" strokeLinecap="round" />
       <path d={`M-20 ${-height}h40v-3h-40Z`} fill={MUD_DARK} />
+      {/* Ends of the roof beams. */}
+      {[-14, -6, 2, 10].map((x) => (
+        <rect key={x} x={x} y={-height + 1} width="2.4" height="2.4" fill={WOOD} />
+      ))}
       {floors > 1 && <path d="M-18 -24h36" stroke={MUD_DARK} strokeWidth="1.5" />}
+      <path d="M-6.5 0v-13a6.5 6.5 0 0 1 13 0V0Z" fill={WOOD} />
       <path d="M-5 0v-12a5 5 0 0 1 10 0V0Z" fill={lit ? GOLD_SOFT : "#3d2a18"} />
-      <rect x="8" y={-height + 7} width="5" height="5" fill={lit || night ? GOLD : "#3d2a18"} opacity={night ? 0.9 : 1} />
+      <rect x="8" y={-height + 7} width="5" height="5" rx="0.6" fill={lit || night ? GOLD : "#3d2a18"} opacity={night ? 0.9 : 1} />
       {lit && (
         <Pulse from={0.25} to={0.5}>
           <ellipse cx="0" cy="-4" rx="16" ry="8" fill={GOLD} opacity={0.4} />
@@ -209,11 +220,17 @@ function House({ lit = false, floors = 1 }: { lit?: boolean; floors?: number }) 
 function Kaaba() {
   return (
     <g>
-      <ellipse cx="0" cy="0" rx="46" ry="6" fill={GOLD} opacity={0.15} />
-      <path d="M-30 0V-44l24-6 30 6V0l-30 4Z" fill="#111" />
-      <path d="M-6 -50l30 6V0l-30 4Z" fill="#1d1d1d" />
-      <path d="M-30 -34l24-5 30 5v5l-30-5-24 5Z" fill={GOLD} />
-      <path d="M4 -14h10v13l-10 1Z" fill="#9c7a26" />
+      <ellipse cx="0" cy="1" rx="50" ry="7" fill={GOLD} opacity={0.15} />
+      <path d="M-30 0V-44l24-6 30 6V0l-30 4Z" fill="#141414" />
+      <path d="M-6 -50l30 6V0l-30 4Z" fill="#202020" />
+      {/* The gold band of the cover, its calligraphy suggested by short strokes. */}
+      <path d="M-30 -34l24-5 30 5v6l-30-5-24 5Z" fill={GOLD} />
+      {[-26, -20, -14, -2, 4, 10, 16].map((x) => (
+        <path key={x} d={`M${x} ${x < -6 ? -33 - (x + 30) * 0.2 : -37 + (x + 6) * 0.2}h3`} stroke="#7a5a1a" strokeWidth="0.8" />
+      ))}
+      <path d="M2 -16h14v15l-14 2Z" fill="#9c7a26" />
+      <path d="M4 -14h10v12l-10 1Z" fill="#c9a24a" />
+      <path d="M9 -14v13" stroke="#7a5a1a" strokeWidth="0.6" />
     </g>
   );
 }
@@ -411,21 +428,28 @@ function Rumat() {
 function Palm() {
   return (
     <g>
-      <path d="M0 0c2-26 0-46-3-64" stroke={WOOD} strokeWidth="4" fill="none" />
+      <path d="M0 0c2-26 0-46-3-64" stroke={WOOD} strokeWidth="4.5" fill="none" />
+      {/* The trunk's rings. */}
+      {[-8, -16, -24, -32, -40, -48, -56].map((y) => (
+        <path key={y} d={`M-2.6 ${y}h4.6`} stroke="#4e3519" strokeWidth="1" />
+      ))}
       <Sway degrees={3} seconds={5} originY={-64}>
-        {[-70, -35, 0, 35, 70, 115, 150].map((angle) => {
+        {[-70, -35, 0, 35, 70, 115, 150].map((angle, index) => {
           const radians = ((angle - 90) * Math.PI) / 180;
           return (
             <path
               key={angle}
               d={`M-3 -64q${20 * Math.cos(radians)} ${-6 + 14 * Math.sin(radians)} ${30 * Math.cos(radians)} ${20 + 16 * Math.sin(radians)}`}
-              stroke={LEAF}
+              stroke={index % 2 ? LEAF : "#3f7d53"}
               strokeWidth="4"
               strokeLinecap="round"
               fill="none"
             />
           );
         })}
+        {/* Clusters of dates under the crown. */}
+        <circle cx="-6" cy="-58" r="2.6" fill="#a8541f" />
+        <circle cx="1" cy="-57" r="2.4" fill="#c06a2a" />
       </Sway>
     </g>
   );
@@ -465,25 +489,42 @@ function Bush() {
 
 function Camel({ load = false }: { load?: boolean }) {
   const reduce = useReducedMotion();
+  const coat = "#b98546";
+  const shade = "#9a6a35";
   return (
     <g>
-      {[-14, -8, 8, 14].map((x, index) => (
+      {/* Legs with knees, the far pair darker, stepping in turn. */}
+      {[-13, -6, 9, 15].map((x, index) => (
         <motion.path
           key={x}
-          d={`M${x} -16v16`}
-          stroke="#8a6339"
+          d={`M${x} -17l1 9-1 8`}
+          stroke={index === 1 || index === 3 ? shade : coat}
           strokeWidth="3"
           strokeLinecap="round"
-          style={{ originX: `${x}px`, originY: "-16px" }}
+          strokeLinejoin="round"
+          fill="none"
+          style={{ originX: `${x}px`, originY: "-17px" }}
           animate={reduce ? {} : { rotate: index % 2 ? [12, -12, 12] : [-12, 12, -12] }}
           transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
-      <ellipse cx="0" cy="-20" rx="18" ry="8" fill="#a8763f" />
-      <path d="M-8 -26q8-14 16 0Z" fill="#a8763f" />
-      <path d="M16 -22q6-4 6-16" stroke="#a8763f" strokeWidth="5" strokeLinecap="round" fill="none" />
-      <ellipse cx="25" cy="-38" rx="5" ry="3" fill="#a8763f" />
-      {load && <path d="M-12 -30h24v7h-24Z" fill="#7a2e2e" />}
+      {/* Body and hump in one line, the tail hanging behind. */}
+      <path d="M-20 -18q-2-8 6-10q6-12 14-11q8 1 10 11q8 1 9 8q1 6-6 7h-28q-5 0-5-5Z" fill={coat} />
+      <path d="M-20 -18q-3 4-2 9" stroke={shade} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      {/* Neck curving forward and up to the head. */}
+      <path d="M16 -20q8-2 10-10q1-6 5-8" stroke={coat} strokeWidth="5" strokeLinecap="round" fill="none" />
+      <path d="M29 -40q6-1 9 2q1 2-2 3q-4 1-8-1Z" fill={coat} />
+      <path d="M30 -41l-1-3" stroke={shade} strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="33" cy="-38.6" r="0.6" fill="#2b1d14" />
+      {load && (
+        <g>
+          <path d="M-10 -36q10-6 20 0v8h-20Z" fill="#7a2e2e" />
+          <path d="M-11 -28h22" stroke={GOLD} strokeWidth="1.4" />
+          {[-9, -5, -1, 3, 7].map((x) => (
+            <path key={x} d={`M${x} -28v3`} stroke={GOLD} strokeWidth="1" />
+          ))}
+        </g>
+      )}
     </g>
   );
 }
@@ -832,29 +873,34 @@ function Person({
   const cloth = HEADCLOTHS[(seed * 3) % HEADCLOTHS.length]!;
   const robe = ROBES[(seed * 5) % ROBES.length]!;
   const sitting = pose === "sit";
-  const body = sitting ? "M-6 -16h12l4 10h-20Z" : "M-6 -22h12l3 22h-18Z";
+  const body = sitting ? "M-6 -16h12l4 10h-20Z" : "M-6 -22q6-2 12 0l3 22h-18Z";
   const headY = sitting ? -21 : -27;
+  const sleeve = "#00000030";
   return (
     <g transform={`translate(${x} 0) scale(${flip ? -1 : 1} 1)`}>
       <Bob by={0.6} seconds={2.2 + (seed % 4) * 0.4} delay={(seed % 5) * 0.3}>
         {sitting && <ellipse cx="0" cy="-5" rx="11" ry="4" fill={robe} />}
         <path d={body} fill={robe} stroke="#00000026" strokeWidth="0.6" />
-        {/* Arms in the robe's shade. */}
-        {pose === "stand" && <path d="M-5 -19l-3 11M5 -19l3 11" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />}
-        {pose === "point" && <path d="M-5 -19l-3 11M5 -19l11 -3" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />}
+        {/* The robe's fold and its shaded side. */}
+        {!sitting && <path d="M2 -21l2 21h5l-3-22Z" fill="#00000016" />}
+        {!sitting && <path d="M-1 -20v20" stroke="#00000014" strokeWidth="0.8" />}
+        {/* A belt, sometimes. */}
+        {!sitting && seed % 3 === 0 && <path d="M-6.4 -12h13" stroke="#5a3a1a" strokeWidth="1.4" />}
+        {pose === "stand" && <path d="M-5 -19l-3 11M5 -19l3 11" stroke={sleeve} strokeWidth="2.8" strokeLinecap="round" />}
+        {pose === "point" && <path d="M-5 -19l-3 11M5 -19l11 -3" stroke={sleeve} strokeWidth="2.8" strokeLinecap="round" />}
         {pose === "carry" && (
           <g>
-            <path d="M-5 -19l-2 -10M5 -19l2 -10" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />
+            <path d="M-5 -19l-2 -10M5 -19l2 -10" stroke={sleeve} strokeWidth="2.8" strokeLinecap="round" />
             <rect x="-7" y="-37" width="14" height="5" rx="1" fill={MUD} stroke={MUD_DARK} strokeWidth="0.6" />
           </g>
         )}
         {pose === "wave" && (
           <>
-            <path d="M-5 -19l-3 11" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />
+            <path d="M-5 -19l-3 11" stroke={sleeve} strokeWidth="2.8" strokeLinecap="round" />
             <motion.path
               d="M5 -19l6 -10"
-              stroke="#00000030"
-              strokeWidth="2.6"
+              stroke={sleeve}
+              strokeWidth="2.8"
               strokeLinecap="round"
               style={{ originX: "5px", originY: "-19px" }}
               animate={reduce ? {} : { rotate: [-15, 20, -15] }}
@@ -862,19 +908,23 @@ function Person({
             />
           </>
         )}
-        {sitting && <path d="M-5 -14l-5 6M5 -14l5 6" stroke="#00000030" strokeWidth="2.6" strokeLinecap="round" />}
-        {/* The head: a face of a few strokes, under a headcloth. */}
+        {sitting && <path d="M-5 -14l-5 6M5 -14l5 6" stroke={sleeve} strokeWidth="2.8" strokeLinecap="round" />}
+        {/* Sandals. */}
+        {!sitting && <path d="M-6 0h4M2 0h4" stroke="#3d2a18" strokeWidth="1.4" strokeLinecap="round" />}
+        {/* The head: a face of a few strokes, under a headcloth held by a cord. */}
         <circle cx="0" cy={headY} r="4.6" fill={skin} />
         <circle cx="-1.7" cy={headY - 0.3} r="0.6" fill="#2b1d14" />
         <circle cx="1.7" cy={headY - 0.3} r="0.6" fill="#2b1d14" />
         <path d={`M-2.6 ${headY - 1.8}h1.8M0.8 ${headY - 1.8}h1.8`} stroke="#2b1d14" strokeWidth="0.5" strokeLinecap="round" />
+        <circle cx="-2.6" cy={headY + 1.2} r="0.9" fill="#e07a5f" opacity={0.25} />
+        <circle cx="2.6" cy={headY + 1.2} r="0.9" fill="#e07a5f" opacity={0.25} />
         {beard ? (
           <path d={`M-3.8 ${headY + 1.2}q3.8 6 7.6 0q-0.8 4-3.8 4.2q-3-0.2-3.8-4.2Z`} fill="#2b1d14" />
         ) : (
-          <path d={`M-1 ${headY + 2}h2`} stroke="#7a3b2a" strokeWidth="0.6" strokeLinecap="round" />
+          <path d={`M-1 ${headY + 2}q1 0.8 2 0`} stroke="#7a3b2a" strokeWidth="0.6" strokeLinecap="round" fill="none" />
         )}
         <path d={`M-5.4 ${headY + 1}q0-8 5.4-8q5.4 0 5.4 8l1 5h-2.2l-0.6-4.4q-3.6-4-7.2 0l-0.6 4.4h-2.2Z`} fill={cloth} />
-        <path d={`M-4.6 ${headY - 3}h9.2`} stroke="#00000040" strokeWidth="0.9" />
+        <path d={`M-4.8 ${headY - 3}q4.8-1.4 9.6 0`} stroke="#2b1d14" strokeWidth="1.1" fill="none" />
       </Bob>
     </g>
   );
@@ -1041,6 +1091,61 @@ function Coast() {
       />
     </g>
   );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Shadows: how wide a soft shadow each standing part casts, so nothing floats. Sky things, ground
+// marks and the land itself cast none.
+
+export const SHADOWS: Partial<Record<ScenePart, number>> = {
+  house: 22,
+  "house-2": 22,
+  "house-lit": 22,
+  kaaba: 40,
+  "kaaba-building": 36,
+  mosque: 56,
+  fort: 38,
+  court: 64,
+  tent: 26,
+  "tent-blown": 26,
+  arish: 28,
+  well: 16,
+  rock: 24,
+  palm: 10,
+  acacia: 34,
+  bush: 14,
+  camel: 22,
+  "camel-kneeling": 26,
+  caravan: 70,
+  mule: 18,
+  sheep: 34,
+  crowd: 40,
+  rows: 48,
+  army: 60,
+  diggers: 60,
+  walker: 8,
+  "cloth-stone": 40,
+  people: 40,
+  wavers: 46,
+  council: 40,
+  searchers: 26,
+  lookout: 18,
+  suraqa: 30,
+  party: 80,
+  "brick-carriers": 56,
+  banner: 6,
+  lantern: 4,
+  fire: 10,
+  idols: 60,
+  scroll: 40,
+  seal: 30,
+};
+
+export function Shadow({ part, scale }: { part: ScenePart; scale: number }) {
+  const night = useNight();
+  const width = SHADOWS[part];
+  if (!width) return null;
+  return <ellipse cx="0" cy="1" rx={width * scale} ry={3.2 * scale} fill="#000" opacity={night ? 0.22 : 0.13} />;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1293,6 +1398,7 @@ function Placed({
           animate={item.move && !reduce ? { x: [0, item.move, 0] } : {}}
           transition={{ duration: Math.max(4, Math.abs(item.move ?? 0) / 8), repeat: Infinity, ease: "easeInOut" }}
         >
+          <Shadow part={item.part} scale={scale} />
           <g transform={`scale(${item.flip ? -scale : scale} ${scale})`}>{part.draw(item)}</g>
           {note && (
             <g
@@ -1362,7 +1468,10 @@ export function SeerahScene({ sky, land, items }: { sky: Sky; land: Land; items:
               key={`${item.part}-${index}`}
               item={item}
               pointer={pointer}
-              onNote={(text) => setNote((current) => (current === text ? null : text))}
+              onNote={(text) => {
+                if (note !== text) seerahSfx.chime();
+                setNote(note === text ? null : text);
+              }}
               active={note === item.note}
             />
           ))}
