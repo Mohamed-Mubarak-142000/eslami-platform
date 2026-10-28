@@ -12,6 +12,20 @@ export type GlyphPalette = "light" | "sepia" | "dark";
 
 type TajweedFormat = "colr" | "svg";
 
+/**
+ * iPhone, iPad and Mac Safari. The per-page fonts load there but draw nothing (blank pages, with
+ * both the plain and the tajweed font) for a reason not yet found — see /font-test — so those
+ * devices read the flowing text until it is.
+ */
+export function isAppleDevice(): boolean {
+  const agent = navigator.userAgent;
+  return (
+    /iPad|iPhone|iPod/.test(agent) ||
+    (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1) ||
+    (/Safari\//.test(agent) && !/Chrome|Chromium|Edg|OPR|Firefox/.test(agent))
+  );
+}
+
 const V1_URL = (page: number) => `https://static.qurancdn.com/fonts/quran/hafs/v1/woff2/p${page}.woff2`;
 const COLR_URL = (page: number) => `https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p${page}.woff2`;
 const SVG_URL = (page: number, palette: GlyphPalette) =>

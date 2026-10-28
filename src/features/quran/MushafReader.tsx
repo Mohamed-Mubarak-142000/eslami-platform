@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -37,7 +37,7 @@ import { MushafFrame, SurahBanner } from "./MushafFrame";
 import { saveLastRead } from "./lastReadStorage";
 import { TOTAL_PAGES, type GlyphEdition, type MushafAyah, type MushafIndex, type MushafPageData, type PageRun } from "./mushafPageTypes";
 import { MushafGlyphPage } from "./MushafGlyphPage";
-import { loadGlyphFont, type GlyphPalette } from "./glyphFonts";
+import { isAppleDevice, loadGlyphFont, type GlyphPalette } from "./glyphFonts";
 import {
   DEFAULT_FONT_STEP,
   FONT_STEPS,
@@ -53,6 +53,8 @@ import {
 import { ayahFromTrackId } from "./recitation";
 import { RIWAYAT, RIWAYA_STORAGE_KEY, type RiwayaKey } from "./riwayat";
 import { TAJWEED_RULES } from "./tajweedApi";
+
+const noSubscribe = () => () => {};
 
 const HIZB_PARTS = ["", "ربع ", "نصف ", "ثلاثة أرباع "];
 /** The smallest size a page shrinks to so it shows whole. */
@@ -286,7 +288,9 @@ export function MushafReader({
   const edition: GlyphEdition = prefs.printedTajweed ? "tajweed" : "v1";
   const palette: GlyphPalette = themeKey === "night" || themeKey === "dusk" ? "dark" : themeKey === "sepia" ? "sepia" : "light";
   const [glyphFailed, setGlyphFailed] = useState<string | null>(null);
-  const glyphLines = hafs && prefs.layout === "printed" ? (data.glyphs?.[edition] ?? null) : null;
+  // Apple devices can't draw the per-page fonts yet (see glyphFonts.isAppleDevice): they get the text.
+  const appleDevice = useSyncExternalStore(noSubscribe, isAppleDevice, () => false);
+  const glyphLines = hafs && prefs.layout === "printed" && !appleDevice ? (data.glyphs?.[edition] ?? null) : null;
   const printed = glyphLines !== null && glyphFailed !== `${current}:${edition}`;
   const onGlyphFail = useCallback(() => setGlyphFailed(`${current}:${edition}`), [current, edition]);
   const ayahById = useMemo(
@@ -569,6 +573,11 @@ export function MushafReader({
                           </button>
                         ))}
                       </div>
+                      {appleDevice && prefs.layout === "printed" && (
+                        <p className="mt-1.5 rounded-xl bg-gold-mist px-2 py-1 text-[0.7rem] leading-5 text-gold-deep">
+                          الشكل المطبوع غير متاح مؤقتًا على أجهزة آبل، ونعرض لك النص حتى يُصلَح.
+                        </p>
+                      )}
                       <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
                         {prefs.layout === "printed"
                           ? "خط مجمع الملك فهد وسطوره كما في مصحف المدينة، صفحةً صفحة."
