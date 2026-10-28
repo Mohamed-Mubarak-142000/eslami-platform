@@ -88,6 +88,54 @@ function inkOnCanvas(family: string, text: string): boolean | null {
   }
 }
 
+const V1_P2 = `url("https://static.qurancdn.com/fonts/quran/hafs/v1/woff2/p2.woff2") format("woff2")`;
+const V1_P2_CODES = "ﭑ ﭒ ﭓ ﭔ ﭕ";
+
+/**
+ * The reader's own conditions: words inside a transformed (dragged, page-turning) stage. "Before"
+ * puts the words on screen first and the font arrives after, as the reader did; "after" adds the
+ * words only once their font has loaded, as it does now.
+ */
+function StageTest({ when }: { when: "before" | "after" }) {
+  const family = `ft-stage-${when}`;
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void new FontFace(family, V1_P2, { display: "block" }).load().then((face) => {
+        document.fonts.add(face);
+        setLoaded(true);
+      });
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [family]);
+  const show = when === "before" || loaded;
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4">
+      <p className="text-sm font-bold">
+        {when === "before"
+          ? "ح: داخل صفحة المصحف — الكلمات قبل الخط (الطريقة القديمة)"
+          : "ط: داخل صفحة المصحف — الخط قبل الكلمات (الإصلاح)"}
+      </p>
+      <div style={{ perspective: 1600 }}>
+        <div style={{ transform: "translateZ(0)", willChange: "transform" }}>
+          {show && (
+            <div className="mt-2 flex w-full items-center justify-between" style={{ fontFamily: family, fontSize: 30, lineHeight: 1 }}>
+              {V1_P2_CODES.split(" ").map((code, index) => (
+                <span key={index} className="whitespace-nowrap">
+                  {code}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-muted" dir="ltr">
+        {loaded ? "font loaded" : "loading…"}
+      </p>
+    </div>
+  );
+}
+
 export function FontTest() {
   const [status, setStatus] = useState<Record<string, string>>({});
   const [agent, setAgent] = useState("");
@@ -152,6 +200,8 @@ export function FontTest() {
           </p>
         </div>
       ))}
+      <StageTest when="before" />
+      <StageTest when="after" />
     </div>
   );
 }

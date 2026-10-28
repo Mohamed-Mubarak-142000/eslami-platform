@@ -10,80 +10,40 @@ import type { GlyphEdition } from "./mushafPageTypes";
 /** The OT-SVG tajweed font comes in three palettes; COLRv1 browsers colour the base text themselves. */
 export type GlyphPalette = "light" | "sepia" | "dark";
 
-type TajweedFormat = "colr" | "svg";
-
-/**
- * iPhone, iPad and Mac Safari. The per-page fonts load there but draw nothing (blank pages, with
- * both the plain and the tajweed font) for a reason not yet found — see /font-test — so those
- * devices read the flowing text until it is.
- */
-export function isAppleDevice(): boolean {
-  const agent = navigator.userAgent;
-  return (
-    /iPad|iPhone|iPod/.test(agent) ||
-    (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1) ||
-    (/Safari\//.test(agent) && !/Chrome|Chromium|Edg|OPR|Firefox/.test(agent))
-  );
-}
-
 const V1_URL = (page: number) => `https://static.qurancdn.com/fonts/quran/hafs/v1/woff2/p${page}.woff2`;
 const COLR_URL = (page: number) => `https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p${page}.woff2`;
 const SVG_URL = (page: number, palette: GlyphPalette) =>
   `https://verses.quran.foundation/fonts/quran/hafs/v4/ot-svg/${palette}/woff2/p${page}.woff2`;
 
+let colrSupport: boolean | undefined;
 /**
- * Apple's text engine (Safari, and every browser on iPhone and iPad) draws OT-SVG colour glyphs but
- * not COLRv1 ones — yet WebKit still answers yes to \`font-tech(color-COLRv1)\`, so the words came out
- * blank. Those browsers start on OT-SVG; elsewhere COLRv1, and a font that draws nothing (see
- * \`draws\`) switches the visit to the other format.
+ * The tajweed font comes as COLRv1 and as OT-SVG. iPhone draws COLRv1 (tested on iOS with
+ * /font-test) but leaves the OT-SVG one blank, so COLRv1 is used wherever the browser says it can;
+ * OT-SVG only for browsers that say they can't.
  */
-let tajweedFormat: TajweedFormat | undefined;
-function preferredFormat(): TajweedFormat {
-  if (tajweedFormat) return tajweedFormat;
-  const agent = navigator.userAgent;
-  const apple = /iPad|iPhone|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);
-  const safari = /Safari\//.test(agent) && !/Chrome|Chromium|Edg|OPR|Firefox/.test(agent);
-  let colr = false;
-  try {
-    colr = CSS.supports("font-tech(color-COLRv1)");
-  } catch {
-    // Older browsers: no font-tech() at all.
+function supportsColrV1(): boolean {
+  if (colrSupport === undefined) {
+    try {
+      colrSupport = CSS.supports("font-tech(color-COLRv1)");
+    } catch {
+      colrSupport = false;
+    }
   }
-  tajweedFormat = apple || safari || !colr ? "svg" : "colr";
-  return tajweedFormat;
+  return colrSupport;
 }
 
-function fontFor(page: number, edition: GlyphEdition, palette: GlyphPalette, format: TajweedFormat): { family: string; url: string } {
+function fontFor(page: number, edition: GlyphEdition, palette: GlyphPalette): { family: string; url: string } {
   if (edition === "v1") return { family: `qcf1-p${page}`, url: V1_URL(page) };
-  return format === "colr"
+  return supportsColrV1()
     ? { family: `qcf4-p${page}`, url: COLR_URL(page) }
     : { family: `qcf4-${palette}-p${page}`, url: SVG_URL(page, palette) };
 }
 
-/** Whether a loaded font actually puts ink on the page for this glyph (a colour format it can't draw leaves it blank). */
-function draws(family: string, sample: string): boolean {
-  try {
-    const canvas = document.createElement("canvas");
-    canvas.width = 120;
-    canvas.height = 80;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) return true;
-    context.font = `48px "${family}"`;
-    context.fillStyle = "#000";
-    context.textBaseline = "middle";
-    context.fillText(sample, 10, 40);
-    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
-    for (let index = 3; index < data.length; index += 4) if (data[index]! > 0) return true;
-    return false;
-  } catch {
-    // A canvas we can't read (privacy settings): trust the font.
-    return true;
-  }
-}
-
 const loading = new Map<string, Promise<boolean>>();
 
-function loadFace(family: string, url: string): Promise<boolean> {
+/** Loads (once) the font a page is drawn in and returns its family, or null when it can't be fetched. */
+export async function loadGlyphFont(page: number, edition: GlyphEdition, palette: GlyphPalette): Promise<string | null> {
+  const { family, url } = fontFor(page, edition, palette);
   let request = loading.get(family);
   if (!request) {
     const face = new FontFace(family, `url(${url}) format("woff2")`, { display: "block" });
@@ -100,22 +60,5 @@ function loadFace(family: string, url: string): Promise<boolean> {
       });
     loading.set(family, request);
   }
-  return request;
-}
-
-/**
- * Loads (once) the font a page is drawn in and returns its family, or null when no format of it
- * loads and draws — the reader then shows the page as text. `sample` is one of the page's glyphs.
- */
-export async function loadGlyphFont(page: number, edition: GlyphEdition, palette: GlyphPalette, sample?: string): Promise<string | null> {
-  const first = preferredFormat();
-  const formats: TajweedFormat[] = edition === "v1" ? [first] : first === "colr" ? ["colr", "svg"] : ["svg"];
-  for (const format of formats) {
-    const { family, url } = fontFor(page, edition, palette, format);
-    if (!(await loadFace(family, url))) continue;
-    if (!sample || draws(family, sample)) return family;
-    // This browser can't draw the format: use the other one for the rest of the visit.
-    if (edition === "tajweed") tajweedFormat = "svg";
-  }
-  return null;
+  return (await request) ? family : null;
 }

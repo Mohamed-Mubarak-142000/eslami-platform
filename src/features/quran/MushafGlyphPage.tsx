@@ -57,7 +57,7 @@ function SurahTitle({ name }: { name: string }) {
  */
 export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAyah, playingAyah, onSelect, onFail }: MushafGlyphPageProps) {
   const boxRef = useRef<HTMLDivElement>(null);
-  // The family the page's font loaded under — known once it has loaded and been seen to draw.
+  // The family the page's font loaded under, once it has loaded.
   const [family, setFamily] = useState<string | null>(null);
   const ready = family !== null;
   // Only the COLRv1 tajweed font has palettes to choose from (Safari's OT-SVG one is picked by file).
@@ -66,11 +66,10 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
     ? `@font-palette-values ${paletteName} { font-family: "${family}"; base-palette: ${palette === "dark" ? DARK_PALETTE : 0}; override-colors: ${INK_ENTRIES.map((entry) => `${entry} ${ink}`).join(", ")}; }`
     : null;
   const [fitted, setFitted] = useState(false);
-  const sample = lines.find((line) => line.kind === "words")?.words[0]?.code;
 
   useEffect(() => {
     let cancelled = false;
-    void loadGlyphFont(page, edition, palette, sample).then((loaded) => {
+    void loadGlyphFont(page, edition, palette).then((loaded) => {
       if (cancelled) return;
       if (loaded) setFamily(loaded);
       else onFail();
@@ -78,7 +77,7 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
     return () => {
       cancelled = true;
     };
-  }, [page, edition, palette, sample, onFail]);
+  }, [page, edition, palette, onFail]);
 
   useLayoutEffect(() => {
     const box = boxRef.current;
@@ -119,7 +118,8 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
       ref={boxRef}
       aria-hidden
       dir="rtl"
-      className={cn("mx-auto transition-opacity duration-200", ready && fitted ? "opacity-100" : "opacity-0")}
+      // Hidden (not faded) until laid out: an opacity fade puts the page on its own compositing layer.
+      className={cn("mx-auto", !(ready && fitted) && "invisible")}
       style={{ "--glyph-size": "24px", fontSize: "var(--glyph-size)" } as CSSProperties}
     >
       {paletteRule && <style>{paletteRule}</style>}
@@ -144,33 +144,40 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
         }
         return (
           <div key={index} className="flex items-center" style={lineStyle}>
-            <div
-              data-glyph-line
-              className="flex w-full items-center"
-              style={{
-                fontFamily: family ?? undefined,
-                fontSize: "var(--glyph-size)",
-                lineHeight: 1,
-                ...(paletteName && { fontPalette: paletteName }),
-              }}
-            >
-              {line.words.map((word, wordIndex) => {
-                const tint = word.ayah === playingAyah ? "playing" : word.ayah === selectedAyah ? "selected" : null;
-                return (
-                  <span
-                    key={wordIndex}
-                    onClick={() => onSelect(word.ayah)}
-                    className={cn(
-                      "cursor-pointer whitespace-nowrap rounded-md px-[0.02em] transition-colors duration-300 hover:bg-gold/15",
-                      tint === "playing" && "bg-[color-mix(in_srgb,var(--page-accent)_18%,transparent)]",
-                      tint === "selected" && "bg-gold/25",
-                    )}
-                  >
-                    {word.code}
-                  </span>
-                );
-              })}
-            </div>
+            {/*
+             * The words go in only once their font has loaded, so they are first painted in it. iPhone's
+             * WebKit didn't repaint words already on screen when their FontFace font arrived inside the
+             * reader's draggable, page-turning stage, and the page stayed blank.
+             */}
+            {family && (
+              <div
+                data-glyph-line
+                className="flex w-full items-center"
+                style={{
+                  fontFamily: family,
+                  fontSize: "var(--glyph-size)",
+                  lineHeight: 1,
+                  ...(paletteName && { fontPalette: paletteName }),
+                }}
+              >
+                {line.words.map((word, wordIndex) => {
+                  const tint = word.ayah === playingAyah ? "playing" : word.ayah === selectedAyah ? "selected" : null;
+                  return (
+                    <span
+                      key={wordIndex}
+                      onClick={() => onSelect(word.ayah)}
+                      className={cn(
+                        "cursor-pointer whitespace-nowrap rounded-md px-[0.02em] transition-colors duration-300 hover:bg-gold/15",
+                        tint === "playing" && "bg-[color-mix(in_srgb,var(--page-accent)_18%,transparent)]",
+                        tint === "selected" && "bg-gold/25",
+                      )}
+                    >
+                      {word.code}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
