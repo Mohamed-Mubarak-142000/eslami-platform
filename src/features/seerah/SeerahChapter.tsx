@@ -60,7 +60,7 @@ function useStage(event: SeerahEvent, beat: number) {
     .reverse()
     .find((stage) => stage.kind === "map");
   return {
-    scene: current.kind === "scene" ? current.scene : null,
+    scene: current.kind === "scene" ? current : null,
     frame: lastMap?.kind === "map" ? stageFrame(lastMap) : WHOLE_MAP,
     named: lastMap?.kind === "map" ? [...new Set([...lastMap.focus, ...(lastMap.glow ?? [])])] : [],
     glow: current.kind === "map" ? (current.glow ?? []) : [],
@@ -107,14 +107,14 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
         <AnimatePresence>
           {stage.scene && (
             <motion.div
-              key={stage.scene}
+              key={beat}
               className="absolute inset-0"
               initial={{ opacity: 0, scale: reduce ? 1 : 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: reduce ? 0 : 0.8 }}
             >
-              <SeerahScene scene={stage.scene} />
+              <SeerahScene sky={stage.scene.sky} land={stage.scene.land} items={stage.scene.items} />
             </motion.div>
           )}
         </AnimatePresence>

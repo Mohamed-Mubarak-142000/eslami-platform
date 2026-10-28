@@ -214,15 +214,95 @@ export const WHOLE_MAP: Frame = { x: 0, y: 0, width: map.width, height: map.heig
 // ---------------------------------------------------------------------------------------------
 // The story
 
-export type SceneId =
-  "night" | "cave" | "mountain" | "kaaba" | "masjid" | "dunes" | "sea" | "uhud" | "trench" | "tree" | "letter" | "arafah";
+/**
+ * What a scene is drawn from. People appear only as faceless silhouettes of ordinary crowds — never
+ * the Prophet ﷺ, his family, or a companion the beat names. Where the story is about him, a trace
+ * stands for him: his camel, a light, a lit doorway.
+ */
+export type ScenePart =
+  // Buildings and places
+  | "house"
+  | "house-2"
+  | "house-lit"
+  | "kaaba"
+  | "kaaba-building"
+  | "mosque"
+  | "fort"
+  | "court"
+  | "tent"
+  | "tent-blown"
+  | "arish"
+  | "well"
+  | "graves"
+  | "trench"
+  | "rock"
+  // Land
+  | "mount-nour"
+  | "mount-thawr"
+  | "uhud"
+  | "rumat"
+  | "palm"
+  | "acacia"
+  | "bush"
+  // Animals and things that move
+  | "camel"
+  | "camel-kneeling"
+  | "caravan"
+  | "mule"
+  | "sheep"
+  | "ship"
+  | "birds"
+  | "dust"
+  | "wind"
+  | "arrows"
+  | "cloud"
+  | "streak"
+  | "footprints"
+  // People, as silhouettes
+  | "crowd"
+  | "rows"
+  | "army"
+  | "diggers"
+  | "walker"
+  | "cloth-stone"
+  // Light and objects
+  | "light"
+  | "lantern"
+  | "fire"
+  | "banner"
+  | "idols"
+  | "idols-falling"
+  | "scroll"
+  | "seal";
+
+export interface SceneItem {
+  part: ScenePart;
+  /** Across the 400-wide frame. */
+  x: number;
+  /** Where it stands, 200 (the horizon, far and small) to 290 (near and large); 250 when left out. */
+  y?: number;
+  /** On top of the size its distance gives it. */
+  size?: number;
+  flip?: boolean;
+  /** Walks this far across the frame and back, for the things that move. */
+  move?: number;
+  /** For crowds and flocks: how many. */
+  count?: number;
+  /** A short fact the reader can tap the item to read. */
+  note?: string;
+}
+
+export type Sky = "day" | "dawn" | "dusk" | "night";
+export type Land = "desert" | "plain" | "town" | "mountains" | "oasis" | "sea" | "valley";
 
 export type Stage =
   /**
    * The map, framed on `focus` (no closer than `span` map units); `route` is drawn up to `upTo`
    * (all of it when left out), `glow` lights places.
    */
-  { kind: "map"; focus: PlaceId[]; span?: number; route?: RouteId; upTo?: number; glow?: PlaceId[] } | { kind: "scene"; scene: SceneId };
+  | { kind: "map"; focus: PlaceId[]; span?: number; route?: RouteId; upTo?: number; glow?: PlaceId[] }
+  /** A scene drawn for this beat: its sky, its land, and what stands on it. */
+  | { kind: "scene"; sky: Sky; land: Land; items: SceneItem[] };
 
 export interface Beat {
   /** One to three short sentences. */
@@ -283,21 +363,64 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وُلد في بني هاشم من قريش، أشرف بيوت العرب نسبًا، من ذرية إسماعيل بن إبراهيم عليهما السلام.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 200, y: 250, note: "الكعبة: رفع قواعدها إبراهيم وإسماعيل عليهما السلام" },
+            { part: "house", x: 80, y: 238 },
+            { part: "house", x: 320, y: 236 },
+            { part: "house", x: 120, y: 262 },
+            { part: "crowd", x: 300, y: 270, count: 4, note: "قريش: سادة مكة وسدنة البيت، ومنهم بنو هاشم" },
+            { part: "birds", x: 60, y: 150 },
+          ],
+        },
         hadith: "lineage",
       },
       {
         text: "مات أبوه عبد الله قبل أن يولد، ثم ماتت أمه آمنة وهو ابن ست سنين، فكفله جده عبد المطلب، فلما مات كفله عمه أبو طالب.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house-lit", x: 200, y: 258, note: "كفله جده عبد المطلب، ثم عمه أبو طالب بعد موت جده" },
+            { part: "house", x: 120, y: 240 },
+            { part: "house", x: 290, y: 242 },
+            { part: "lantern", x: 236, y: 256 },
+          ],
+        },
       },
       {
         text: "واستُرضع في بادية بني سعد، وفي صغره جاءه جبريل وهو يلعب مع الغلمان، فشقّ صدره وغسل قلبه بماء زمزم.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "desert",
+          items: [
+            { part: "tent", x: 110, y: 244, note: "بادية بني سعد: كانت قريش تسترضع أبناءها في البادية" },
+            { part: "tent", x: 270, y: 238 },
+            { part: "tent", x: 330, y: 250 },
+            { part: "sheep", x: 170, y: 268, count: 6, move: 40 },
+            { part: "light", x: 200, y: 222, note: "جاءه جبريل وهو يلعب مع الغلمان فشقّ صدره وغسله بماء زمزم" },
+            { part: "bush", x: 60, y: 276 },
+          ],
+        },
         hadith: "opened-chest",
       },
       {
         text: "وشبّ يرعى الغنم لأهل مكة بأجر يسير، كما رعاها الأنبياء من قبله.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "mountains",
+          items: [
+            { part: "sheep", x: 180, y: 262, count: 8, move: 60, note: "رعى الغنم لأهل مكة على قراريط، كما رعاها الأنبياء" },
+            { part: "acacia", x: 320, y: 252 },
+            { part: "bush", x: 80, y: 270 },
+          ],
+        },
         hadith: "shepherd",
       },
     ],
@@ -322,17 +445,47 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "فكانت خير زوج له: لم يتزوج عليها أحدًا حتى ماتت، وولدت له أولاده كلهم إلا إبراهيم.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house-lit", x: 200, y: 262, note: "بيت خديجة رضي الله عنها بمكة: أول بيت آمن أهله" },
+            { part: "house", x: 110, y: 244 },
+            { part: "house", x: 300, y: 240 },
+            { part: "lantern", x: 236, y: 260 },
+          ],
+        },
         hadith: "khadijah-only",
       },
       {
         text: "وبشّرها النبي ﷺ ببيت في الجنة من قصب، لا صخب فيه ولا نصب.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "oasis",
+          items: [
+            { part: "light", x: 200, y: 230, size: 1.6, note: "بيت في الجنة من قصب، لا صخب فيه ولا نصب" },
+            { part: "palm", x: 70, y: 262 },
+            { part: "palm", x: 340, y: 266 },
+            { part: "birds", x: 120, y: 120, count: 4 },
+          ],
+        },
         hadith: "khadijah-house",
       },
       {
         text: "وبقي يذكرها بعد موتها بسنين، ويذبح الشاة فيبعث بها إلى صديقاتها وفاءً لها.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "walker", x: 130, y: 262, move: 120, note: "كان يبعث بالشاة إلى صديقات خديجة وفاءً لها" },
+            { part: "house", x: 90, y: 246 },
+            { part: "house-lit", x: 300, y: 250 },
+            { part: "house", x: 200, y: 236 },
+          ],
+        },
         hadith: "khadijah-memory",
       },
     ],
@@ -349,7 +502,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     beats: [
       {
         text: "تصدّعت الكعبة، فأجمعت قريش على هدمها وإعادة بنائها، واشترطوا ألا يُدخلوا في بنائها إلا مالًا طيبًا.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba-building", x: 200, y: 252, note: "أعادت قريش بناءها، فقصرت بهم النفقة الطيبة فأخرجوا الحِجر منها" },
+            { part: "diggers", x: 300, y: 270 },
+            { part: "diggers", x: 90, y: 264 },
+            { part: "dust", x: 250, y: 255 },
+          ],
+        },
       },
       {
         text: "فلما بلغ البناء موضع الحجر الأسود اختلفوا: كل قبيلة تريد أن تنال شرف وضعه، حتى كادوا يقتتلون.",
@@ -357,11 +520,31 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "فاتفقوا أن يحكّموا أول من يدخل عليهم، فكان محمدًا ﷺ، فقالوا: هذا الأمين، رضينا به.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba-building", x: 200, y: 246 },
+            { part: "crowd", x: 90, y: 268, count: 5, note: "اختلفت القبائل فيمن يضع الحجر حتى كادوا يقتتلون" },
+            { part: "crowd", x: 310, y: 268, count: 5 },
+            { part: "light", x: 360, y: 240, move: -50, note: "اتفقوا أن يحكّموا أول داخل، فكان الأمين ﷺ" },
+          ],
+        },
       },
       {
         text: "فبسط ثوبًا ووضع الحجر في وسطه، وأمر كل قبيلة أن تأخذ بطرف منه، فرفعوه جميعًا، ثم وضعه بيده في مكانه.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba-building", x: 200, y: 238 },
+            { part: "cloth-stone", x: 200, y: 274, size: 1.2, note: "أخذت كل قبيلة بطرف الثوب، فرفعوه جميعًا" },
+            { part: "crowd", x: 70, y: 262, count: 3 },
+            { part: "crowd", x: 330, y: 262, count: 3 },
+          ],
+        },
       },
     ],
   },
@@ -378,7 +561,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     beats: [
       {
         text: "كان أول ما بدأ به الوحي الرؤيا الصالحة في النوم، فكان لا يرى رؤيا إلا جاءت مثل فلق الصبح.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "mountains",
+          items: [
+            { part: "house", x: 260, y: 248 },
+            { part: "house", x: 300, y: 256 },
+            { part: "light", x: 90, y: 210, size: 1.4, note: "كان لا يرى رؤيا إلا جاءت مثل فلق الصبح" },
+            { part: "birds", x: 180, y: 130 },
+          ],
+        },
         hadith: "first-revelation",
       },
       {
@@ -387,7 +580,15 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "حتى جاءه الملك وهو في الغار فقال له: اقرأ، فقال: ما أنا بقارئ، ثلاث مرات، ثم أقرأه أول ما نزل من القرآن.",
-        stage: { kind: "scene", scene: "mountain" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "plain",
+          items: [
+            { part: "mount-nour", x: 230, y: 262, size: 1.5, note: "غار حراء في جبل النور، شمال شرق مكة" },
+            { part: "light", x: 188, y: 150, size: 1.8 },
+          ],
+        },
         verse: "iqra",
       },
       {
@@ -396,11 +597,28 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "فانطلقت به إلى ابن عمها ورقة بن نوفل، وكان قد قرأ كتب أهل الكتاب، فأخبره أن هذا الملك هو الذي نزل على موسى.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house-lit", x: 210, y: 262, note: "ورقة بن نوفل: ابن عم خديجة، قرأ كتب أهل الكتاب" },
+            { part: "house", x: 120, y: 244 },
+            { part: "lantern", x: 246, y: 258 },
+          ],
+        },
       },
       {
         text: "ثم فتر الوحي مدة، ثم رأى الملك الذي جاءه بحراء جالسًا بين السماء والأرض، فنزلت أوائل سورة المدثر تأمره بالإنذار، وتتابع الوحي.",
-        stage: { kind: "scene", scene: "mountain" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "mountains",
+          items: [
+            { part: "light", x: 200, y: 150, size: 2.4, note: "رأى الملك الذي جاءه بحراء بين السماء والأرض" },
+            { part: "mount-nour", x: 320, y: 250 },
+          ],
+        },
         hadith: "the-pause",
         verse: "arise",
       },
@@ -418,7 +636,18 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     beats: [
       {
         text: "بدأ يدعو سرًّا من يثق به، فآمنت خديجة، وأبو بكر، وعلي، وزيد بن حارثة، وقليل من الضعفاء والموالي.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house-lit", x: 200, y: 262, note: "دار الأرقم بن أبي الأرقم: كان المسلمون يجتمعون فيها سرًّا" },
+            { part: "house", x: 110, y: 246 },
+            { part: "house", x: 300, y: 246 },
+            { part: "house", x: 250, y: 232 },
+            { part: "lantern", x: 236, y: 258 },
+          ],
+        },
         hadith: "first-believers",
       },
       {
@@ -429,17 +658,46 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "فاشتد أذى قريش: كان يصلي عند الكعبة، فجاء أحدهم بسلا جزور فوضعه على ظهره وهو ساجد، حتى جاءت فاطمة فطرحته عنه.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 190, y: 248 },
+            { part: "crowd", x: 320, y: 264, count: 5, note: "كان أبو جهل وأصحاب له جلوسًا عند البيت يسخرون" },
+            { part: "light", x: 120, y: 262, note: "كان ﷺ يصلي عند الكعبة" },
+          ],
+        },
         hadith: "entrails",
       },
       {
         text: "وخنقه عقبة بن أبي معيط بردائه وهو يصلي خنقًا شديدًا، حتى جاء أبو بكر فدفعه عنه.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 200, y: 250 },
+            { part: "crowd", x: 90, y: 266, count: 3 },
+            { part: "light", x: 290, y: 262, note: "أُوذي وهو يصلي، فدفع أبو بكر عنه المعتدي" },
+            { part: "birds", x: 150, y: 140, count: 5 },
+          ],
+        },
         hadith: "strangled",
       },
       {
         text: "وعُذّب المستضعفون من أصحابه، فشكوا إليه وهو متوسّد بردة في ظل الكعبة، فذكّرهم بصبر من قبلهم، وأخبرهم أن الله سيُتمّ هذا الأمر.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "desert",
+          items: [
+            { part: "kaaba", x: 260, y: 240, note: "كان ﷺ متوسّدًا بردة في ظل الكعبة حين شكوا إليه" },
+            { part: "dust", x: 100, y: 250 },
+            { part: "dust", x: 330, y: 268 },
+            { part: "crowd", x: 120, y: 272, count: 3, note: "المستضعفون: عُذّبوا ليتركوا دينهم فصبروا" },
+          ],
+        },
         hadith: "khabbab",
       },
     ],
@@ -464,7 +722,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وأرسلت قريش إلى النجاشي تسأله أن يردّهم، فسمع من جعفر بن أبي طالب ما يدعو إليه الإسلام، وما نزل في عيسى ومريم، فأبى أن يسلّمهم.",
-        stage: { kind: "scene", scene: "sea" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "court", x: 200, y: 254, note: "النجاشي: ملك الحبشة، لا يُظلم عنده أحد" },
+            { part: "crowd", x: 90, y: 272, count: 4, note: "المهاجرون: سمع منهم النجاشي فأبى أن يسلّمهم" },
+            { part: "crowd", x: 320, y: 272, count: 3 },
+            { part: "palm", x: 30, y: 250 },
+          ],
+        },
       },
       {
         text: "ولما مات النجاشي نعاه النبي ﷺ لأصحابه في اليوم الذي مات فيه، وخرج بهم فصلّى عليه.",
@@ -473,7 +741,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وبقي جعفر ومن معه هناك سنين حتى قدموا على النبي ﷺ بعد فتح خيبر، فقال لأهل السفينة: لكم هجرتان.",
-        stage: { kind: "scene", scene: "sea" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "sea",
+          items: [
+            { part: "ship", x: 200, y: 240, move: 40, note: "أهل السفينة: جعفر ومن معه، لهم هجرتان" },
+            { part: "birds", x: 80, y: 120 },
+            { part: "cloud", x: 300, y: 90 },
+          ],
+        },
         hadith: "ship-people",
       },
     ],
@@ -490,7 +767,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     beats: [
       {
         text: "في عام واحد ماتت خديجة سنده في بيته، ومات عمه أبو طالب الذي كان يمنعه من قريش، فاشتد أذاهم عليه بعدهما.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house", x: 150, y: 256, note: "عام الحزن: ماتت خديجة ومات أبو طالب في عام واحد" },
+            { part: "house", x: 260, y: 252 },
+            { part: "house", x: 200, y: 236 },
+            { part: "lantern", x: 186, y: 256 },
+          ],
+        },
       },
       {
         text: "فخرج إلى الطائف يدعو ثقيفًا إلى الله لعلهم ينصرونه، فردّوه أقبح الرد، وأغروا به سفهاءهم.",
@@ -498,12 +785,32 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "فانطلق مهمومًا حتى أفاق في الطريق، فإذا سحابة قد أظلّته فيها جبريل، ومعه ملك الجبال يقول: إن شئت أطبقت عليهم الجبلين.",
-        stage: { kind: "scene", scene: "mountain" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "valley",
+          items: [
+            { part: "cloud", x: 200, y: 110, size: 1.6, note: "سحابة أظلّته فيها جبريل ومعه ملك الجبال" },
+            { part: "light", x: 200, y: 130 },
+            { part: "footprints", x: 150, y: 272, size: 1.4 },
+          ],
+        },
         hadith: "taif",
       },
       {
         text: "فقال ﷺ: بل أرجو أن يُخرج الله من أصلابهم من يعبد الله وحده لا يشرك به شيئًا.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "oasis",
+          items: [
+            { part: "palm", x: 80, y: 262 },
+            { part: "palm", x: 330, y: 260 },
+            { part: "bush", x: 250, y: 276 },
+            { part: "house", x: 200, y: 236, note: "الطائف: أسلمت ثقيف بعد ذلك بسنين" },
+            { part: "birds", x: 150, y: 130, count: 4 },
+          ],
+        },
       },
       {
         text: "ثم رجع إلى مكة يواصل دعوته، ويعرض نفسه على القبائل في مواسم الحج.",
@@ -527,17 +834,47 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "ثم عُرج به إلى السماوات، فلقي فيها الأنبياء، حتى انتهى إلى سدرة المنتهى.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "streak", x: 200, y: 240, note: "عُرج به إلى السماوات حتى سدرة المنتهى" },
+            { part: "kaaba", x: 200, y: 262, size: 0.8 },
+          ],
+        },
         hadith: "sidrah",
       },
       {
         text: "وفُرضت عليه الصلاة خمسين، فما زال يسأل ربه التخفيف حتى صارت خمس صلوات في كل يوم وليلة.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "lantern", x: 100, y: 250 },
+            { part: "lantern", x: 150, y: 250 },
+            { part: "lantern", x: 200, y: 250, note: "خمس صلوات في كل يوم وليلة، فُرضت ليلة المعراج" },
+            { part: "lantern", x: 250, y: 250 },
+            { part: "lantern", x: 300, y: 250 },
+            { part: "house", x: 130, y: 270 },
+            { part: "house", x: 270, y: 270 },
+          ],
+        },
         hadith: "five-prayers",
       },
       {
         text: "وأصبح يحدّث قريشًا بما رأى، فكذّبوه وسألوه عن صفة بيت المقدس، فجلّاه الله له فجعل يخبرهم عنه.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 260, y: 246 },
+            { part: "crowd", x: 140, y: 266, count: 6, note: "سألته قريش عن صفة بيت المقدس، فجلّاه الله له" },
+            { part: "light", x: 250, y: 266 },
+          ],
+        },
         hadith: "quraysh-ask",
       },
     ],
@@ -568,7 +905,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وفي العام الذي يليه جاءه منهم بضعة وسبعون، فبايعوه ليلًا عند العقبة على أن ينصروه ويمنعوه مما يمنعون منه أنفسهم وأهليهم.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "valley",
+          items: [
+            { part: "crowd", x: 200, y: 262, count: 9, note: "بيعة العقبة الثانية: بضعة وسبعون من الأوس والخزرج" },
+            { part: "lantern", x: 250, y: 254 },
+            { part: "light", x: 140, y: 258 },
+          ],
+        },
       },
       {
         text: "فصارت يثرب دار الإسلام، وبدأ المسلمون يهاجرون إليها.",
@@ -600,7 +946,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "واجتمعت قريش تتشاور في أمره: أيحبسونه، أم يقتلونه، أم يخرجونه؟ واتفقوا على قتله ليلًا.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house-2", x: 200, y: 258, note: "دار الندوة: مجلس قريش للتشاور" },
+            { part: "crowd", x: 300, y: 266, count: 4 },
+            { part: "house", x: 100, y: 246 },
+            { part: "lantern", x: 236, y: 256 },
+          ],
+        },
         verse: "plot",
       },
       {
@@ -609,7 +965,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "مكثا في الغار ثلاث ليال، وجاء الطلب حتى وقفوا على باب الغار. قال أبو بكر: لو نظر أحدهم إلى قدميه لأبصرنا.",
-        stage: { kind: "scene", scene: "cave" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "mountains",
+          items: [
+            { part: "mount-thawr", x: 220, y: 262, size: 1.5, note: "غار ثور: جنوب مكة، مكثا فيه ثلاث ليال" },
+            { part: "crowd", x: 300, y: 214, count: 4, note: "جاء الطلب حتى وقفوا على باب الغار" },
+            { part: "sheep", x: 110, y: 276, count: 5, move: 30, note: "كان عامر بن فهيرة يرعى الغنم فوقهما فيعفّي الأثر" },
+          ],
+        },
         hadith: "cave",
         verse: "two-in-the-cave",
       },
@@ -629,12 +994,33 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "ثم دخل المدينة والناس حوله، حتى بركت ناقته في مِربد لغلامين يتيمين، فاشتراه منهما وبنى عليه مسجده، وكان ينقل اللَّبِن بيده مع أصحابه.",
-        stage: { kind: "scene", scene: "masjid" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "camel-kneeling", x: 200, y: 266, note: "بركت الناقة في مِربد لغلامين يتيمين، فاشتراه وبنى عليه المسجد" },
+            { part: "crowd", x: 90, y: 262, count: 5 },
+            { part: "crowd", x: 320, y: 262, count: 5 },
+            { part: "palm", x: 40, y: 252 },
+            { part: "palm", x: 370, y: 248 },
+          ],
+        },
         hadith: "arrival",
       },
       {
         text: "ونزل ضيفًا على أبي أيوب الأنصاري، فكان أبو أيوب يتحرّج أن يمشي فوق رأسه، حتى تحوّل ﷺ إلى العلو.",
-        stage: { kind: "scene", scene: "masjid" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "house-2", x: 200, y: 262, note: "بيت أبي أيوب الأنصاري: كان من طبقتين" },
+            { part: "palm", x: 90, y: 256 },
+            { part: "palm", x: 320, y: 254 },
+            { part: "light", x: 200, y: 260 },
+          ],
+        },
         hadith: "abu-ayyub",
       },
       {
@@ -645,7 +1031,18 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وأصابت حمّى المدينة بعض أصحابه، فدعا: «اللهم حبّب إلينا المدينة كحبنا مكة أو أشد».",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "oasis",
+          items: [
+            { part: "palm", x: 70, y: 260 },
+            { part: "palm", x: 120, y: 248 },
+            { part: "palm", x: 330, y: 258 },
+            { part: "mosque", x: 220, y: 250, note: "دعا: اللهم حبّب إلينا المدينة كحبنا مكة أو أشد" },
+            { part: "birds", x: 200, y: 120, count: 4 },
+          ],
+        },
         hadith: "love-of-madinah",
       },
     ],
@@ -671,7 +1068,19 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "ووقف يدعو ربه مستقبل القبلة مادًّا يديه: اللهم أنجز لي ما وعدتني، حتى سقط رداؤه عن منكبيه.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "desert",
+          items: [
+            { part: "arish", x: 200, y: 262, note: "العريش: بُني له ﷺ يشرف منه على الجيش" },
+            { part: "light", x: 200, y: 254 },
+            { part: "fire", x: 90, y: 270 },
+            { part: "fire", x: 320, y: 268 },
+            { part: "tent", x: 120, y: 246 },
+            { part: "tent", x: 290, y: 244 },
+          ],
+        },
         hadith: "badr-dua",
         verse: "badr-call",
       },
@@ -683,7 +1092,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وكان أهل بدر بعدها من أفضل المسلمين.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "desert",
+          items: [
+            { part: "well", x: 200, y: 262, note: "آبار بدر: نزل المسلمون عند الماء" },
+            { part: "banner", x: 120, y: 262 },
+            { part: "banner", x: 290, y: 258 },
+            { part: "birds", x: 140, y: 120, count: 4 },
+          ],
+        },
         hadith: "badr-people",
       },
     ],
@@ -704,12 +1123,33 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وجعل خمسين من الرماة على جبل صغير، وأمّر عليهم عبد الله بن جبير، وقال: لا تبرحوا مكانكم ولو رأيتمونا تخطفنا الطير.",
-        stage: { kind: "scene", scene: "uhud" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "uhud", x: 200, y: 218 },
+            { part: "rumat", x: 300, y: 252, note: "جبل الرماة: وقف عليه خمسون راميًا" },
+            { part: "crowd", x: 300, y: 228, count: 4 },
+            { part: "army", x: 130, y: 270 },
+          ],
+        },
         hadith: "archers",
       },
       {
         text: "وكانت الجولة أول النهار للمسلمين، فلما رأى أكثر الرماة هزيمة المشركين نزلوا يطلبون الغنيمة، فأتى المشركون المسلمين من خلفهم.",
-        stage: { kind: "scene", scene: "uhud" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "uhud", x: 200, y: 218 },
+            { part: "rumat", x: 300, y: 252 },
+            { part: "crowd", x: 280, y: 262, count: 4, move: -70, note: "نزل أكثر الرماة يطلبون الغنيمة" },
+            { part: "dust", x: 110, y: 262 },
+            { part: "dust", x: 170, y: 270 },
+          ],
+        },
       },
       {
         text: "واضطرب المسلمون، وجُرح النبي ﷺ في وجهه، وكُسرت رباعيته، وثبت حوله نفر من أصحابه يفدونه.",
@@ -718,12 +1158,31 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "واستُشهد يومئذ سبعون من أصحابه، منهم عمه حمزة بن عبد المطلب.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "plain",
+          items: [
+            { part: "uhud", x: 200, y: 220 },
+            { part: "graves", x: 200, y: 268, size: 1.4, note: "شهداء أحد: دُفنوا في أرض المعركة، ومنهم حمزة" },
+            { part: "birds", x: 140, y: 130, count: 5 },
+          ],
+        },
         hadith: "hamza",
       },
       {
         text: "ونزل القرآن يواسيهم ويرفع رؤوسهم، وبقي ﷺ يحب أحدًا، ويقول: جبل يحبنا ونحبه.",
-        stage: { kind: "scene", scene: "uhud" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "uhud", x: 200, y: 220, note: "أحد: جبل يحبنا ونحبه" },
+            { part: "palm", x: 80, y: 262 },
+            { part: "palm", x: 330, y: 264 },
+            { part: "house", x: 200, y: 266 },
+          ],
+        },
         hadith: "uhud-loves",
         verse: "uhud-comfort",
       },
@@ -745,22 +1204,67 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "فحفر المسلمون خندقًا في الجهة المكشوفة من المدينة، والنبي ﷺ ينقل التراب معهم حتى غطّى بطنه، وهو يرتجز.",
-        stage: { kind: "scene", scene: "trench" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "trench", x: 200, y: 254, note: "الخندق: حُفر في الجهة المكشوفة شمال المدينة" },
+            { part: "diggers", x: 150, y: 272, move: 30 },
+            { part: "diggers", x: 300, y: 270 },
+            { part: "light", x: 230, y: 274, note: "كان ﷺ ينقل التراب معهم ويرتجز" },
+          ],
+        },
         hadith: "trench-dig",
       },
       {
         text: "واعترضتهم صخرة شديدة، فنزل إليها وقد عصب بطنه بحجر من الجوع، فضربها بالمعول فعادت رملًا.",
-        stage: { kind: "scene", scene: "trench" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "trench", x: 200, y: 254 },
+            { part: "rock", x: 200, y: 262, size: 1.6, note: "صخرة اعترضتهم، فضربها ﷺ بالمعول فعادت رملًا" },
+            { part: "diggers", x: 90, y: 274 },
+            { part: "diggers", x: 320, y: 274 },
+          ],
+        },
         hadith: "trench-rock",
       },
       {
         text: "وحاصر الأحزاب المدينة أيامًا، واشتد الخوف والبرد والجوع، ونقضت بنو قريظة عهدها مع المسلمين.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "plain",
+          items: [
+            { part: "trench", x: 200, y: 248 },
+            { part: "tent", x: 90, y: 228, note: "معسكر الأحزاب خلف الخندق" },
+            { part: "tent", x: 170, y: 224 },
+            { part: "tent", x: 300, y: 228 },
+            { part: "fire", x: 130, y: 232 },
+            { part: "fire", x: 250, y: 230 },
+            { part: "crowd", x: 200, y: 280, count: 5, note: "حوصرت المدينة واشتد الخوف والبرد والجوع" },
+          ],
+        },
         verse: "confederates-fear",
       },
       {
         text: "ثم أرسل الله على الأحزاب ريحًا شديدة في ليلة باردة، فرحلوا خائبين.",
-        stage: { kind: "scene", scene: "trench" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "plain",
+          items: [
+            { part: "trench", x: 200, y: 254 },
+            { part: "tent-blown", x: 100, y: 234 },
+            { part: "tent-blown", x: 200, y: 230 },
+            { part: "tent-blown", x: 310, y: 234 },
+            { part: "wind", x: 200, y: 220, note: "ريح شديدة في ليلة باردة، فرحل الأحزاب خائبين" },
+            { part: "dust", x: 150, y: 238 },
+          ],
+        },
         hadith: "confederates-night",
         verse: "confederates-wind",
       },
@@ -792,13 +1296,31 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وبايعه أصحابه تحت الشجرة على ألا يفرّوا، فكانت بيعة الرضوان.",
-        stage: { kind: "scene", scene: "tree" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "acacia", x: 200, y: 254, size: 1.3, note: "بيعة الرضوان: تحت شجرة سَمُرة بالحديبية" },
+            { part: "rows", x: 200, y: 282, count: 3 },
+            { part: "light", x: 200, y: 250 },
+          ],
+        },
         hadith: "ridwan",
         verse: "tree-pledge",
       },
       {
         text: "ثم كتب الصلح مع قريش: أن يرجع المسلمون عامهم هذا، وأن توضع الحرب بين الفريقين، وشروطًا رأى فيها بعض الصحابة غضاضة.",
-        stage: { kind: "scene", scene: "letter" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "scroll", x: 200, y: 270, size: 1.1, note: "كتب الصلح علي بن أبي طالب بأمر النبي ﷺ" },
+            { part: "tent", x: 80, y: 240 },
+            { part: "tent", x: 330, y: 240 },
+          ],
+        },
         hadith: "treaty",
       },
       {
@@ -808,7 +1330,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وكان الصلح فتحًا حقًّا: أمن الناس واختلطوا بالمسلمين وسمعوا منهم، فدخل في الإسلام بعده أكثر ممن دخل قبله.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "desert",
+          items: [
+            { part: "caravan", x: 120, y: 262, move: 60, note: "أمن الناس، فاختلطوا بالمسلمين وسمعوا منهم" },
+            { part: "caravan", x: 300, y: 240, flip: true, move: -40 },
+            { part: "crowd", x: 230, y: 276, count: 4 },
+          ],
+        },
       },
     ],
   },
@@ -829,7 +1360,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "واتخذ خاتمًا من فضة نُقش فيه: محمد رسول الله، في ثلاثة أسطر، يختم به كتبه.",
-        stage: { kind: "scene", scene: "letter" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "plain",
+          items: [
+            { part: "seal", x: 200, y: 262, size: 0.9, note: "نقش الخاتم في ثلاثة أسطر: محمد، رسول، الله" },
+            { part: "scroll", x: 80, y: 258 },
+            { part: "scroll", x: 320, y: 258 },
+          ],
+        },
         hadith: "seal",
       },
       {
@@ -867,7 +1407,18 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وحاصر حصونها حصنًا بعد حصن، وأعطى الراية عليّ بن أبي طالب بعد أن تفل في عينيه فبرأتا، ففتح الله على يديه.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "fort", x: 120, y: 238, note: "حصون خيبر: فُتحت حصنًا بعد حصن" },
+            { part: "fort", x: 230, y: 230 },
+            { part: "fort", x: 330, y: 240 },
+            { part: "army", x: 200, y: 278, count: 2 },
+            { part: "banner", x: 160, y: 276, note: "أعطى الراية عليًّا، ففتح الله على يديه" },
+          ],
+        },
         hadith: "ali-flag",
       },
       {
@@ -876,7 +1427,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وفيها قدم جعفر بن أبي طالب ومن معه من الحبشة بعد سنين من الغربة، ففرح بهم النبي ﷺ.",
-        stage: { kind: "scene", scene: "sea" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "caravan", x: 120, y: 262, move: 50, note: "قدم جعفر ومن معه من الحبشة بعد سنين" },
+            { part: "tent", x: 280, y: 246 },
+            { part: "tent", x: 330, y: 254 },
+            { part: "crowd", x: 290, y: 272, count: 4 },
+          ],
+        },
         hadith: "ship-people",
       },
     ],
@@ -902,12 +1463,33 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وكان ﷺ في المدينة يخبر أصحابه بما يجري، وعيناه تذرفان: أخذ الراية زيد فأصيب، ثم جعفر، ثم ابن رواحة، ثم أخذها خالد ففُتح عليه.",
-        stage: { kind: "scene", scene: "masjid" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "mosque", x: 200, y: 252 },
+            { part: "rows", x: 200, y: 284, count: 2, note: "كان ﷺ يخبرهم بما يجري في مؤتة وهو في المدينة" },
+            { part: "light", x: 200, y: 254 },
+            { part: "palm", x: 60, y: 262 },
+            { part: "palm", x: 350, y: 262 },
+          ],
+        },
         hadith: "mutah-news",
       },
       {
         text: "وأخبر أنه رأى جعفرًا يطير في الجنة مع الملائكة.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "oasis",
+          items: [
+            { part: "birds", x: 120, y: 130, count: 5, note: "جعفر الطيّار: رآه ﷺ يطير في الجنة مع الملائكة" },
+            { part: "light", x: 220, y: 190, size: 1.6 },
+            { part: "palm", x: 80, y: 262 },
+            { part: "palm", x: 330, y: 260 },
+          ],
+        },
         hadith: "jafar",
       },
       {
@@ -933,7 +1515,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وكتب حاطب بن أبي بلتعة إلى قريش يخبرهم، فأطلع الله نبيّه، فأُدرك الكتاب في الطريق، وعفا ﷺ عن حاطب لأنه شهد بدرًا.",
-        stage: { kind: "scene", scene: "letter" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "scroll", x: 200, y: 270, note: "كتاب حاطب: أُدرك في روضة خاخ، وعفا عنه ﷺ لأنه شهد بدرًا" },
+            { part: "bush", x: 90, y: 270 },
+            { part: "acacia", x: 320, y: 252 },
+          ],
+        },
         hadith: "hatib",
       },
       {
@@ -946,13 +1537,31 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وطاف بالبيت وحوله ثلاثمئة وستون صنمًا، فجعل يطعنها بعود في يده ويتلو قول الله تعالى:",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 200, y: 246 },
+            { part: "idols-falling", x: 200, y: 268, note: "ثلاثمئة وستون صنمًا حول البيت" },
+            { part: "light", x: 120, y: 268 },
+          ],
+        },
         hadith: "idols",
         verse: "truth-came",
       },
       {
         text: "ودخل الكعبة فصلّى فيها، ثم عفا عن أهل مكة الذين آذوه وأخرجوه وقاتلوه.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 200, y: 248, note: "دخل ﷺ الكعبة فصلّى فيها" },
+            { part: "crowd", x: 90, y: 270, count: 6, note: "أهل مكة: عفا عنهم بعد أن آذوه وأخرجوه" },
+            { part: "crowd", x: 320, y: 270, count: 6 },
+          ],
+        },
         hadith: "in-the-kaaba",
       },
       {
@@ -979,7 +1588,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وكمن لهم العدو في الوادي، فرشقوهم بالنبل، فانكشف كثير من الناس، وثبت ﷺ على بغلته البيضاء.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "valley",
+          items: [
+            { part: "arrows", x: 200, y: 240 },
+            { part: "mule", x: 200, y: 274, note: "ثبت ﷺ على بغلته البيضاء" },
+            { part: "dust", x: 100, y: 268 },
+            { part: "dust", x: 300, y: 270 },
+          ],
+        },
         hadith: "hunayn",
       },
       {
@@ -993,7 +1612,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وجاءه وفد هوازن مسلمين، فردّ عليهم سبيهم.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "desert",
+          items: [
+            { part: "tent", x: 120, y: 244 },
+            { part: "tent", x: 280, y: 240 },
+            { part: "crowd", x: 200, y: 272, count: 6, move: 30, note: "ردّ ﷺ على هوازن سبيهم لما جاؤوا مسلمين" },
+            { part: "camel", x: 330, y: 266, flip: true, move: -40 },
+          ],
+        },
         hadith: "hawazin",
       },
     ],
@@ -1029,7 +1658,17 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وصدق كعب بن مالك وصاحباه فلم يعتذروا بباطل، فهُجروا خمسين ليلة حتى اشتد بهم الكرب، ثم نزلت توبتهم.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "town",
+          items: [
+            { part: "house", x: 300, y: 262, note: "هُجر الثلاثة خمسين ليلة حتى نزلت توبتهم" },
+            { part: "house-lit", x: 120, y: 246 },
+            { part: "house-lit", x: 180, y: 240 },
+            { part: "palm", x: 60, y: 258 },
+          ],
+        },
         hadith: "kab",
         verse: "three-left",
       },
@@ -1051,7 +1690,16 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وطاف بالبيت على بعيره، يستلم الركن بمحجن معه.",
-        stage: { kind: "scene", scene: "kaaba" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "town",
+          items: [
+            { part: "kaaba", x: 200, y: 246 },
+            { part: "camel", x: 120, y: 268, move: 160, note: "طاف ﷺ راكبًا، يستلم الركن بمحجن" },
+            { part: "rows", x: 200, y: 288, count: 2 },
+          ],
+        },
         hadith: "tawaf-camel",
       },
       {
@@ -1061,11 +1709,29 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "ثم سألهم: وأنتم تُسألون عني، فما أنتم قائلون؟ قالوا: نشهد أنك قد بلّغت وأدّيت ونصحت، فرفع إصبعه إلى السماء: اللهم اشهد.",
-        stage: { kind: "scene", scene: "arafah" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "mountains",
+          items: [
+            { part: "camel", x: 200, y: 256, note: "خطب على ناقته القصواء ببطن الوادي" },
+            { part: "light", x: 205, y: 226 },
+            { part: "crowd", x: 100, y: 278, count: 8, note: "سألهم: ما أنتم قائلون؟ فشهدوا أنه بلّغ وأدّى ونصح" },
+            { part: "crowd", x: 300, y: 278, count: 8 },
+          ],
+        },
       },
       {
         text: "ونزلت يومئذ بعرفة آية إكمال الدين.",
-        stage: { kind: "scene", scene: "arafah" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "mountains",
+          items: [
+            { part: "rows", x: 200, y: 284, count: 3, note: "نزلت آية إكمال الدين يوم عرفة، وكان يوم جمعة" },
+            { part: "light", x: 200, y: 200, size: 1.8 },
+          ],
+        },
         hadith: "perfected",
         verse: "religion-perfected",
       },
@@ -1089,12 +1755,29 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     beats: [
       {
         text: "بعد رجوعه من الحج بأشهر اشتد به الوجع، فاستأذن أزواجه أن يُمرَّض في بيت عائشة، فأذنّ له.",
-        stage: { kind: "scene", scene: "masjid" },
+        stage: {
+          kind: "scene",
+          sky: "dusk",
+          land: "oasis",
+          items: [
+            { part: "mosque", x: 180, y: 258 },
+            { part: "house-lit", x: 270, y: 260, note: "بيت عائشة ملاصق للمسجد، فيه مُرّض ﷺ" },
+            { part: "palm", x: 60, y: 260 },
+          ],
+        },
         hadith: "aishas-house",
       },
       {
         text: "ولما ثقل عليه الخروج قال: مروا أبا بكر فليصلّ بالناس.",
-        stage: { kind: "scene", scene: "masjid" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "oasis",
+          items: [
+            { part: "mosque", x: 200, y: 248 },
+            { part: "rows", x: 200, y: 284, count: 3, note: "صلّى أبو بكر بالناس في مرضه ﷺ" },
+          ],
+        },
         hadith: "abu-bakr-leads",
       },
       {
@@ -1104,19 +1787,45 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
       },
       {
         text: "وكان آخر ما قال: اللهم الرفيق الأعلى.",
-        stage: { kind: "scene", scene: "night" },
+        stage: {
+          kind: "scene",
+          sky: "night",
+          land: "oasis",
+          items: [
+            { part: "streak", x: 200, y: 250, note: "آخر ما قال: اللهم الرفيق الأعلى" },
+            { part: "house-lit", x: 200, y: 268, size: 0.9 },
+          ],
+        },
         hadith: "highest-companion",
         verse: "you-will-die",
       },
       {
         text: "ودهش الناس، فقام أبو بكر فقال: من كان يعبد محمدًا فإن محمدًا قد مات، ومن كان يعبد الله فإن الله حي لا يموت، ثم تلا:",
-        stage: { kind: "scene", scene: "masjid" },
+        stage: {
+          kind: "scene",
+          sky: "day",
+          land: "oasis",
+          items: [
+            { part: "mosque", x: 200, y: 248 },
+            { part: "crowd", x: 200, y: 280, count: 10, note: "خطب أبو بكر الناس وقد دهشوا لموته ﷺ" },
+          ],
+        },
         hadith: "abu-bakr-speech",
         verse: "messenger",
       },
       {
         text: "ومات ﷺ وهو ابن ثلاث وستين، ولم يترك دينارًا ولا درهمًا، وترك لأمته القرآن والسنة.",
-        stage: { kind: "scene", scene: "dunes" },
+        stage: {
+          kind: "scene",
+          sky: "dawn",
+          land: "oasis",
+          items: [
+            { part: "mosque", x: 200, y: 254, note: "لم يترك دينارًا ولا درهمًا، وترك القرآن والسنة" },
+            { part: "light", x: 200, y: 200, size: 1.6 },
+            { part: "palm", x: 70, y: 262 },
+            { part: "palm", x: 330, y: 262 },
+          ],
+        },
         hadith: "left-nothing",
       },
     ],

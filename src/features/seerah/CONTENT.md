@@ -29,8 +29,15 @@ copied unchanged into the app (almanara-mobile `src/core/seerah/`), with both JS
   and al-Kharrar; the caravan road north by al-Hijr to Tabuk), not surveyed tracks. A chapter marks
   them «المسار تقريبي». The crossing to Abyssinia is the only route at sea, listed in `AT_SEA`; every
   other waypoint is checked to be on land.
-- **Pictures:** none of the Prophet ﷺ, his companions, or any person. The stage is the map, the land,
-  buildings, the sea and the sky. The boat in the sea scene is empty.
+- **Pictures:** every beat off the map has a scene of its own, composed in `seerahContent.ts`
+  from the parts in `SeerahScenes.tsx`.
+  - **People** are faceless silhouettes of ordinary crowds only: the people of Makkah, pilgrims,
+    armies, rows at prayer.
+  - **The Prophet ﷺ, his family, and every companion a beat names are never drawn.** Where the
+    story is about him, a light, his camel or a lit doorway stands in his place.
+  - **Angels** are not drawn either; a light or a cloud stands for them.
+  - **Tap notes** on the scenes are short facts drawn from the same sources as the narration. They
+    are part of the review.
 
 ## Review
 
