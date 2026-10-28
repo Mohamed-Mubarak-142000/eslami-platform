@@ -201,7 +201,7 @@ export function JumpSheet({
                 ) : (
                   <ul className="grid gap-1.5">
                     {bookmarks.map((bookmark) => (
-                      <li key={`${bookmark.riwaya}-${bookmark.page}`}>
+                      <li key={bookmark.page}>
                         <button
                           type="button"
                           onClick={() => jump(bookmark.page)}

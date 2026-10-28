@@ -1,11 +1,12 @@
 /**
- * Vendors the King Fahd Complex (KFGQPC) text and font of each non-Hafs riwaya, from
+ * Vendors the King Fahd Complex (KFGQPC) text of each non-Hafs riwaya, from
  * github.com/thetruetruth/quran-data-kfgqpc pinned to one commit so the Quran text never changes
- * underneath us. Each riwaya keeps its own mushaf: its own ayah numbering, page and juz.
+ * underneath us. Each riwaya keeps its own mushaf: its own ayah numbering, page and juz. The website
+ * reads Hafs only; these are served to the mobile app (/api/v1/riwayat/{key}).
  *
  *   node scripts/build-riwayat.mjs
  *
- * Writes src/data/riwayat/<key>.json and src/assets/fonts/riwayat/<key>.woff2.
+ * Writes src/data/riwayat/<key>.json.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -16,13 +17,13 @@ const BASE = `https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@${COMMI
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const SOURCES = {
-  shouba: { data: "shouba/data/ShoubaData08.json", font: "shouba/font/shouba.8.woff2" },
-  warsh: { data: "warsh/data/warshData_v10.json", font: "warsh/font/warsh.10.woff2" },
-  qaloon: { data: "qaloon/data/QaloonData_v10.json", font: "qaloon/font/qaloon.10.woff2" },
-  bazzi: { data: "bazzi/data/BazziData_v07.json", font: "bazzi/font/bazzi.7.woff2" },
-  qumbul: { data: "qumbul/data/QumbulData_v07.json", font: "qumbul/font/qumbul.7.woff2" },
-  doori: { data: "doori/data/DooriData_v09.json", font: "doori/font/doori.9.woff2" },
-  soosi: { data: "soosi/data/SoosiData09.json", font: "soosi/font/soosi.9.woff2" },
+  shouba: "shouba/data/ShoubaData08.json",
+  warsh: "warsh/data/warshData_v10.json",
+  qaloon: "qaloon/data/QaloonData_v10.json",
+  bazzi: "bazzi/data/BazziData_v07.json",
+  qumbul: "qumbul/data/QumbulData_v07.json",
+  doori: "doori/data/DooriData_v09.json",
+  soosi: "soosi/data/SoosiData09.json",
 };
 
 // The source ends every ayah with its number (Arabic-Indic digits, sometimes a trailing RLM);
@@ -41,7 +42,7 @@ function clean(text) {
 }
 
 async function buildRiwaya(key, source) {
-  const raw = JSON.parse((await (await fetchOk(source.data)).text()).replace(/^﻿/, ""));
+  const raw = JSON.parse((await (await fetchOk(source)).text()).replace(/^﻿/, ""));
   const ayahs = [];
   let previous = null;
   for (const row of raw) {
@@ -65,11 +66,8 @@ async function buildRiwaya(key, source) {
   const basmala = naml30.slice(start);
 
   await writeFile(join(ROOT, "src/data/riwayat", `${key}.json`), JSON.stringify({ basmala, ayahs }));
-  const font = Buffer.from(await (await fetchOk(source.font)).arrayBuffer());
-  await writeFile(join(ROOT, "src/assets/fonts/riwayat", `${key}.woff2`), font);
   console.log(`${key}: ${ayahs.length} ayahs, basmala "${basmala}"`);
 }
 
 await mkdir(join(ROOT, "src/data/riwayat"), { recursive: true });
-await mkdir(join(ROOT, "src/assets/fonts/riwayat"), { recursive: true });
 for (const [key, source] of Object.entries(SOURCES)) await buildRiwaya(key, source);

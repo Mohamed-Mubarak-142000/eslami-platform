@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { RIWAYAT, type OtherRiwayaKey } from "@/features/quran/riwayat";
 
-const KEYS = new Set<string>(RIWAYAT.filter((riwaya) => riwaya.key !== "hafs").map((riwaya) => riwaya.key));
+/** The riwayat besides Hafs that the mobile app reads (src/data/riwayat, scripts/build-riwayat.mjs). */
+const KEYS = new Set(["shouba", "warsh", "qaloon", "bazzi", "qumbul", "doori", "soosi"]);
 
 /**
  * GET /api/v1/riwayat/{key} — a riwaya's whole mushaf (src/data/riwayat/{key}.json, the King Fahd
@@ -11,7 +11,7 @@ const KEYS = new Set<string>(RIWAYAT.filter((riwaya) => riwaya.key !== "hafs").m
 export async function GET(_request: Request, { params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
   if (!KEYS.has(key)) return NextResponse.json({ error: "رواية غير معروفة." }, { status: 404 });
-  const file = (await import(`@/data/riwayat/${key as OtherRiwayaKey}.json`)) as { default: unknown };
+  const file = (await import(`@/data/riwayat/${key}.json`)) as { default: unknown };
   return NextResponse.json(file.default, {
     headers: { "cache-control": "public, max-age=2592000, s-maxage=2592000, stale-while-revalidate=86400" },
   });

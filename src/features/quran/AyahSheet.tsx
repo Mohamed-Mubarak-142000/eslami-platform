@@ -18,18 +18,11 @@ interface AyahSheetProps {
   ayah: Ayah | null;
   tafsir: string | undefined;
   onClose: () => void;
-  /**
-   * Per-ayah audio, memorization progress and the tafsir all follow Hafs ayah numbering, which
-   * another riwaya's mushaf may not share, so they're offered for Hafs only.
-   */
-  hafs: boolean;
-  /** The typeface of the riwaya's own mushaf; null for Hafs. */
-  riwayaFont: string | null;
   /** Names for the recitation as it moves on into the next surahs. */
   surahNames: Record<number, string>;
 }
 
-export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, hafs, riwayaFont, surahNames }: AyahSheetProps) {
+export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, surahNames }: AyahSheetProps) {
   const audio = useAudio();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState(false);
@@ -108,56 +101,41 @@ export function AyahSheet({ surahId, surahName, ayah, tafsir, onClose, hafs, riw
                 <X className="size-5" aria-hidden />
               </button>
             </div>
-            <p
-              className="quran-text mt-5 text-center text-3xl leading-[2.4] text-emerald-deep"
-              style={riwayaFont ? { fontFamily: riwayaFont } : undefined}
-            >
-              {ayah.text} <AyahNumber number={ayah.numberInSurah} riwayaFont={riwayaFont} />
+            <p className="quran-text mt-5 text-center text-3xl leading-[2.4] text-emerald-deep">
+              {ayah.text} <AyahNumber number={ayah.numberInSurah} />
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              {hafs && (
-                <button type="button" onClick={playAyah} className={buttonClass("primary", "md")}>
-                  {isThis && audio.loading ? (
-                    <Loader2 className="animate-spin" aria-hidden />
-                  ) : isThis && audio.playing ? (
-                    <Pause aria-hidden className="fill-current" />
-                  ) : (
-                    <Play aria-hidden className="fill-current" />
-                  )}
-                  استمع من هنا
-                </button>
-              )}
+              <button type="button" onClick={playAyah} className={buttonClass("primary", "md")}>
+                {isThis && audio.loading ? (
+                  <Loader2 className="animate-spin" aria-hidden />
+                ) : isThis && audio.playing ? (
+                  <Pause aria-hidden className="fill-current" />
+                ) : (
+                  <Play aria-hidden className="fill-current" />
+                )}
+                استمع من هنا
+              </button>
               <button type="button" onClick={copy} className={buttonClass("outline", "md")}>
                 {copied ? <Check aria-hidden className="text-emerald" /> : <Copy aria-hidden />}
                 {copied ? "تم النسخ" : "انسخ مع المرجع"}
               </button>
-              {hafs && (
-                <button
-                  type="button"
-                  aria-pressed={memorized}
-                  onClick={() => ayah && progress.setAyahMemorized(surahId, ayah.numberInSurah, !memorized)}
-                  className={buttonClass(memorized ? "gold" : "outline", "md")}
-                >
-                  {memorized ? <BookmarkCheck aria-hidden /> : <BookmarkPlus aria-hidden />}
-                  {memorized ? "محفوظة" : "حفظتُ هذه الآية"}
-                </button>
-              )}
+              <button
+                type="button"
+                aria-pressed={memorized}
+                onClick={() => ayah && progress.setAyahMemorized(surahId, ayah.numberInSurah, !memorized)}
+                className={buttonClass(memorized ? "gold" : "outline", "md")}
+              >
+                {memorized ? <BookmarkCheck aria-hidden /> : <BookmarkPlus aria-hidden />}
+                {memorized ? "محفوظة" : "حفظتُ هذه الآية"}
+              </button>
             </div>
-            {hafs ? (
-              <>
-                <p className="mt-3 text-center text-xs text-muted">
-                  {progress.synced ? `يُسجَّل حفظك في حسابك${forWhom}.` : "يُسجَّل حفظك على هذا الجهاز — سجّل الدخول ليُحفظ في حسابك."}
-                </p>
-                <section className="mt-7 rounded-3xl border border-line bg-white p-5">
-                  <h3 className="text-sm font-bold text-gold-deep">التفسير الميسّر</h3>
-                  <p className="mt-2 leading-9 text-ink/85">{tafsir ?? "التفسير غير متاح لهذه الآية الآن."}</p>
-                </section>
-              </>
-            ) : (
-              <p className="mt-6 rounded-3xl border border-line bg-white p-5 text-center text-sm leading-7 text-ink/80">
-                التفسير وتسجيل الحفظ والاستماع للآية متاحة في رواية حفص، لأن ترقيم الآيات يختلف بين الروايات.
-              </p>
-            )}
+            <p className="mt-3 text-center text-xs text-muted">
+              {progress.synced ? `يُسجَّل حفظك في حسابك${forWhom}.` : "يُسجَّل حفظك على هذا الجهاز — سجّل الدخول ليُحفظ في حسابك."}
+            </p>
+            <section className="mt-7 rounded-3xl border border-line bg-white p-5">
+              <h3 className="text-sm font-bold text-gold-deep">التفسير الميسّر</h3>
+              <p className="mt-2 leading-9 text-ink/85">{tafsir ?? "التفسير غير متاح لهذه الآية الآن."}</p>
+            </section>
           </motion.div>
         </>
       )}

@@ -1,10 +1,8 @@
 import "server-only";
 import { toIndex } from "@/features/khatma/schedule";
-import { buildSurahAudioUrl, getReciters, getSurahs } from "./api";
+import { getSurahs } from "./api";
 import type { MushafAyah, MushafIndex, MushafPageData, PageRun } from "./mushafPageTypes";
 import { TOTAL_PAGES } from "./mushafPageTypes";
-import { loadRiwaya } from "./riwayaText";
-import { findRiwaya, type OtherRiwayaKey, type RiwayaKey } from "./riwayat";
 import { getSurahTajweedAyahs } from "./tajweedApi";
 import { getGlyphLines } from "./glyphApi";
 import { getJuzStarts, getMushafPageStarts, getSurahAyahs, getSurahTafsir, type AyahRef } from "./textApi";
@@ -25,16 +23,6 @@ function pageOfRef(pageStarts: number[], ref: AyahRef): number {
   let page = 1;
   for (let index = 0; index < pageStarts.length; index++) if (pageStarts[index]! <= target) page = index + 1;
   return page;
-}
-
-/** A full-surah recitation in the chosen riwaya (per-ayah audio exists only for Hafs). */
-async function riwayaRecitation(key: OtherRiwayaKey, surah: number) {
-  const ids: readonly number[] = findRiwaya(key).audio;
-  for (const reciter of await getReciters()) {
-    const moshaf = reciter.moshaf.find((entry) => ids.includes(entry.rewayaId) && entry.surahList.includes(surah));
-    if (moshaf) return { surah, reciter: reciter.name, src: buildSurahAudioUrl(moshaf, surah) };
-  }
-  return null;
 }
 
 async function hafsPage(page: number): Promise<MushafPageData | null> {
@@ -66,91 +54,31 @@ async function hafsPage(page: number): Promise<MushafPageData | null> {
   const lead = present[0]?.ayahs[0];
   if (!lead) return null;
   // The printed page is a bonus over the text: if quran.com can't be reached, the page still shows.
-  const name = (id: number) => info(surahs, id).name;
-  const [v1, tajweed] = await Promise.all([
-    getGlyphLines(page, "v1", name).catch(() => null),
-    getGlyphLines(page, "tajweed", name).catch(() => null),
-  ]);
-  return { riwaya: "hafs", page, juz: lead.juz, hizbQuarter: lead.hizbQuarter, runs: present, glyphs: { v1, tajweed }, recitation: null };
+  const tajweed = await getGlyphLines(page, (id) => info(surahs, id).name).catch(() => null);
+  return { page, juz: lead.juz, hizbQuarter: lead.hizbQuarter, runs: present, glyphs: { tajweed } };
 }
 
-async function riwayaPage(key: OtherRiwayaKey, page: number): Promise<MushafPageData | null> {
-  const [file, surahs] = await Promise.all([loadRiwaya(key), surahInfo()]);
-  const rows = file.ayahs.filter((row) => row[2] === page);
-  if (rows.length === 0) return null;
-  const runs: PageRun[] = [];
-  for (const [surah, numberInSurah, , juz, text] of rows) {
-    let run = runs.at(-1);
-    if (!run || run.surah !== surah) {
-      const opensSurah = numberInSurah === 1;
-      // Riwayat that don't count the basmala as al-Fatiha's first ayah still print it above the surah.
-      const basmalaIsAyah = surah === 1 && text.startsWith(file.basmala);
-      run = {
-        ...info(surahs, surah),
-        surah,
-        opensSurah,
-        basmala: opensSurah && surah !== 9 && !basmalaIsAyah ? file.basmala : null,
-        ayahs: [],
-      };
-      runs.push(run);
-    }
-    run.ayahs.push({
-      number: surah * 1000 + numberInSurah,
-      numberInSurah,
-      text,
-      page,
-      juz,
-      hizbQuarter: null,
-      sajda: false,
-      surah,
-      tafsir: null,
-      tajweed: null,
-    });
-  }
-  const recitation = await riwayaRecitation(key, runs[0]!.surah);
-  return { riwaya: key, page, juz: rows[0]![3], hizbQuarter: null, runs, recitation };
-}
-
-/** One page of the chosen riwaya's mushaf, with every surah on it; null when it can't load. */
-export async function getMushafPage(riwaya: RiwayaKey, page: number): Promise<MushafPageData | null> {
+/** One page of the mushaf, with every surah on it; null when it can't load. */
+export async function getMushafPage(page: number): Promise<MushafPageData | null> {
   if (!Number.isInteger(page) || page < 1 || page > TOTAL_PAGES) return null;
   try {
-    return riwaya === "hafs" ? await hafsPage(page) : await riwayaPage(riwaya, page);
+    return await hafsPage(page);
   } catch {
     return null;
   }
 }
 
-/** Where each surah and juz begins in the chosen riwaya's mushaf, for the jump sheet. */
-export async function getMushafIndex(riwaya: RiwayaKey): Promise<MushafIndex | null> {
-  const surahs = await surahInfo();
-  const list = (startPage: (id: number) => number) =>
-    Array.from({ length: 114 }, (_, index) => ({ ...info(surahs, index + 1), startPage: startPage(index + 1) }));
-
-  if (riwaya === "hafs") {
-    const [pageStarts, juzStarts] = await Promise.all([getMushafPageStarts(), getJuzStarts()]);
-    if (pageStarts.length !== TOTAL_PAGES || juzStarts.length !== 30) return null;
-    const starts = pageStarts.map(toIndex);
-    return {
-      surahs: list((id) => pageOfRef(starts, { surah: id, ayah: 1 })),
-      juzStartPages: juzStarts.map((ref) => pageOfRef(starts, ref)),
-      pageFirstAyah: starts.map((index) => index + 1),
-    };
-  }
-  try {
-    const file = await loadRiwaya(riwaya);
-    const surahStart = new Map<number, number>();
-    const juzStart = new Map<number, number>();
-    for (const [surah, , page, juz] of file.ayahs) {
-      if (!surahStart.has(surah)) surahStart.set(surah, page);
-      if (!juzStart.has(juz)) juzStart.set(juz, page);
-    }
-    return {
-      surahs: list((id) => surahStart.get(id) ?? 1),
-      juzStartPages: Array.from({ length: 30 }, (_, index) => juzStart.get(index + 1) ?? 1),
-      pageFirstAyah: null,
-    };
-  } catch {
-    return null;
-  }
+/** Where each surah and juz begins in the mushaf, for the jump sheet. */
+export async function getMushafIndex(): Promise<MushafIndex | null> {
+  const [surahs, pageStarts, juzStarts] = await Promise.all([surahInfo(), getMushafPageStarts(), getJuzStarts()]);
+  if (pageStarts.length !== TOTAL_PAGES || juzStarts.length !== 30) return null;
+  const starts = pageStarts.map(toIndex);
+  return {
+    surahs: Array.from({ length: 114 }, (_, index) => ({
+      ...info(surahs, index + 1),
+      startPage: pageOfRef(starts, { surah: index + 1, ayah: 1 }),
+    })),
+    juzStartPages: juzStarts.map((ref) => pageOfRef(starts, ref)),
+    pageFirstAyah: starts.map((index) => index + 1),
+  };
 }

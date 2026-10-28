@@ -183,7 +183,7 @@ function PassageCard({
             key={ayah.numberInSurah}
             className={cn("rounded-lg transition-colors", activeAyah === ayah.numberInSurah && "bg-gold-mist")}
           >
-            {ayah.text} <AyahNumber number={ayah.numberInSurah} riwayaFont={null} />{" "}
+            {ayah.text} <AyahNumber number={ayah.numberInSurah} />{" "}
           </span>
         ))}
       </p>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore, type CSSProperties } from "react";
-import type { RiwayaKey } from "./riwayat";
 
 export type ReaderTheme = "light" | "sepia" | "night" | "emerald" | "dusk";
 
@@ -38,26 +37,12 @@ export function themeStyle(theme: ReaderTheme): CSSProperties {
   } as CSSProperties;
 }
 
-/** Largest text size per step, in px; small screens scale it down with the viewport. */
-export const FONT_STEPS = [22, 26, 30, 35, 41] as const;
-/** At this step and below the page shrinks to fit the screen whole, like a printed page; larger ones scroll. */
-export const DEFAULT_FONT_STEP = 2;
-
-/** Hafs pages as printed (the King Fahd Complex's per-page font), or as flowing text that resizes. */
-export type ReaderLayout = "printed" | "flow";
-
+/** Saved prefs from older versions may still carry fontStep, tajweed, layout and printedTajweed; they're ignored. */
 export interface ReaderPrefs {
   theme: ReaderTheme;
-  fontStep: number;
-  /** Tajweed colours on the flowing text. */
-  tajweed: boolean;
-  layout: ReaderLayout;
-  /** Tajweed colours on the printed page (the coloured edition of the font); off, it reads like the print. */
-  printedTajweed: boolean;
 }
 
 export interface PageBookmark {
-  riwaya: RiwayaKey;
   page: number;
   surahName: string;
   savedAt: number;
@@ -65,7 +50,7 @@ export interface PageBookmark {
 
 const PREFS_KEY = "al-manara:mushaf-prefs:v1";
 const BOOKMARKS_KEY = "al-manara:mushaf-bookmarks:v1";
-const DEFAULT_PREFS: ReaderPrefs = { theme: "light", fontStep: DEFAULT_FONT_STEP, tajweed: true, layout: "printed", printedTajweed: false };
+const DEFAULT_PREFS: ReaderPrefs = { theme: "light" };
 const NO_BOOKMARKS: PageBookmark[] = [];
 
 function createStore<T>(key: string, fallback: T, valid: (value: unknown) => T | null) {
@@ -102,18 +87,25 @@ const prefsStore = createStore<ReaderPrefs>(PREFS_KEY, DEFAULT_PREFS, (value) =>
   const v = value as Partial<ReaderPrefs>;
   return {
     theme: v.theme && v.theme in READER_THEMES ? v.theme : DEFAULT_PREFS.theme,
-    fontStep: Number.isInteger(v.fontStep) && v.fontStep! >= 0 && v.fontStep! < FONT_STEPS.length ? v.fontStep! : DEFAULT_PREFS.fontStep,
-    tajweed: typeof v.tajweed === "boolean" ? v.tajweed : DEFAULT_PREFS.tajweed,
-    layout: v.layout === "flow" ? "flow" : DEFAULT_PREFS.layout,
-    printedTajweed: typeof v.printedTajweed === "boolean" ? v.printedTajweed : DEFAULT_PREFS.printedTajweed,
   };
 });
 
-const bookmarksStore = createStore<PageBookmark[]>(BOOKMARKS_KEY, NO_BOOKMARKS, (value) =>
-  Array.isArray(value)
-    ? (value.filter((entry) => Number.isInteger(entry?.page) && typeof entry?.riwaya === "string") as PageBookmark[])
-    : null,
-);
+/**
+ * Bookmarks saved when the reader had other riwayat carry a `riwaya` field; every one now opens its
+ * page in Hafs, so the field is dropped and a page marked in two riwayat is kept once (the newest).
+ */
+const bookmarksStore = createStore<PageBookmark[]>(BOOKMARKS_KEY, NO_BOOKMARKS, (value) => {
+  if (!Array.isArray(value)) return null;
+  const seen = new Set<number>();
+  const list: PageBookmark[] = [];
+  for (const entry of value as Partial<PageBookmark>[]) {
+    const page = entry?.page;
+    if (!Number.isInteger(page) || seen.has(page!)) continue;
+    seen.add(page!);
+    list.push({ page: page!, surahName: String(entry.surahName ?? ""), savedAt: Number(entry.savedAt) || 0 });
+  }
+  return list;
+});
 
 export function useReaderPrefs(): ReaderPrefs {
   return useSyncExternalStore(prefsStore.subscribe, prefsStore.read, prefsStore.server);
@@ -130,10 +122,8 @@ export function useBookmarks(): PageBookmark[] {
 /** Adds the page, or removes it when it's already bookmarked. Newest first. */
 export function toggleBookmark(entry: Omit<PageBookmark, "savedAt">) {
   const list = bookmarksStore.read();
-  const exists = list.some((item) => item.riwaya === entry.riwaya && item.page === entry.page);
+  const exists = list.some((item) => item.page === entry.page);
   bookmarksStore.write(
-    exists
-      ? list.filter((item) => !(item.riwaya === entry.riwaya && item.page === entry.page))
-      : [{ ...entry, savedAt: Date.now() }, ...list].slice(0, 100),
+    exists ? list.filter((item) => item.page !== entry.page) : [{ ...entry, savedAt: Date.now() }, ...list].slice(0, 100),
   );
 }

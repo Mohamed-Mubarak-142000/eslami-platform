@@ -2,24 +2,19 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Bookmark,
-  BookText,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   HandHeart,
   Loader2,
   Lock,
-  Minus,
   Palette,
-  Pause,
-  Play,
-  Plus,
   Settings2,
   X,
 } from "lucide-react";
@@ -35,12 +30,10 @@ import { AyahSheet } from "./AyahSheet";
 import { JumpSheet } from "./JumpSheet";
 import { MushafFrame, SurahBanner } from "./MushafFrame";
 import { saveLastRead } from "./lastReadStorage";
-import { TOTAL_PAGES, type GlyphEdition, type MushafAyah, type MushafIndex, type MushafPageData, type PageRun } from "./mushafPageTypes";
+import { TOTAL_PAGES, type MushafAyah, type MushafIndex, type MushafPageData, type PageRun } from "./mushafPageTypes";
 import { MushafGlyphPage } from "./MushafGlyphPage";
 import { loadGlyphFont, type GlyphPalette } from "./glyphFonts";
 import {
-  DEFAULT_FONT_STEP,
-  FONT_STEPS,
   READER_THEMES,
   SUPPORTER_THEMES,
   setReaderPrefs,
@@ -51,16 +44,13 @@ import {
   type ReaderTheme,
 } from "./readerPrefs";
 import { ayahFromTrackId } from "./recitation";
-import { RIWAYAT, RIWAYA_STORAGE_KEY, type RiwayaKey } from "./riwayat";
 import { TAJWEED_RULES } from "./tajweedApi";
+import { TajweedSheet } from "./TajweedSheet";
 
 const HIZB_PARTS = ["", "ربع ", "نصف ", "ثلاثة أرباع "];
-/** The smallest size a page shrinks to so it shows whole. */
-const MIN_FIT_PX = 15;
-/** Line spacing to try, roomiest first, when a page doesn't fit at the smallest size. */
-const LEADINGS = [2.25, 2.05, 1.9] as const;
 const THEME_PREVIEW = "بِسْمِ";
-const SIZE_PREVIEW = "ٱلْحَمْدُ لِلَّهِ";
+/** The text shown when the printed page can't be drawn. */
+const FALLBACK_TEXT_STYLE: CSSProperties = { fontSize: "clamp(19px, 4.6vw, 30px)", lineHeight: 2.25 };
 
 function hizbLabel(hizbQuarter: number): string {
   const hizb = Math.ceil(hizbQuarter / 4);
@@ -80,25 +70,9 @@ function pageOfAyah(pageFirstAyah: number[], ayah: number): number {
   return low + 1;
 }
 
-/** The tajweed legend, one chip per colour (several rules share one). */
-const TAJWEED_LEGEND = Object.values(
-  Object.fromEntries(
-    Object.entries(TAJWEED_RULES)
-      .filter(([key]) => !["slnt", "ham_wasl", "laam_shamsiyah"].includes(key))
-      .map(([, rule]) => [rule.color, rule]),
-  ),
-);
-
 interface MushafReaderProps {
   initialPage: MushafPageData;
   index: MushafIndex;
-  /** The riwaya actually shown: Hafs when the chosen one failed to load. */
-  riwaya: { key: RiwayaKey; label: string; short: string };
-  /** The chosen riwaya's text couldn't load, so Hafs is shown. */
-  riwayaFailed: boolean;
-  failedRiwayaLabel: string;
-  /** The typeface of the riwaya's own mushaf; null for Hafs. */
-  riwayaFont: string | null;
   /** Today's khatma or plan portion: the reader keeps to these pages and says when it's done. */
   portion?: ReaderPortion | null;
 }
@@ -114,84 +88,13 @@ const PORTION_HOME: Record<ReaderPortion["kind"], { href: Route; label: string }
   plan: { href: "/plan", label: "خطة الحفظ" },
 };
 
-function readStoredRiwaya(): string | null {
-  try {
-    return window.localStorage.getItem(RIWAYA_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function storeRiwaya(key: RiwayaKey) {
-  try {
-    window.localStorage.setItem(RIWAYA_STORAGE_KEY, key);
-  } catch {
-    // Storage unavailable: the choice still applies to this visit through the URL.
-  }
-}
-
-function pageHref(surah: number, page: number, riwaya: RiwayaKey, portion?: ReaderPortion | null): Route {
+function pageHref(surah: number, page: number, portion?: ReaderPortion | null): Route {
   const params = new URLSearchParams({ page: String(page) });
-  if (riwaya !== "hafs") params.set("riwaya", riwaya);
   if (portion) {
     params.set("until", String(portion.to));
     params.set("wird", portion.kind);
   }
   return `/quran/${surah}?${params.toString()}` as Route;
-}
-
-/** Another riwaya: its name, and a full-surah recitation of the page's first surah in it. */
-function RiwayaBar({
-  riwaya,
-  data,
-  audio,
-}: {
-  riwaya: { key: RiwayaKey; label: string };
-  data: MushafPageData;
-  audio: ReturnType<typeof useAudio>;
-}) {
-  const recitation = data.recitation;
-  const run = data.runs.find((entry) => entry.surah === recitation?.surah);
-  const id = recitation ? `riwaya-${riwaya.key}-${recitation.surah}` : "";
-  const isThis = recitation ? audio.isCurrent(id) : false;
-  return (
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-current/10 px-4 py-3 text-sm">
-      <p className="inline-flex items-center gap-2">
-        <BookText className="size-4 shrink-0 opacity-70" aria-hidden />
-        <span>
-          مصحف رواية <strong>{riwaya.label}</strong>
-          <span className="opacity-70"> · برسمه وترقيم آياته وصفحاته كما طبعه مجمع الملك فهد</span>
-        </span>
-      </p>
-      {recitation && run && (
-        <button
-          type="button"
-          onClick={() =>
-            isThis
-              ? audio.toggle()
-              : audio.play({
-                  id,
-                  kind: "surah",
-                  title: `سورة ${run.name} — رواية ${riwaya.label}`,
-                  subtitle: recitation.reciter,
-                  src: recitation.src,
-                  href: pageHref(run.surah, data.page, riwaya.key),
-                })
-          }
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald px-4 py-2 font-bold text-white hover:bg-emerald-deep"
-        >
-          {isThis && audio.loading ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden />
-          ) : isThis && audio.playing ? (
-            <Pause className="size-4 fill-current" aria-hidden />
-          ) : (
-            <Play className="size-4 fill-current" aria-hidden />
-          )}
-          سورة {run.name} بصوت {recitation.reciter}
-        </button>
-      )}
-    </div>
-  );
 }
 
 /** In a portion: where you are in it, and — past its last page — that it's done. */
@@ -235,25 +138,16 @@ function PortionBar({ portion, current, done, onExit }: { portion: ReaderPortion
 }
 
 /**
- * The mushaf read as one book: pages 1–604 of the chosen riwaya, each with every surah printed on it.
- * Pages load from /api/mushaf as they're turned (the neighbours ahead of time). At the normal text size
- * and below, a page shrinks to show whole on the screen, like a printed page.
+ * The mushaf read as one book: pages 1–604 of Hafs 'an 'Asim, each with every surah printed on it, as
+ * the King Fahd Complex's tajweed mushaf prints it. Pages load from /api/mushaf as they're turned (the
+ * neighbours ahead of time).
  */
-export function MushafReader({
-  initialPage,
-  index,
-  riwaya,
-  riwayaFailed,
-  failedRiwayaLabel,
-  riwayaFont,
-  portion = null,
-}: MushafReaderProps) {
+export function MushafReader({ initialPage, index, portion = null }: MushafReaderProps) {
   const router = useRouter();
   const audio = useAudio();
   const prefs = useReaderPrefs();
   const supporter = useSupporter();
   const bookmarks = useBookmarks();
-  const hafs = riwaya.key === "hafs";
 
   const cache = useRef(new Map<number, MushafPageData>([[initialPage.page, initialPage]]));
   const inflight = useRef(new Map<number, Promise<MushafPageData | null>>());
@@ -265,6 +159,8 @@ export function MushafReader({
   const [sliderValue, setSliderValue] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [jumpOpen, setJumpOpen] = useState(false);
+  const [tajweedOpen, setTajweedOpen] = useState(false);
+  const closeTajweed = useCallback(() => setTajweedOpen(false), []);
   const [selected, setSelected] = useState<{ ayah: MushafAyah; run: PageRun } | null>(null);
   /** Turned past the portion's last page: the "portion done" panel shows. */
   const [portionDone, setPortionDone] = useState(false);
@@ -273,49 +169,42 @@ export function MushafReader({
   const directionRef = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
-  const navRef = useRef<HTMLElement>(null);
   const followedRef = useRef<number | null>(null);
   const coarse = useCoarsePointer();
 
   const surahNames = useMemo(() => Object.fromEntries(index.surahs.map((surah) => [surah.id, surah.name])), [index.surahs]);
   const themeKey: ReaderTheme = SUPPORTER_THEMES.includes(prefs.theme) && !supporter ? "light" : prefs.theme;
-  const showTajweed = prefs.tajweed && hafs;
-  /** The tajweed switch in the settings controls the layout on screen. */
-  const tajweedOn = prefs.layout === "printed" ? prefs.printedTajweed : prefs.tajweed;
-  // Hafs pages as printed: the 1405 print, or its tajweed-coloured edition (drawn on the 1421 print).
-  const edition: GlyphEdition = prefs.printedTajweed ? "tajweed" : "v1";
   const palette: GlyphPalette = themeKey === "night" || themeKey === "dusk" ? "dark" : themeKey === "sepia" ? "sepia" : "light";
-  const [glyphFailed, setGlyphFailed] = useState<string | null>(null);
-  const glyphLines = hafs && prefs.layout === "printed" ? (data.glyphs?.[edition] ?? null) : null;
-  const printed = glyphLines !== null && glyphFailed !== `${current}:${edition}`;
-  const onGlyphFail = useCallback(() => setGlyphFailed(`${current}:${edition}`), [current, edition]);
+  // The page as printed in the tajweed-coloured 1421 print. When its lines or its font can't load, the
+  // page shows as text with the same tajweed colouring instead.
+  const [glyphFailed, setGlyphFailed] = useState<number | null>(null);
+  const glyphLines = data.glyphs?.tajweed ?? null;
+  const printed = glyphLines !== null && glyphFailed !== current;
+  const onGlyphFail = useCallback(() => setGlyphFailed(current), [current]);
   const ayahById = useMemo(
     () => new Map(data.runs.flatMap((run) => run.ayahs.map((ayah) => [ayah.number, { ayah, run }] as const))),
     [data],
   );
   const firstRun = data.runs[0]!;
-  const bookmarked = bookmarks.some((entry) => entry.riwaya === riwaya.key && entry.page === current);
+  const bookmarked = bookmarks.some((entry) => entry.page === current);
 
-  const load = useCallback(
-    (page: number): Promise<MushafPageData | null> => {
-      const ready = cache.current.get(page);
-      if (ready) return Promise.resolve(ready);
-      let request = inflight.current.get(page);
-      if (!request) {
-        request = fetch(`/api/mushaf/${page}?riwaya=${riwaya.key}`)
-          .then((response) => (response.ok ? (response.json() as Promise<MushafPageData>) : null))
-          .then((loaded) => {
-            if (loaded) cache.current.set(page, loaded);
-            return loaded;
-          })
-          .catch(() => null)
-          .finally(() => inflight.current.delete(page));
-        inflight.current.set(page, request);
-      }
-      return request;
-    },
-    [riwaya.key],
-  );
+  const load = useCallback((page: number): Promise<MushafPageData | null> => {
+    const ready = cache.current.get(page);
+    if (ready) return Promise.resolve(ready);
+    let request = inflight.current.get(page);
+    if (!request) {
+      request = fetch(`/api/mushaf/${page}`)
+        .then((response) => (response.ok ? (response.json() as Promise<MushafPageData>) : null))
+        .then((loaded) => {
+          if (loaded) cache.current.set(page, loaded);
+          return loaded;
+        })
+        .catch(() => null)
+        .finally(() => inflight.current.delete(page));
+      inflight.current.set(page, request);
+    }
+    return request;
+  }, []);
 
   const goTo = useCallback(
     (page: number, direction?: 1 | -1) => {
@@ -327,7 +216,7 @@ export function MushafReader({
         setFailed(null);
         setPending(null);
         setData(loaded);
-        // A larger text size scrolls; each new page starts from its top.
+        // A page taller than the screen scrolls; each new page starts from its top.
         window.scrollTo({ top: 0 });
       };
       const ready = cache.current.get(page);
@@ -349,36 +238,22 @@ export function MushafReader({
     for (const page of [current + 1, current - 1, current + 2]) {
       if (page < firstPage || page > lastPage) continue;
       void load(page);
-      if (hafs && prefs.layout === "printed") void loadGlyphFont(page, edition);
+      void loadGlyphFont(page);
     }
-  }, [current, load, hafs, prefs.layout, edition, firstPage, lastPage]);
+  }, [current, load, firstPage, lastPage]);
 
   // Where you are: in the address bar (shareable, and opened again on reload) and as the last read page.
   useEffect(() => {
     saveLastRead({ surahId: firstRun.surah, surahName: firstRun.name, page: current });
     // In a portion the address keeps its first page, so a reload reopens the whole portion.
-    window.history.replaceState(window.history.state, "", pageHref(firstRun.surah, portion ? portion.from : current, riwaya.key, portion));
-  }, [current, firstRun.surah, firstRun.name, riwaya.key, portion]);
-
-  // Opening the mushaf without ?riwaya= keeps the riwaya chosen last time.
-  useEffect(() => {
-    if (!hafs || new URL(window.location.href).searchParams.has("riwaya")) return;
-    const stored = readStoredRiwaya();
-    const match = RIWAYAT.find((entry) => entry.key === stored && entry.key !== "hafs");
-    if (match) router.replace(pageHref(initialPage.runs[0]!.surah, initialPage.page, match.key));
-  }, [hafs, router, initialPage]);
-
-  function chooseRiwaya(key: RiwayaKey) {
-    storeRiwaya(key);
-    setSettingsOpen(false);
-    router.push(pageHref(firstRun.surah, current, key));
-  }
+    window.history.replaceState(window.history.state, "", pageHref(firstRun.surah, portion ? portion.from : current, portion));
+  }, [current, firstRun.surah, firstRun.name, portion]);
 
   // Follow the recitation: when it moves on from this page, turn to the page it continued on.
-  const playingAyah = hafs ? ayahFromTrackId(audio.track?.id) : null;
+  const playingAyah = ayahFromTrackId(audio.track?.id);
   useEffect(() => {
     const starts = index.pageFirstAyah;
-    if (!playingAyah || !starts) return;
+    if (!playingAyah) return;
     const previous = followedRef.current;
     followedRef.current = playingAyah;
     if (previous === null || previous === playingAyah) return;
@@ -396,34 +271,6 @@ export function MushafReader({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [current, goTo]);
-
-  // At the normal size and below, shrink the text (then tighten the lines a little) until the whole
-  // page ends above the bottom bar. Larger sizes keep their size and scroll.
-  useLayoutEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    const fit = () => {
-      const target = Math.round(Math.max(19, Math.min(window.innerWidth * 0.046, FONT_STEPS[prefs.fontStep] ?? 30)));
-      const apply = (size: number, leading: number) => {
-        stage.style.setProperty("--quran-size", `${size}px`);
-        stage.style.setProperty("--quran-leading", String(leading));
-      };
-      apply(target, LEADINGS[0]);
-      if (prefs.fontStep > DEFAULT_FONT_STEP) return;
-      const limit = window.innerHeight - (navRef.current?.offsetHeight ?? 88) - 10;
-      const fits = () => stage.getBoundingClientRect().top + window.scrollY + stage.offsetHeight <= limit;
-      for (const leading of LEADINGS) {
-        let size = target;
-        apply(size, leading);
-        while (!fits() && size > MIN_FIT_PX) apply(--size, leading);
-        if (fits()) return;
-      }
-    };
-    fit();
-    window.addEventListener("resize", fit);
-    void document.fonts?.ready.then(fit);
-    return () => window.removeEventListener("resize", fit);
-  }, [current, prefs.fontStep, showTajweed, riwayaFont]);
 
   useGSAP(
     () => {
@@ -459,13 +306,7 @@ export function MushafReader({
     setReaderPrefs({ theme: key });
   }
 
-  const textStyle: CSSProperties = {
-    fontSize: "var(--quran-size, 1.9rem)",
-    lineHeight: "var(--quran-leading, 2.25)",
-    ...(riwayaFont && { fontFamily: riwayaFont }),
-  };
-  const headerEnd =
-    data.hizbQuarter === null ? `الجزء ${toArabicDigits(data.juz)}` : `الجزء ${toArabicDigits(data.juz)} · ${hizbLabel(data.hizbQuarter)}`;
+  const headerEnd = `الجزء ${toArabicDigits(data.juz)} · ${hizbLabel(data.hizbQuarter)}`;
   const shownSlider = sliderValue ?? current;
 
   return (
@@ -499,17 +340,24 @@ export function MushafReader({
               <span className="sm:hidden">
                 الجزء {toArabicDigits(data.juz)} · صفحة {toArabicDigits(current)}
               </span>
-              {!hafs && ` · ${riwaya.short}`}
             </p>
           </button>
           <button
             type="button"
-            onClick={() => toggleBookmark({ riwaya: riwaya.key, page: current, surahName: firstRun.name })}
+            onClick={() => toggleBookmark({ page: current, surahName: firstRun.name })}
             aria-pressed={bookmarked}
             className="grid size-10 place-items-center rounded-full hover:bg-current/5"
             aria-label={bookmarked ? "إزالة العلامة من هذه الصفحة" : "ضع علامة على هذه الصفحة"}
           >
             <Bookmark className={cn("size-5", bookmarked && "fill-(--page-accent) text-(--page-accent)")} aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => setTajweedOpen(true)}
+            className="grid size-10 place-items-center rounded-full hover:bg-current/5"
+            aria-label="ألوان التجويد"
+          >
+            <Palette className="size-5" aria-hidden />
           </button>
           <div className="relative">
             <button
@@ -529,55 +377,7 @@ export function MushafReader({
                   exit={{ opacity: 0, y: -8, scale: 0.97 }}
                   className="absolute left-0 top-12 max-h-[calc(100dvh-5rem)] w-80 overflow-y-auto rounded-3xl border border-line bg-white p-5 text-ink shadow-lift"
                 >
-                  <label className="block">
-                    <span className="text-xs font-bold text-muted">الرواية</span>
-                    <select
-                      value={riwaya.key}
-                      onChange={(event) => chooseRiwaya(event.target.value as RiwayaKey)}
-                      className="mt-2 h-11 w-full rounded-2xl border border-line bg-white px-3 text-sm font-bold text-ink outline-none focus:border-emerald/50"
-                    >
-                      {RIWAYAT.map((entry) => (
-                        <option key={entry.key} value={entry.key}>
-                          {entry.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  {hafs && (
-                    <>
-                      <p className="mt-5 text-xs font-bold text-muted">شكل الصفحة</p>
-                      <div className="mt-2 grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="شكل الصفحة">
-                        {(
-                          [
-                            ["printed", "كالمصحف المطبوع"],
-                            ["flow", "نص بحجم تختاره"],
-                          ] as const
-                        ).map(([key, label]) => (
-                          <button
-                            key={key}
-                            type="button"
-                            role="radio"
-                            aria-checked={prefs.layout === key}
-                            onClick={() => setReaderPrefs({ layout: key })}
-                            className={cn(
-                              "rounded-2xl border-2 px-2 py-2.5 text-sm font-bold",
-                              prefs.layout === key ? "border-emerald bg-emerald-mist text-emerald-deep" : "border-line",
-                            )}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                      <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
-                        {prefs.layout === "printed"
-                          ? "خط مجمع الملك فهد وسطوره كما في مصحف المدينة، صفحةً صفحة."
-                          : "النص ينساب ويكبر بحجم الخط الذي تختاره."}
-                      </p>
-                    </>
-                  )}
-
-                  <p className="mt-5 text-xs font-bold text-muted">لون الصفحة</p>
+                  <p className="text-xs font-bold text-muted">لون الصفحة</p>
                   <div className="mt-2 grid grid-cols-5 gap-1.5">
                     {(Object.keys(READER_THEMES) as ReaderTheme[]).map((key) => {
                       const colors = READER_THEMES[key];
@@ -621,76 +421,22 @@ export function MushafReader({
                     </button>
                   )}
 
-                  {!(hafs && prefs.layout === "printed") && (
-                    <>
-                      <p className="mt-5 text-xs font-bold text-muted">حجم الخط</p>
-                      <div className="mt-2 flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setReaderPrefs({ fontStep: Math.max(0, prefs.fontStep - 1) })}
-                          disabled={prefs.fontStep === 0}
-                          className="grid size-9 place-items-center rounded-full border border-line disabled:opacity-40"
-                          aria-label="تصغير الخط"
-                        >
-                          <Minus className="size-4" aria-hidden />
-                        </button>
-                        <p
-                          className="quran-text flex-1 truncate rounded-2xl bg-ivory px-2 text-center leading-[1.8]"
-                          style={{ fontSize: Math.min(FONT_STEPS[prefs.fontStep] ?? 30, 34) }}
-                          aria-hidden
-                        >
-                          {SIZE_PREVIEW}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setReaderPrefs({ fontStep: Math.min(FONT_STEPS.length - 1, prefs.fontStep + 1) })}
-                          disabled={prefs.fontStep === FONT_STEPS.length - 1}
-                          className="grid size-9 place-items-center rounded-full border border-line disabled:opacity-40"
-                          aria-label="تكبير الخط"
-                        >
-                          <Plus className="size-4" aria-hidden />
-                        </button>
-                      </div>
-                      <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
-                        {prefs.fontStep <= DEFAULT_FONT_STEP ? "تظهر الصفحة كاملة على الشاشة." : "الخط الأكبر قد يحتاج إلى التمرير."}
-                      </p>
-                    </>
-                  )}
-
-                  {hafs && (
-                    <>
-                      <button
-                        type="button"
-                        aria-pressed={tajweedOn}
-                        onClick={() =>
-                          setReaderPrefs(prefs.layout === "printed" ? { printedTajweed: !tajweedOn } : { tajweed: !tajweedOn })
-                        }
-                        className={cn(
-                          "mt-5 flex w-full items-center justify-between rounded-2xl border p-3 text-sm font-bold",
-                          tajweedOn ? "border-emerald bg-emerald-mist text-emerald-deep" : "border-line",
-                        )}
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <Palette className="size-4" aria-hidden /> ألوان أحكام التجويد
-                        </span>
-                        <span>{tajweedOn ? "مفعّل" : "متوقف"}</span>
-                      </button>
-                      {prefs.layout === "printed" && tajweedOn && (
-                        <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
-                          مصحف التجويد الملوّن من طبعة ١٤٢١هـ، وتبدأ فيه ٢٥ صفحة بآية تختلف قليلًا عن طبعة ١٤٠٥هـ.
-                        </p>
-                      )}
-                      {prefs.layout !== "printed" && prefs.tajweed && (
-                        <ul className="mt-3 flex flex-wrap gap-1.5 text-[0.7rem]" aria-label="دليل ألوان التجويد">
-                          {TAJWEED_LEGEND.map((rule) => (
-                            <li key={rule.color} className="inline-flex items-center gap-1 rounded-full bg-ivory px-2 py-0.5 font-bold">
-                              <span className="size-2.5 rounded-full" style={{ background: rule.color }} aria-hidden /> {rule.label}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setTajweedOpen(true);
+                    }}
+                    className="mt-5 flex w-full items-center justify-between rounded-2xl border border-line p-3 text-sm font-bold hover:bg-emerald-mist"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Palette className="size-4" aria-hidden /> ألوان التجويد
+                    </span>
+                    <ChevronLeft className="size-4 opacity-60" aria-hidden />
+                  </button>
+                  <p className="mt-1.5 text-[0.7rem] leading-5 text-muted">
+                    مصحف التجويد الملوّن من طبعة ١٤٢١هـ، وتبدأ فيه ٢٥ صفحة بآية تختلف قليلًا عن طبعة ١٤٠٥هـ.
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -699,11 +445,6 @@ export function MushafReader({
       </header>
 
       <main id="main" className="mx-auto max-w-4xl px-3 pb-32 pt-3 sm:px-6 sm:pt-5">
-        {riwayaFailed && (
-          <p className="mb-4 rounded-2xl bg-rose/10 px-4 py-3 text-center text-sm font-bold text-rose">
-            تعذّر تحميل مصحف رواية {failedRiwayaLabel} الآن، فنعرض لك رواية حفص. حاول بعد قليل.
-          </p>
-        )}
         {failed !== null && (
           <p className="mb-4 flex items-center justify-center gap-3 rounded-2xl bg-rose/10 px-4 py-3 text-sm font-bold text-rose">
             تعذّر تحميل الصفحة {toArabicDigits(failed)}.
@@ -712,14 +453,23 @@ export function MushafReader({
             </button>
           </p>
         )}
-        {!hafs && <RiwayaBar riwaya={riwaya} data={data} audio={audio} />}
         {portion && (
           <PortionBar
             portion={portion}
             current={current}
             done={portionDone}
-            onExit={() => router.push(pageHref(firstRun.surah, current, riwaya.key))}
+            onExit={() => router.push(pageHref(firstRun.surah, current))}
           />
+        )}
+        {!printed && (
+          <p className="mb-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-2xl border border-current/10 px-4 py-2.5 text-center text-sm">
+            تعذّر تحميل الصفحة كما في المصحف المطبوع، فنعرضها نصًّا بألوان التجويد.
+            {glyphLines !== null && (
+              <button type="button" onClick={() => setGlyphFailed(null)} className="font-bold underline underline-offset-4">
+                حاول مرة أخرى
+              </button>
+            )}
+          </p>
         )}
         <motion.div
           ref={stageRef}
@@ -743,10 +493,9 @@ export function MushafReader({
               {printed && glyphLines && (
                 <>
                   <MushafGlyphPage
-                    key={`${current}-${edition}-${palette}`}
+                    key={`${current}-${palette}`}
                     page={current}
                     lines={glyphLines}
-                    edition={edition}
                     palette={palette}
                     ink={READER_THEMES[themeKey].ink}
                     selectedAyah={selected?.ayah.number ?? null}
@@ -768,6 +517,7 @@ export function MushafReader({
                   </div>
                 </>
               )}
+              {/* The page's font or lines couldn't load: the same page as text, with the tajweed colouring. */}
               {!printed &&
                 data.runs.map((run) => (
                   <section key={run.surah} aria-label={`سورة ${run.name}`}>
@@ -775,15 +525,15 @@ export function MushafReader({
                       <>
                         <SurahBanner name={run.name} />
                         {run.basmala && (
-                          <p className="quran-text mb-1 text-center" style={textStyle}>
+                          <p className="quran-text mb-1 text-center" style={FALLBACK_TEXT_STYLE}>
                             {run.basmala}
                           </p>
                         )}
                       </>
                     )}
-                    <p className="quran-text text-justify [text-align-last:center]" style={textStyle}>
+                    <p className="quran-text text-justify [text-align-last:center]" style={FALLBACK_TEXT_STYLE}>
                       {run.ayahs.map((ayah) => {
-                        const segments = showTajweed ? ayah.tajweed : null;
+                        const segments = ayah.tajweed;
                         const reciting = playingAyah === ayah.number;
                         return (
                           <span key={ayah.number}>
@@ -819,7 +569,7 @@ export function MushafReader({
                                   ۩
                                 </span>
                               )}
-                              <AyahNumber number={ayah.numberInSurah} riwayaFont={riwayaFont} />
+                              <AyahNumber number={ayah.numberInSurah} />
                             </span>{" "}
                           </span>
                         );
@@ -841,7 +591,6 @@ export function MushafReader({
       </main>
 
       <nav
-        ref={navRef}
         aria-label="التنقل بين الصفحات"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-current/10 backdrop-blur-md"
         style={{ background: "color-mix(in srgb, var(--page-bg) 88%, transparent)", paddingBottom: "env(safe-area-inset-bottom)" }}
@@ -901,7 +650,7 @@ export function MushafReader({
         open={jumpOpen}
         index={index}
         currentPage={current}
-        bookmarks={bookmarks.filter((entry) => entry.riwaya === riwaya.key)}
+        bookmarks={bookmarks}
         onJump={(page) => goTo(page)}
         onClose={() => setJumpOpen(false)}
       />
@@ -912,10 +661,10 @@ export function MushafReader({
         ayah={selected?.ayah ?? null}
         tafsir={selected?.ayah.tafsir ?? undefined}
         onClose={() => setSelected(null)}
-        hafs={hafs}
-        riwayaFont={riwayaFont}
         surahNames={surahNames}
       />
+
+      <TajweedSheet open={tajweedOpen} dark={palette === "dark"} onClose={closeTajweed} />
     </div>
   );
 }

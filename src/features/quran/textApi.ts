@@ -4,8 +4,7 @@ export interface Ayah {
   text: string;
   page: number;
   juz: number;
-  /** Null for a riwaya's own mushaf, which carries no hizb data. */
-  hizbQuarter: number | null;
+  hizbQuarter: number;
   sajda: boolean;
 }
 

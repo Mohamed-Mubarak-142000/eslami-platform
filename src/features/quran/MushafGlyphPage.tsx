@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { cn } from "@/lib/cn";
 import { BASMALA } from "./textApi";
 import { loadGlyphFont, type GlyphPalette } from "./glyphFonts";
-import type { GlyphEdition, MushafLine } from "./mushafPageTypes";
+import type { MushafLine } from "./mushafPageTypes";
 
 /** A printed line's height, in units of the glyph size. */
 const LINE_HEIGHT = 1.8;
@@ -23,7 +23,6 @@ const INK_ENTRIES = [0, 13, 14];
 interface MushafGlyphPageProps {
   page: number;
   lines: MushafLine[];
-  edition: GlyphEdition;
   palette: GlyphPalette;
   /** The page's text colour. */
   ink: string;
@@ -55,13 +54,12 @@ function SurahTitle({ name }: { name: string }) {
  * own line. The glyph size is set from the page's widest line so it fills the width, or less when
  * the height is shorter; lines narrower than the rest are centred, as in print.
  */
-export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAyah, playingAyah, onSelect, onFail }: MushafGlyphPageProps) {
+export function MushafGlyphPage({ page, lines, palette, ink, selectedAyah, playingAyah, onSelect, onFail }: MushafGlyphPageProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   // The family the page's font loaded under, once it has loaded.
   const [family, setFamily] = useState<string | null>(null);
   const ready = family !== null;
-  // Only the tajweed font has palettes to choose from.
-  const paletteName = family?.startsWith("qcf4-p") ? `--${family}-ink` : null;
+  const paletteName = family ? `--${family}-ink` : null;
   const paletteRule = paletteName
     ? `@font-palette-values ${paletteName} { font-family: "${family}"; base-palette: ${palette === "dark" ? DARK_PALETTE : 0}; override-colors: ${INK_ENTRIES.map((entry) => `${entry} ${ink}`).join(", ")}; }`
     : null;
@@ -69,7 +67,7 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
 
   useEffect(() => {
     let cancelled = false;
-    void loadGlyphFont(page, edition).then((loaded) => {
+    void loadGlyphFont(page).then((loaded) => {
       if (cancelled) return;
       if (loaded) setFamily(loaded);
       else onFail();
@@ -77,7 +75,7 @@ export function MushafGlyphPage({ page, lines, edition, palette, ink, selectedAy
     return () => {
       cancelled = true;
     };
-  }, [page, edition, onFail]);
+  }, [page, onFail]);
 
   useLayoutEffect(() => {
     const box = boxRef.current;

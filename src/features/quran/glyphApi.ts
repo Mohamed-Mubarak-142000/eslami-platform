@@ -1,24 +1,22 @@
-import type { GlyphEdition, MushafLine } from "./mushafPageTypes";
+import type { MushafLine } from "./mushafPageTypes";
 
 /*
  * The printed Madinah page, line by line, from quran.com: each word as a glyph code of the King Fahd
- * Complex's per-page font (QCF), with the line it sits on. V1 is the 1405 print, whose page breaks
- * match the rest of the site (alquran.cloud's page numbers); the tajweed font is drawn on the 1421
- * print (V2), whose layout differs on 25 pages.
+ * Complex's per-page font (QCF), with the line it sits on. The tajweed font is drawn on the 1421
+ * print (V2), whose layout differs on 25 pages from the 1405 print the rest of the site follows
+ * (alquran.cloud's page numbers).
  */
 
 const BASE_URL = "https://api.quran.com/api/v4";
 const REVALIDATE = 60 * 60 * 24 * 30;
 
-/** quran.com's mushaf ids, which pick the page and line numbers the words report. */
-const MUSHAF_ID: Record<GlyphEdition, number> = { v1: 2, tajweed: 1 };
-const CODE_FIELD: Record<GlyphEdition, "code_v1" | "code_v2"> = { v1: "code_v1", tajweed: "code_v2" };
+/** quran.com's mushaf id for the 1421 print, which picks the page and line numbers the words report. */
+const MUSHAF_ID = 1;
 
 interface RawWord {
   char_type_name: string;
   line_number: number;
   page_number: number;
-  code_v1?: string;
   code_v2?: string;
 }
 
@@ -28,15 +26,15 @@ interface RawVerse {
   words: RawWord[];
 }
 
-async function versesOfPage(page: number, edition: GlyphEdition): Promise<RawVerse[]> {
+async function versesOfPage(page: number): Promise<RawVerse[]> {
   const verses: RawVerse[] = [];
   for (let part = 1; ; part += 1) {
     const params = new URLSearchParams({
       words: "true",
-      word_fields: `${CODE_FIELD[edition]},line_number,page_number`,
+      word_fields: "code_v2,line_number,page_number",
       per_page: "50",
       page: String(part),
-      mushaf: String(MUSHAF_ID[edition]),
+      mushaf: String(MUSHAF_ID),
     });
     const response = await fetch(`${BASE_URL}/verses/by_page/${page}?${params}`, { next: { revalidate: REVALIDATE } });
     if (!response.ok) throw new Error(`quran.com page ${page}: ${response.status}`);
@@ -54,18 +52,14 @@ const linesOnPage = (page: number) => (page <= 2 ? 8 : 15);
  * verses are read and only the words printed here kept. Lines with no words hold a surah's title and
  * basmala: before its first ayah, or at the foot of the page when the surah starts overleaf.
  */
-export async function getGlyphLines(
-  page: number,
-  edition: GlyphEdition,
-  surahName: (surah: number) => string,
-): Promise<MushafLine[] | null> {
-  const [previous, current] = await Promise.all([page > 1 ? versesOfPage(page - 1, edition) : [], versesOfPage(page, edition)]);
+export async function getGlyphLines(page: number, surahName: (surah: number) => string): Promise<MushafLine[] | null> {
+  const [previous, current] = await Promise.all([page > 1 ? versesOfPage(page - 1) : [], versesOfPage(page)]);
   const total = linesOnPage(page);
   const byLine = new Map<number, { surah: number; ayah: number; code: string; id: number; end: boolean }[]>();
   for (const verse of [...previous, ...current]) {
     const [surah, ayah] = verse.verse_key.split(":").map(Number) as [number, number];
     for (const word of verse.words) {
-      const code = word[CODE_FIELD[edition]];
+      const code = word.code_v2;
       if (word.page_number !== page || !code) continue;
       const line = byLine.get(word.line_number) ?? [];
       line.push({ surah, ayah, code, id: verse.id, end: word.char_type_name === "end" });
