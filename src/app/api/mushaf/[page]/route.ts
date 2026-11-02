@@ -1,5 +1,9 @@
 import { getMushafPage } from "@/features/quran/mushafPage";
 
+// Built once per page and kept (route handlers run on every request otherwise); the text never changes.
+export const dynamic = "force-static";
+export const revalidate = 604800;
+
 /** One mushaf page as JSON, for the reader to turn pages without a full navigation. */
 export async function GET(_request: Request, { params }: RouteContext<"/api/mushaf/[page]">) {
   const page = Number((await params).page);

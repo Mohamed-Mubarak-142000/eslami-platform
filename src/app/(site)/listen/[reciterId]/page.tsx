@@ -7,6 +7,11 @@ import { ReciterPlayer } from "@/features/listen/ReciterPlayer";
 
 export const revalidate = 86400;
 
+/** Rendered on first visit and cached; none at build time (without this the page renders on every visit). */
+export function generateStaticParams() {
+  return [];
+}
+
 async function findReciter(id: string) {
   const reciters = await getReciters();
   return reciters.find((reciter) => String(reciter.id) === id) ?? null;

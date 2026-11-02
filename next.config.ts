@@ -48,6 +48,36 @@ const nextConfig: NextConfig = {
       { source: "/quran/kids/:path*", destination: "/kids/:path*", permanent: true },
     ];
   },
+  async rewrites() {
+    // The reader's query links onto cached routes (features/quran/SurahReaderPage.tsx): a page that reads
+    // its query is rendered on every visit, which ran the free plan's CPU out.
+    const page = { type: "query" as const, key: "page", value: "(?<page>\\d{1,3})" };
+    return {
+      beforeFiles: [
+        {
+          source: "/quran/:surah(\\d{1,3})",
+          has: [
+            page,
+            { type: "query", key: "until", value: "(?<until>\\d{1,3})" },
+            { type: "query", key: "wird", value: "(?<wird>khatma|plan)" },
+          ],
+          destination: "/quran/:surah/:page/:until/:wird",
+        },
+        { source: "/quran/:surah(\\d{1,3})", has: [page], destination: "/quran/:surah/:page" },
+        // The same for the hadith pages (features/hadith/HadithPages.tsx).
+        {
+          source: "/hadith/:id(\\d{1,8})",
+          has: [{ type: "query", key: "c", value: "(?<c>\\d{1,8})" }],
+          destination: "/hadith/:id/in/:c",
+        },
+        {
+          source: "/hadith/category/:id(\\d{1,8})",
+          has: [{ type: "query", key: "page", value: "(?<page>\\d{1,4})" }],
+          destination: "/hadith/category/:id/p/:page",
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;
