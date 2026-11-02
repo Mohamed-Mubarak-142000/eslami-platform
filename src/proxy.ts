@@ -29,8 +29,28 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Skip static assets and images; everything else gets a refreshed session.
+  // Only the pages that read the session on the server (the ones `next build` lists as dynamic), and the
+  // OAuth fallback above. The proxy runs before the cache, so on every other page it would spend a
+  // function call per visit for a session nothing there reads: the browser client and Server Actions
+  // refresh the session themselves, and the app's API uses bearer tokens.
   matcher: [
-    "/((?!_next/static|_next/image|icon.svg|icons/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|ads.txt|app-ads.txt|api/version|api/mushaf/|\\.well-known/|.*\\.(?:png|jpg|jpeg|svg|webp|mp3)$).*)",
+    { source: "/", has: [{ type: "query", key: "code" }] },
+    "/login",
+    "/register",
+    "/verify",
+    "/reset-password",
+    "/auth/:path*",
+    "/account/:path*",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/exams/:path*",
+    "/certificates/:path*",
+    "/khatma/:path*",
+    "/plan/:path*",
+    "/nawawi/:path*",
+    "/tasmee/:path*",
+    "/kids/:path*",
+    "/stories/:path*",
+    "/unsubscribe/:path*",
   ],
 };
