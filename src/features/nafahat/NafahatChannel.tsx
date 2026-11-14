@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, ArrowRight, Download, Loader2, Lock, PenLine, Send, Share2, SmilePlus } from "lucide-react";
+import { ArrowDown, ArrowRight, Download, Loader2, Lock, Send, Settings2, Share2, SmilePlus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BrandMark } from "@/components/site/BrandMark";
 import { useAccount } from "@/features/account/AccountProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { NafhaEmoji } from "@/lib/supabase/database.types";
+import { ChannelComposer } from "./ChannelComposer";
 import { NafhaCard } from "./NafhaCard";
 import { ReactorsPanel } from "./ReactorsPanel";
 import {
@@ -317,6 +318,17 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
   const isAdmin = account.status === "signed-in" && account.account.role === "admin";
 
   const [items, setItems] = useState(nafahat);
+  // A fresh server list (the admin just posted here, so the action revalidated this page): take it, keeping
+  // any newer post Realtime already added.
+  const [serverList, setServerList] = useState(nafahat);
+  if (serverList !== nafahat) {
+    setServerList(nafahat);
+    setItems((current) => {
+      const known = new Set(nafahat.map((nafha) => nafha.id));
+      const newest = nafahat.at(-1)?.created_at ?? "";
+      return [...nafahat, ...current.filter((nafha) => !known.has(nafha.id) && nafha.created_at > newest)];
+    });
+  }
   const ids = useMemo(() => items.map((nafha) => nafha.id), [items]);
   const { counts, mine, react } = useReactions(ids, userId);
   const [reactorsOf, setReactorsOf] = useState<Nafha | null>(null);
@@ -325,6 +337,25 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
   const [unread, setUnread] = useState(0);
   const scroller = useRef<HTMLDivElement>(null);
   const pendingScroll = useRef(false);
+  // Set when the admin sends from the composer: their own post scrolls into view wherever they were.
+  const ownPost = useRef(false);
+
+  // On phones the channel is pinned under the site header like a chat app; the page behind it (footer, ad)
+  // must not scroll, or the channel's header slides under the site header and a gap opens below the composer.
+  useEffect(() => {
+    const phone = window.matchMedia("(max-width: 639.98px)");
+    const html = document.documentElement;
+    const apply = () => {
+      html.style.overflow = phone.matches ? "hidden" : "";
+      if (phone.matches) window.scrollTo(0, 0);
+    };
+    apply();
+    phone.addEventListener("change", apply);
+    return () => {
+      phone.removeEventListener("change", apply);
+      html.style.overflow = "";
+    };
+  }, []);
 
   const nearBottom = () => {
     const el = scroller.current;
@@ -345,15 +376,16 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
     onInsert: (nafha) => {
       setItems((current) => (current.some((item) => item.id === nafha.id) ? current : [...current, nafha]));
       markSeen(nafha.id);
-      if (nearBottom()) pendingScroll.current = true;
+      if (ownPost.current || nearBottom()) pendingScroll.current = true;
       else setUnread((count) => count + 1);
     },
     onDelete: (id) => setItems((current) => current.filter((item) => item.id !== id)),
   });
 
   useEffect(() => {
-    if (!pendingScroll.current) return;
+    if (!pendingScroll.current && !ownPost.current) return;
     pendingScroll.current = false;
+    ownPost.current = false;
     toBottom(true);
   }, [items]);
 
@@ -379,117 +411,121 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
   const now = hydrated ? new Date() : null;
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-4rem)] max-w-3xl flex-col overflow-hidden bg-ivory sm:my-4 sm:h-[calc(100dvh-6.5rem)] sm:rounded-3xl sm:border sm:border-line sm:shadow-soft">
-      <header className="flex items-center gap-3 bg-emerald-deep px-3 py-2.5 text-white sm:px-4">
-        <Link href="/" className="grid size-9 place-items-center rounded-full hover:bg-white/10" aria-label="الرئيسية">
-          <ArrowRight className="size-5" aria-hidden />
-        </Link>
-        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-ivory ring-2 ring-gold/60">
-          <BrandMark className="h-8" />
-        </span>
-        <div className="min-w-0 flex-1 leading-tight">
-          <h1 className="truncate font-display text-lg font-bold">{NAFAHAT_TITLE}</h1>
-          <p className="truncate text-xs text-white/70">
-            قناة · {items.length ? `${items.length.toLocaleString("ar-EG")} نفحة هذا الشهر` : "ينشر فيها فريق المنارة"}
-          </p>
-        </div>
-        {isAdmin && (
-          <Link
-            href="/admin/nafahat"
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
-          >
-            <PenLine className="size-4" aria-hidden /> انشر
+    <>
+      {/* Phones: fixed between the site header (h-16) and the bottom edge. Wider: a card in the page. */}
+      <div className="fixed inset-x-0 top-16 bottom-0 z-30 flex flex-col overflow-hidden bg-ivory sm:static sm:mx-auto sm:my-4 sm:h-[calc(100dvh-6.5rem)] sm:max-w-3xl sm:rounded-3xl sm:border sm:border-line sm:shadow-soft">
+        <header className="flex shrink-0 items-center gap-3 bg-emerald-deep px-3 py-2 text-white sm:px-4 sm:py-2.5">
+          <Link href="/" className="grid size-9 place-items-center rounded-full hover:bg-white/10" aria-label="الرئيسية">
+            <ArrowRight className="size-5" aria-hidden />
           </Link>
-        )}
-      </header>
-
-      <div
-        ref={scroller}
-        onScroll={() => unread > 0 && nearBottom() && setUnread(0)}
-        className="relative flex-1 overflow-y-auto overscroll-contain"
-        style={CHAT_WALLPAPER}
-      >
-        <div className="flex min-h-full flex-col gap-3 px-3 py-4 sm:px-6">
-          <p className="mx-auto max-w-sm rounded-xl bg-gold-mist/95 px-3 py-2 text-center text-xs leading-6 text-gold-deep shadow-[0_1px_0.5px_rgba(1,42,34,0.1)]">
-            <Lock className="me-1 inline size-3.5 align-[-2px]" aria-hidden />
-            قناة للقراءة فقط: ينشر فيها فريق المنارة وحده، وتتجدد النفحات أول كل شهر. تفاعل وشارك ونزّل ما يعجبك.
-          </p>
-
-          {items.length === 0 ? (
-            <div className="m-auto rounded-2xl bg-white/90 px-6 py-5 text-center shadow-soft">
-              <p className="font-display text-lg font-bold text-emerald-deep">لا توجد نفحات بعد</p>
-              <p className="mt-1 text-sm text-muted">ترقّب أول نفحة قريبًا بإذن الله.</p>
-            </div>
-          ) : (
-            <ol className="flex flex-col gap-3">
-              {items.map((nafha, index) => {
-                const day = nafhaDayKey(nafha.created_at);
-                const newDay = index === 0 || nafhaDayKey(items[index - 1]!.created_at) !== day;
-                return (
-                  <Fragment key={nafha.id}>
-                    {newDay && (
-                      <li className="sticky top-2 z-10 flex justify-center" aria-hidden>
-                        <span className="rounded-lg bg-white/95 px-3 py-1 text-xs font-bold text-muted shadow-[0_1px_0.5px_rgba(1,42,34,0.13)]">
-                          {nafhaDayLabel(nafha.created_at, now)}
-                        </span>
-                      </li>
-                    )}
-                    <Message
-                      nafha={nafha}
-                      counts={counts[nafha.id] ?? {}}
-                      mine={mine[nafha.id]}
-                      signedIn={Boolean(userId)}
-                      isAdmin={isAdmin}
-                      highlighted={highlight === nafha.id}
-                      onReact={(emoji) => void react(nafha.id, emoji)}
-                      onShowReactors={() => setReactorsOf(nafha)}
-                    />
-                  </Fragment>
-                );
-              })}
-            </ol>
+          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-ivory ring-2 ring-gold/60">
+            <BrandMark className="h-8" />
+          </span>
+          <div className="min-w-0 flex-1 leading-tight">
+            <h1 className="truncate font-display text-lg font-bold">{NAFAHAT_TITLE}</h1>
+            <p className="truncate text-xs text-white/70">
+              قناة · {items.length ? `${items.length.toLocaleString("ar-EG")} نفحة هذا الشهر` : "ينشر فيها فريق المنارة"}
+            </p>
+          </div>
+          {isAdmin && (
+            <Link
+              href="/admin/nafahat"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
+              title="إدارة النفحات: الحذف ومن تفاعل"
+            >
+              <Settings2 className="size-4" aria-hidden /> إدارة
+            </Link>
           )}
+        </header>
+
+        <div
+          ref={scroller}
+          onScroll={() => unread > 0 && nearBottom() && setUnread(0)}
+          className="relative flex-1 overflow-y-auto overscroll-contain"
+          style={CHAT_WALLPAPER}
+        >
+          <div className="flex min-h-full flex-col gap-3 px-3 py-4 sm:px-6">
+            <p className="mx-auto max-w-sm rounded-xl bg-gold-mist/95 px-3 py-2 text-center text-xs leading-6 text-gold-deep shadow-[0_1px_0.5px_rgba(1,42,34,0.1)]">
+              <Lock className="me-1 inline size-3.5 align-[-2px]" aria-hidden />
+              قناة للقراءة فقط: ينشر فيها فريق المنارة وحده، وتتجدد النفحات أول كل شهر. تفاعل وشارك ونزّل ما يعجبك.
+            </p>
+
+            {items.length === 0 ? (
+              <div className="m-auto rounded-2xl bg-white/90 px-6 py-5 text-center shadow-soft">
+                <p className="font-display text-lg font-bold text-emerald-deep">لا توجد نفحات بعد</p>
+                <p className="mt-1 text-sm text-muted">ترقّب أول نفحة قريبًا بإذن الله.</p>
+              </div>
+            ) : (
+              <ol className="flex flex-col gap-3">
+                {items.map((nafha, index) => {
+                  const day = nafhaDayKey(nafha.created_at);
+                  const newDay = index === 0 || nafhaDayKey(items[index - 1]!.created_at) !== day;
+                  return (
+                    <Fragment key={nafha.id}>
+                      {newDay && (
+                        <li className="sticky top-2 z-10 flex justify-center" aria-hidden>
+                          <span className="rounded-lg bg-white/95 px-3 py-1 text-xs font-bold text-muted shadow-[0_1px_0.5px_rgba(1,42,34,0.13)]">
+                            {nafhaDayLabel(nafha.created_at, now)}
+                          </span>
+                        </li>
+                      )}
+                      <Message
+                        nafha={nafha}
+                        counts={counts[nafha.id] ?? {}}
+                        mine={mine[nafha.id]}
+                        signedIn={Boolean(userId)}
+                        isAdmin={isAdmin}
+                        highlighted={highlight === nafha.id}
+                        onReact={(emoji) => void react(nafha.id, emoji)}
+                        onShowReactors={() => setReactorsOf(nafha)}
+                      />
+                    </Fragment>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+
+          <AnimatePresence>
+            {unread > 0 && (
+              <motion.button
+                type="button"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                onClick={() => {
+                  toBottom(true);
+                  setUnread(0);
+                }}
+                className="sticky bottom-3 start-full me-3 ms-auto flex items-center gap-1.5 rounded-full bg-emerald px-3.5 py-2 text-sm font-bold text-white shadow-lift"
+              >
+                <ArrowDown className="size-4" aria-hidden /> {unread.toLocaleString("ar-EG")} نفحة جديدة
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
 
-        <AnimatePresence>
-          {unread > 0 && (
-            <motion.button
-              type="button"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              onClick={() => {
-                toBottom(true);
-                setUnread(0);
-              }}
-              className="sticky bottom-3 start-full me-3 ms-auto flex items-center gap-1.5 rounded-full bg-emerald px-3.5 py-2 text-sm font-bold text-white shadow-lift"
-            >
-              <ArrowDown className="size-4" aria-hidden /> {unread.toLocaleString("ar-EG")} نفحة جديدة
-            </motion.button>
-          )}
-        </AnimatePresence>
+        {isAdmin ? (
+          <ChannelComposer
+            onPublished={() => {
+              ownPost.current = true;
+              setUnread(0);
+            }}
+          />
+        ) : (
+          <footer className="flex shrink-0 items-center gap-2 border-t border-line bg-ivory px-3 pt-2 pb-[max(0.625rem,env(safe-area-inset-bottom))] sm:px-4">
+            <div className="flex h-11 flex-1 items-center gap-2 rounded-full bg-white px-4 text-sm text-muted shadow-[0_1px_0.5px_rgba(1,42,34,0.1)]">
+              <Lock className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">النشر في هذه القناة للإدارة فقط</span>
+            </div>
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-line text-muted" aria-hidden>
+              <Send className="size-5 -scale-x-100" />
+            </span>
+          </footer>
+        )}
       </div>
 
-      <footer className="flex items-center gap-2 border-t border-line bg-ivory px-3 py-2.5 sm:px-4">
-        <div className="flex h-11 flex-1 items-center gap-2 rounded-full bg-white px-4 text-sm text-muted shadow-[0_1px_0.5px_rgba(1,42,34,0.1)]">
-          <Lock className="size-4 shrink-0" aria-hidden />
-          <span className="truncate">النشر في هذه القناة للإدارة فقط</span>
-        </div>
-        {isAdmin ? (
-          <Link
-            href="/admin/nafahat"
-            className="grid size-11 shrink-0 place-items-center rounded-full bg-emerald text-white shadow-soft hover:bg-emerald-deep"
-            aria-label="انشر نفحة"
-          >
-            <Send className="size-5 -scale-x-100" aria-hidden />
-          </Link>
-        ) : (
-          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-line text-muted" aria-hidden>
-            <Send className="size-5 -scale-x-100" />
-          </span>
-        )}
-      </footer>
-
+      {/* Outside the pinned channel, so the panel stacks above the site header. */}
       {isAdmin && (
         <ReactorsPanel
           nafhaId={reactorsOf?.id ?? null}
@@ -498,6 +534,6 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
           onClose={closeReactors}
         />
       )}
-    </div>
+    </>
   );
 }

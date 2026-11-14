@@ -6,48 +6,16 @@ import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
 import { Field, FormAlert } from "@/features/auth/ui/AuthFields";
 import type { FormState } from "@/features/auth/actions";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { createNafhaAction, discardNafhaUploadAction } from "./actions";
 import { NafhaCard } from "./NafhaCard";
-import { CHAT_WALLPAPER, NAFAHAT_BUCKET, NAFAHAT_MAX_BYTES, NAFAHAT_MEDIA_TYPES } from "./shared";
-
-const ACCEPT = Object.keys(NAFAHAT_MEDIA_TYPES).join(",");
-
-/**
- * Uploads straight from the browser to Supabase Storage (the admin's session passes the bucket's
- * "admin upload" policy). XHR rather than supabase-js, for the progress bar on large videos.
- */
-async function uploadWithProgress(file: File, onProgress: (ratio: number) => void): Promise<string> {
-  const supabase = getSupabaseBrowserClient();
-  const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-  const token = data.session?.access_token;
-  if (!token) throw new Error("انتهت الجلسة، سجّل الدخول مرة أخرى.");
-
-  const path = `${crypto.randomUUID()}.${NAFAHAT_MEDIA_TYPES[file.type]!.ext}`;
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${SUPABASE_URL}/storage/v1/object/${NAFAHAT_BUCKET}/${path}`);
-    xhr.setRequestHeader("authorization", `Bearer ${token}`);
-    xhr.setRequestHeader("apikey", SUPABASE_PUBLISHABLE_KEY);
-    xhr.setRequestHeader("content-type", file.type);
-    xhr.setRequestHeader("cache-control", "max-age=31536000");
-    xhr.setRequestHeader("x-upsert", "false");
-    xhr.upload.onprogress = (event) => event.lengthComputable && onProgress(event.loaded / event.total);
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`upload ${xhr.status}`)));
-    xhr.onerror = () => reject(new Error("network"));
-    xhr.send(file);
-  });
-  return path;
-}
-
-function checkFile(file: File): string | null {
-  if (!NAFAHAT_MEDIA_TYPES[file.type]) return "الملف صورة (PNG أو JPG أو WebP) أو فيديو (MP4 أو MOV أو WebM)";
-  if (file.size > NAFAHAT_MAX_BYTES) return "حجم الملف ٥٠ ميجابايت بحد أقصى";
-  return null;
-}
-
-const mb = (bytes: number) => `${(bytes / 1024 / 1024).toLocaleString("ar-EG", { maximumFractionDigits: 1 })} ميجابايت`;
+import { CHAT_WALLPAPER, NAFAHAT_MEDIA_TYPES } from "./shared";
+import {
+  NAFAHAT_ACCEPT as ACCEPT,
+  checkNafhaFile as checkFile,
+  formatMegabytes as mb,
+  uploadErrorMessage,
+  uploadNafhaMedia as uploadWithProgress,
+} from "./upload";
 
 export function NafhaComposer() {
   const [state, dispatch, saving] = useActionState<FormState | undefined, FormData>(createNafhaAction, undefined);
@@ -112,7 +80,7 @@ export function NafhaComposer() {
         path = await uploadWithProgress(file, setProgress);
         setUploaded({ file, path });
       } catch (error) {
-        setFileError(error instanceof Error && !/^upload|^network/.test(error.message) ? error.message : "تعذّر رفع الملف، حاول مرة أخرى.");
+        setFileError(uploadErrorMessage(error));
         setProgress(null);
         return;
       }

@@ -52,7 +52,8 @@ export function NafhaCard({
         )}
         {nafha.media_url && nafha.media_type === "video" && (
           <video
-            src={nafha.media_url}
+            // "#t=0.001" makes iOS Safari paint the first frame instead of a black box until played.
+            src={`${nafha.media_url}#t=0.001`}
             controls
             playsInline
             preload="metadata"
