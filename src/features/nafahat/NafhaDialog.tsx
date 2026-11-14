@@ -9,6 +9,7 @@ import { buttonClass } from "@/components/ui/button";
 import { BrandMark } from "@/components/site/BrandMark";
 import { useInstallArrival } from "@/features/pwa/install-store";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { armChime, playChime } from "./chime";
 import { LAST_SEEN_KEY, NAFAHAT_TITLE, type Nafha } from "./shared";
 import { useNafahatLive } from "./useNafahatLive";
 
@@ -103,6 +104,17 @@ export function NafhaDialog() {
     setDialogOpen(visible);
   }, [visible]);
 
+  // Audio is only allowed after the visitor's first interaction, so get ready for it from the start.
+  useEffect(() => {
+    armChime();
+  }, []);
+
+  // Ring once each time a nafha pops up, to catch the visitor's attention.
+  const visibleId = visible ? (nafha?.id ?? null) : null;
+  useEffect(() => {
+    if (visibleId) playChime();
+  }, [visibleId]);
+
   function dismiss() {
     if (nafha) markSeen(nafha.id);
     setOpen(false);
@@ -121,7 +133,7 @@ export function NafhaDialog() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-75 flex items-end justify-center bg-emerald-night/65 p-3 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-75 flex items-end justify-center bg-emerald-night/65 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -131,21 +143,28 @@ export function NafhaDialog() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="nafha-dialog-title"
-            className="relative w-full max-w-md overflow-hidden rounded-4xl bg-ivory shadow-lift"
-            style={{ marginBottom: "max(0rem, env(safe-area-inset-bottom))" }}
-            initial={{ y: 56, opacity: 0, scale: 0.96 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 56, opacity: 0, scale: 0.96 }}
-            transition={{ type: "spring", damping: 22, stiffness: 240 }}
+            className="relative max-h-[92dvh] w-full max-w-lg touch-pan-x overflow-hidden rounded-t-4xl bg-ivory shadow-lift"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+            // Bottom sheet: swipe it down to dismiss, otherwise it springs back.
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.7 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 110 || info.velocity.y > 600) dismiss();
+            }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="relative isolate overflow-hidden bg-gradient-to-br from-emerald-night via-emerald-deep to-emerald px-6 pb-7 pt-6 text-white">
+            <div className="relative isolate overflow-hidden bg-gradient-to-br from-emerald-night via-emerald-deep to-emerald px-6 pb-7 pt-8 text-white">
+              <span className="absolute left-1/2 top-2.5 h-1.5 w-12 -translate-x-1/2 rounded-full bg-white/40" aria-hidden />
               <div className="absolute -left-16 -top-20 -z-10 size-56 rounded-full bg-gold/25 blur-3xl" aria-hidden />
               <div className="absolute -bottom-24 -right-10 -z-10 size-56 rounded-full bg-emerald-soft/20 blur-3xl" aria-hidden />
               <button
                 type="button"
                 onClick={dismiss}
-                className="absolute left-4 top-4 grid size-9 place-items-center rounded-full bg-white/10 text-white backdrop-blur hover:bg-white/20"
+                className="absolute left-4 top-5 grid size-9 place-items-center rounded-full bg-white/10 text-white backdrop-blur hover:bg-white/20"
                 aria-label="إغلاق"
               >
                 <X className="size-5" aria-hidden />
@@ -168,7 +187,10 @@ export function NafhaDialog() {
               </div>
             </div>
 
-            <div className="-mt-4 rounded-t-[1.75rem] bg-ivory px-6 pb-6 pt-5">
+            <div
+              className="-mt-4 rounded-t-[1.75rem] bg-ivory px-6 pt-5"
+              style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+            >
               {nafha.media_url && (
                 <div className="relative mb-4 overflow-hidden rounded-2xl bg-emerald-night">
                   {nafha.media_type === "image" ? (
@@ -201,7 +223,7 @@ export function NafhaDialog() {
                 </p>
               )}
               <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
-                <Link href={`/nafahat#nafha-${nafha.id}`} onClick={dismiss} autoFocus className={buttonClass("primary", "lg", "flex-1")}>
+                <Link href={`/nafahat#nafha-${nafha.id}`} onClick={dismiss} autoFocus className={buttonClass("primary", "lg", "sm:flex-1")}>
                   افتح النفحة
                 </Link>
                 <button type="button" onClick={dismiss} className={buttonClass("ghost", "lg")}>
