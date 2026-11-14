@@ -10,7 +10,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { createNafhaAction, discardNafhaUploadAction } from "./actions";
 import { NafhaCard } from "./NafhaCard";
-import { NAFAHAT_BUCKET, NAFAHAT_MAX_BYTES, NAFAHAT_MEDIA_TYPES } from "./shared";
+import { CHAT_WALLPAPER, NAFAHAT_BUCKET, NAFAHAT_MAX_BYTES, NAFAHAT_MEDIA_TYPES } from "./shared";
 
 const ACCEPT = Object.keys(NAFAHAT_MEDIA_TYPES).join(",");
 
@@ -221,9 +221,8 @@ export function NafhaComposer() {
 
       <aside aria-label="معاينة" className="lg:sticky lg:top-24 lg:self-start">
         <p className="mb-2 text-xs font-bold text-muted">معاينة</p>
-        <div className="rounded-4xl bg-parchment p-4">
+        <div className="overflow-hidden rounded-3xl border border-line px-4 py-5" style={CHAT_WALLPAPER}>
           <NafhaCard
-            preview
             nafha={{
               id: "preview",
               title: title.trim() || "عنوان النفحة",

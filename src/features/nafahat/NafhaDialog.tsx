@@ -10,6 +10,7 @@ import { BrandMark } from "@/components/site/BrandMark";
 import { useInstallArrival } from "@/features/pwa/install-store";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { LAST_SEEN_KEY, NAFAHAT_TITLE, type Nafha } from "./shared";
+import { useNafahatLive } from "./useNafahatLive";
 
 /** Pages where the dialog never opens: the channel itself, admin, and the sign-in flow. */
 const SKIP = /^\/(nafahat|admin|login|register|verify|forgot-password|reset-password|auth)(\/|$)/;
@@ -54,27 +55,46 @@ export function NafhaDialog() {
   const [open, setOpen] = useState(false);
   const eligible = !SKIP.test(pathname) && !installOpen;
 
+  // The newest post when the site opens, and again whenever the tab comes back to the front (in case the
+  // live connection below dropped while it was in the background).
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
     let cancelled = false;
-    void supabase
-      .from("nafahat")
-      .select("id, title, body, media_type, media_url, created_at")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled && data && data.id !== readLastSeen()) setNafha(data);
-      });
+    const check = () =>
+      void supabase
+        .from("nafahat")
+        .select("id, title, body, media_type, media_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!cancelled && data && data.id !== readLastSeen()) setNafha(data);
+        });
+    check();
+    const onVisible = () => document.visibilityState === "visible" && check();
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
+  // The moment the admin publishes, everyone with the site open gets the dialog.
+  useNafahatLive({
+    onInsert: (fresh) => {
+      if (fresh.id !== readLastSeen()) setNafha(fresh);
+    },
+    onDelete: (id) => setNafha((current) => (current?.id === id ? null : current)),
+  });
+
   useEffect(() => {
     if (!nafha || !eligible) return;
-    const id = setTimeout(() => setOpen(true), DELAY_MS);
+    const id = setTimeout(() => {
+      // Seen meanwhile (the channel was open when it arrived): nothing to announce.
+      if (readLastSeen() === nafha.id) setNafha(null);
+      else setOpen(true);
+    }, DELAY_MS);
     return () => clearTimeout(id);
   }, [nafha, eligible]);
 
