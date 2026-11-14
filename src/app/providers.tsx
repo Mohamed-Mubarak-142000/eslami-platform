@@ -9,6 +9,7 @@ import { AccountProvider } from "@/features/account/AccountProvider";
 import { KidsInviteDialog } from "@/features/kids/KidsInviteDialog";
 import { KidsProgressProvider } from "@/features/kids/progress/KidsProgressProvider";
 import { LastReadSync } from "@/features/quran/LastReadSync";
+import { NafhaDialog } from "@/features/nafahat/NafhaDialog";
 import { SupportSheet } from "@/features/support/SupportSheet";
 import { UpdatePrompt } from "@/features/update/UpdatePrompt";
 
@@ -21,6 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
             {children}
             <MiniPlayer />
             <AdhkarToaster />
+            <NafhaDialog />
             <KidsInviteDialog />
             <SupportSheet />
             <UpdatePrompt />

@@ -55,3 +55,10 @@ update public.profiles set role = 'admin' where email = 'you@example.com';
 ```
 
 Further admins can be promoted from `/admin/users`.
+
+"نفحات المنارة" (Admin → نفحات المنارة, /nafahat, and the app's channel screen) needs
+`migrations/20261114000001_nafahat.sql`. It adds the `nafahat` posts, `nafahat_reactions` (one per user per
+post; admins can read who reacted), the `nafahat_reaction_counts` view and the public `nafahat` storage
+bucket (50 MB per file; admins upload straight from the browser). Everything is deleted on the 1st of every
+month by `/api/cron/nafahat-cleanup` (vercel.json, needs `CRON_SECRET`). Run it by hand with
+`curl -H "Authorization: Bearer $CRON_SECRET" "<site>/api/cron/nafahat-cleanup?dryRun=1"`.

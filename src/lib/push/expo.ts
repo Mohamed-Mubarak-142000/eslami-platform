@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 /** Expo accepts at most 100 messages per request. */
 const BATCH = 100;
+/** Rows read per page when collecting every device token. */
+const TOKEN_PAGE = 1000;
 
 export interface PushMessage {
   title: string;
@@ -17,12 +19,14 @@ interface ExpoTicket {
   details?: { error?: string };
 }
 
+type PushResult = { sent: number; failed: number };
+
 /**
  * Sends one message to every mobile device of these users, through Expo's push service.
  * Tokens Expo reports as DeviceNotRegistered (app uninstalled) are deleted. Never throws: pushes are
  * a bonus on top of the email, and a push outage must not fail the email run.
  */
-export async function sendPushToUsers(userIds: string[], message: PushMessage): Promise<{ sent: number; failed: number }> {
+export async function sendPushToUsers(userIds: string[], message: PushMessage): Promise<PushResult> {
   if (userIds.length === 0) return { sent: 0, failed: 0 };
   const admin = createSupabaseAdminClient();
   const tokens: string[] = [];
@@ -38,7 +42,30 @@ export async function sendPushToUsers(userIds: string[], message: PushMessage): 
     }
     tokens.push(...(data ?? []).map((row) => row.token));
   }
+  return sendToTokens(tokens, message);
+}
 
+/** Sends one message to every registered device (every signed-in user who allowed notifications). Never throws. */
+export async function sendPushToAll(message: PushMessage): Promise<PushResult> {
+  const admin = createSupabaseAdminClient();
+  const tokens: string[] = [];
+  for (let from = 0; ; from += TOKEN_PAGE) {
+    const { data, error } = await admin
+      .from("push_tokens")
+      .select("token")
+      .order("token")
+      .range(from, from + TOKEN_PAGE - 1);
+    if (error) {
+      console.error("Reading push tokens failed", error);
+      return { sent: 0, failed: 0 };
+    }
+    tokens.push(...(data ?? []).map((row) => row.token));
+    if (!data || data.length < TOKEN_PAGE) break;
+  }
+  return sendToTokens(tokens, message);
+}
+
+async function sendToTokens(tokens: string[], message: PushMessage): Promise<PushResult> {
   let sent = 0;
   let failed = 0;
   const dead: string[] = [];
@@ -77,6 +104,6 @@ export async function sendPushToUsers(userIds: string[], message: PushMessage): 
     }
   }
 
-  if (dead.length) await admin.from("push_tokens").delete().in("token", dead);
+  if (dead.length) await createSupabaseAdminClient().from("push_tokens").delete().in("token", dead);
   return { sent, failed };
 }

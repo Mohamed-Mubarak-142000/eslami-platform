@@ -9,6 +9,7 @@ import { Gamepad2, LogIn, Mic, Sparkles, Star, UserPlus, X } from "lucide-react"
 import { buttonClass } from "@/components/ui/button";
 import { useAccount } from "@/features/account/AccountProvider";
 import { useInstallArrival } from "@/features/pwa/install-store";
+import { useNafhaDialogOpen } from "@/features/nafahat/NafhaDialog";
 import gardenChild from "@/assets/scenes/garden-child.png";
 
 /**
@@ -30,7 +31,8 @@ export function KidsInviteDialog() {
   const pathname = usePathname();
   const installOpen = useInstallArrival();
   const [open, setOpen] = useState(false);
-  const eligible = account.status === "signed-out" && !SKIP.test(pathname) && !installOpen;
+  const nafhaOpen = useNafhaDialogOpen();
+  const eligible = account.status === "signed-out" && !SKIP.test(pathname) && !installOpen && !nafhaOpen;
 
   // Restarts on every navigation, so each page gets its own ten seconds.
   useEffect(() => {

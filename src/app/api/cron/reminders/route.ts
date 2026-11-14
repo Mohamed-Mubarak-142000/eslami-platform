@@ -1,19 +1,11 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { siteOrigin } from "@/features/announcements/links";
 import { isIsoDate, slotDate } from "@/features/reminders/dates";
 import { runReminders } from "@/features/reminders/run";
+import { isCronAuthorized as authorized } from "@/lib/api/cron";
 
 // Sending goes out one message at a time; the run stops itself at ~240 s and reports `remaining`.
 export const maxDuration = 300;
-
-function authorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const expected = Buffer.from(`Bearer ${secret}`);
-  const given = Buffer.from(request.headers.get("authorization") ?? "");
-  return expected.length === given.length && timingSafeEqual(expected, given);
-}
 
 /**
  * GET from Vercel Cron (vercel.json), on time; POST from the GitHub Action (.github/workflows/reminders.yml),

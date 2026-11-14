@@ -27,6 +27,7 @@ import {
   Sparkles,
   Sun,
   Trees,
+  Wind,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -64,6 +65,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/umrah", label: "العمرة والسفر", icon: Plane, description: "مناسك العمرة خطوة بخطوة وأدعية السفر" },
   { href: "/seerah", label: "السيرة النبوية", icon: Milestone, description: "سيرة النبي ﷺ فصولًا تفاعلية على الخريطة" },
   { href: "/tasbih", label: "السبحة", icon: CircleDot, description: "سبحة إلكترونية بأذكارك وعددك" },
+  { href: "/nafahat", label: "نفحات المنارة", icon: Wind, description: "خواطر ونفحات إيمانية من فريق المنارة" },
 ];
 
 /** The learner's own pages — header only, kept out of the footer and home sections. */
@@ -102,7 +104,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   { id: "journey", label: "رحلتي", icon: Compass, items: JOURNEY_ITEMS },
   { id: "stories", label: "القصص والأطفال", icon: Clapperboard, items: ["/stories", "/kids"].map(byHref) },
-  { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar", "/tasbih", "/umrah"].map(byHref) },
+  { id: "daily", label: "يومي", icon: Sun, items: ["/prayer-times", "/calendar", "/adhkar", "/tasbih", "/umrah", "/nafahat"].map(byHref) },
 ];
 
 /**
