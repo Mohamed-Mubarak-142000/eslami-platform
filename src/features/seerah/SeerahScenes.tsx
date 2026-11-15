@@ -30,6 +30,17 @@ export const NightContext = createContext(false);
 const useNight = () => useContext(NightContext);
 const useInk = () => (useNight() ? NIGHT_INK : INK);
 
+/**
+ * Whether the living details (swaying palms, birds, waving hands) play. The panorama turns it off while it
+ * is off screen or the tab is hidden, so idle loops cost nothing; the reader's reduced-motion choice too.
+ */
+export const AmbientContext = createContext(true);
+export function useStill(): boolean {
+  const reduce = useReducedMotion();
+  const ambient = useContext(AmbientContext);
+  return Boolean(reduce) || !ambient;
+}
+
 /** The same randomness every time: a small seeded generator instead of Math.random. */
 function seeded(seed: number) {
   let state = Math.max(1, Math.floor(seed * 9973) % 2147483647);
@@ -50,7 +61,7 @@ function Sway({
   seconds?: number;
   originY?: number;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g
       style={{ originX: "0px", originY: `${originY}px` }}
@@ -63,7 +74,7 @@ function Sway({
 }
 
 function Bob({ children, by = 1.5, seconds = 2.4, delay = 0 }: { children: ReactNode; by?: number; seconds?: number; delay?: number }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g animate={reduce ? {} : { y: [0, -by, 0] }} transition={{ duration: seconds, repeat: Infinity, ease: "easeInOut", delay }}>
       {children}
@@ -72,7 +83,7 @@ function Bob({ children, by = 1.5, seconds = 2.4, delay = 0 }: { children: React
 }
 
 function Pulse({ children, from = 0.5, to = 1, seconds = 3 }: { children: ReactNode; from?: number; to?: number; seconds?: number }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g
       initial={{ opacity: to }}
@@ -171,7 +182,7 @@ function Walker() {
 
 /** The chiefs of the clans lifting the Black Stone together in a cloth. */
 function ClothStone() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <motion.g animate={reduce ? {} : { y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
@@ -298,7 +309,7 @@ function Court() {
 }
 
 function Tent({ blown = false }: { blown?: boolean }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g
       style={{ originX: "0px", originY: "0px" }}
@@ -360,7 +371,7 @@ function Trench() {
 
 /** The boulder in the trench that the pick turned to sand. */
 function Rock() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <path d="M-22 0q-6-22 10-30t30 6q8 18-4 24Z" fill="#6f6658" />
@@ -488,7 +499,7 @@ function Bush() {
 // Animals and things that move
 
 function Camel({ load = false }: { load?: boolean }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   const coat = "#b98546";
   const shade = "#9a6a35";
   return (
@@ -606,7 +617,7 @@ function Ship() {
 }
 
 function Birds({ count = 3 }: { count?: number | undefined }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g animate={reduce ? {} : { x: [0, 60], y: [0, -10] }} transition={{ duration: 9, repeat: Infinity, ease: "linear" }}>
       {Array.from({ length: count }, (_, index) => (
@@ -617,7 +628,7 @@ function Birds({ count = 3 }: { count?: number | undefined }) {
 }
 
 function Dust() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g
       animate={reduce ? { opacity: 0.4 } : { x: [-10, 30], opacity: [0, 0.6, 0] }}
@@ -630,7 +641,7 @@ function Dust() {
 }
 
 function Wind() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       {[0, 30, 60].map((y, index) => (
@@ -650,7 +661,7 @@ function Wind() {
 }
 
 function Arrows() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       {[0, 1, 2, 3, 4].map((index) => (
@@ -668,7 +679,7 @@ function Arrows() {
 }
 
 function Cloud() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g animate={reduce ? {} : { x: [0, 8, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}>
       <ellipse cx="0" cy="0" rx="40" ry="13" fill="#f4efe6" opacity={0.9} />
@@ -680,7 +691,7 @@ function Cloud() {
 
 /** A trail of light rising: the night journey and the ascension. */
 function Streak() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <motion.path
@@ -713,7 +724,7 @@ function Footprints() {
 
 /** A soft light: revelation, or his presence where he is never drawn. */
 function Light() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <defs>
@@ -748,7 +759,7 @@ function Lantern() {
 }
 
 function Fire() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <path d="M-8 0h16M-6 -2l12 2" stroke={WOOD} strokeWidth="2.5" />
@@ -765,7 +776,7 @@ function Fire() {
 }
 
 function Banner({ color = "#ffffff" }: { color?: string }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <path d="M0 0V-40" stroke={WOOD} strokeWidth="2" />
@@ -792,7 +803,7 @@ function Idols() {
 
 /** The idols round the House toppling one after another. */
 function IdolsFalling() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       {[-60, -40, -22, 22, 40, 60].map((x, index) => (
@@ -868,7 +879,7 @@ function Person({
   beard?: boolean;
   flip?: boolean;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   const skin = SKINS[seed % SKINS.length]!;
   const cloth = HEADCLOTHS[(seed * 3) % HEADCLOTHS.length]!;
   const robe = ROBES[(seed * 5) % ROBES.length]!;
@@ -1003,7 +1014,7 @@ function Lookout() {
 
 /** Suraqa's mare sunk to her knees in the sand, Suraqa still in the saddle. */
 function Suraqa() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       <motion.g animate={reduce ? {} : { y: [0, 3, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}>
@@ -1167,7 +1178,7 @@ function Soldiers({ count = 2 }: { count?: number | undefined }) {
 
 /** Pilgrims in the white of ihram, walking together. */
 function Pilgrims({ count = 7 }: { count?: number | undefined }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <g>
       {Array.from({ length: count }, (_, index) => (
@@ -1189,7 +1200,7 @@ function Pilgrims({ count = 7 }: { count?: number | undefined }) {
 
 /** Abraha's elephant, turned back from the House. */
 function Elephant() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <motion.g animate={reduce ? {} : { x: [0, -10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
       {[-16, -6, 8, 18].map((x) => (
@@ -1351,7 +1362,7 @@ function stars(count: number, seed: number) {
 }
 
 function SkyLayer({ sky }: { sky: Sky }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   const [top, bottom] = SKIES[sky];
   return (
     <>
@@ -1406,7 +1417,7 @@ function SkyLayer({ sky }: { sky: Sky }) {
 }
 
 function Waves() {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   return (
     <>
       {[226, 250, 274].map((y, index) => (
@@ -1503,7 +1514,7 @@ function Placed({
   onNote: (note: string) => void;
   active: boolean;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useStill();
   const y = item.y ?? 250;
   const depth = depthOf(y);
   const scale = (0.8 + depth * 1.2) * (item.size ?? 1);

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Milestone } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SeerahChapter } from "@/features/seerah/SeerahChapter";
+import { ChapterDetails } from "@/features/seerah/ChapterDetails";
 import { CHAPTERS, eventById } from "@/features/seerah/seerahContent";
 
 export function generateStaticParams() {
@@ -24,7 +25,7 @@ export default async function SeerahChapterPage({ params }: PageProps<"/seerah/[
     <>
       <PageHeader kicker={event.date} icon={<Milestone className="size-4" aria-hidden />} title={event.title} description={event.summary} />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <SeerahChapter event={event} />
+        <SeerahChapter event={event} details={<ChapterDetails chapter={event.id} />} />
       </div>
     </>
   );

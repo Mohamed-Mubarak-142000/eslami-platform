@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Lightbulb, Map as MapIcon, ScrollText, Volume2, VolumeX, X } from "lucide-react";
@@ -102,7 +102,8 @@ function useStage(event: SeerahEvent, beat: number) {
  * A chapter told as scrollytelling: the stage stays in view while the beats scroll past it, and the
  * beat in the middle of the screen sets what the stage shows.
  */
-export function SeerahChapter({ event }: { event: SeerahEvent }) {
+/** `details` is the written account (ChapterDetails), rendered on the server so its text stays out of the bundle. */
+export function SeerahChapter({ event, details }: { event: SeerahEvent; details?: ReactNode }) {
   const reduce = useReducedMotion();
   const [beat, setBeat] = useState(0);
   const beatRefs = useRef<(HTMLElement | null)[]>([]);
@@ -243,6 +244,7 @@ export function SeerahChapter({ event }: { event: SeerahEvent }) {
             </div>
           </aside>
         )}
+        {details}
         {event.quiz && <SeerahQuiz event={{ ...event, quiz: event.quiz }} />}
         <div className="mt-8 flex flex-wrap gap-3">
           {next && (
