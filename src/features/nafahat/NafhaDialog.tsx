@@ -12,6 +12,8 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { armChime, playChime } from "./chime";
 import { LAST_SEEN_KEY, NAFAHAT_TITLE, type Nafha } from "./shared";
 import { useNafahatLive } from "./useNafahatLive";
+import { recordNafhaViews } from "./views";
+import { useAccount } from "@/features/account/AccountProvider";
 
 /** Pages where the dialog never opens: the channel itself, admin, and the sign-in flow. */
 const SKIP = /^\/(nafahat|admin|login|register|verify|forgot-password|reset-password|auth)(\/|$)/;
@@ -100,6 +102,12 @@ export function NafhaDialog() {
   }, [nafha, eligible]);
 
   const visible = open && eligible && nafha !== null;
+  const account = useAccount();
+  const viewer = account.status === "signed-in" && account.account.role !== "admin";
+  // Seen in the dialog counts as seen (who saw it, for the admin).
+  useEffect(() => {
+    if (visible && viewer && nafha) recordNafhaViews([nafha.id]);
+  }, [visible, viewer, nafha]);
   useEffect(() => {
     setDialogOpen(visible);
   }, [visible]);

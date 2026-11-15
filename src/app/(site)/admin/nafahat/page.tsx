@@ -13,13 +13,16 @@ export const metadata: Metadata = { title: NAFAHAT_TITLE };
 export default async function AdminNafahatPage() {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
-  const [{ data }, { data: countRows }] = await Promise.all([
+  const [{ data }, { data: countRows }, { data: viewRows }] = await Promise.all([
     supabase.from("nafahat").select("id, title, body, media_type, created_at").order("created_at", { ascending: false }),
     supabase.from("nafahat_reaction_counts").select("nafha_id, emoji, count"),
+    supabase.from("nafahat_views").select("nafha_id"),
   ]);
   const list = data ?? [];
   const counts: Record<string, ReactionCounts> = {};
   for (const row of countRows ?? []) (counts[row.nafha_id] ??= {})[row.emoji] = row.count;
+  const views: Record<string, number> = {};
+  for (const row of viewRows ?? []) views[row.nafha_id] = (views[row.nafha_id] ?? 0) + 1;
 
   return (
     <div className="space-y-6">
@@ -69,7 +72,7 @@ export default async function AdminNafahatPage() {
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-xs">{formatNafhaDate(nafha.created_at)}</td>
                   <td className="px-4 py-3">
-                    <ReactorsButton nafhaId={nafha.id} title={nafha.title} counts={counts[nafha.id] ?? {}} />
+                    <ReactorsButton nafhaId={nafha.id} title={nafha.title} counts={counts[nafha.id] ?? {}} views={views[nafha.id] ?? 0} />
                   </td>
                   <td className="px-4 py-3">
                     <DeleteNafhaButton nafhaId={nafha.id} />

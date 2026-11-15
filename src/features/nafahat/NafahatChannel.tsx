@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, ArrowRight, Download, Loader2, Lock, Send, Settings2, Share2, SmilePlus } from "lucide-react";
+import { createPortal } from "react-dom";
+import { ArrowDown, ArrowRight, Download, Eye, Loader2, Lock, Send, Settings2, Share2, SmilePlus, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BrandMark } from "@/components/site/BrandMark";
 import { useAccount } from "@/features/account/AccountProvider";
@@ -24,6 +25,7 @@ import {
   type ReactionCounts,
 } from "./shared";
 import { useHydrated, useNafahatLive } from "./useNafahatLive";
+import { recordNafhaViews } from "./views";
 
 const CHAR = Object.fromEntries(NAFAHAT_EMOJIS.map((emoji) => [emoji.id, emoji.char])) as Record<NafhaEmoji, string>;
 
@@ -87,6 +89,30 @@ function useReactions(ids: string[], userId: string | null) {
   return { counts, mine, react };
 }
 
+/** Admins: how many readers saw each post (nafahat_views; RLS lets admins read every row). */
+function useViewCounts(ids: string[], isAdmin: boolean): Record<string, number> {
+  const [views, setViews] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !isAdmin || ids.length === 0) return;
+    let cancelled = false;
+    void supabase
+      .from("nafahat_views")
+      .select("nafha_id")
+      .in("nafha_id", ids)
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const next: Record<string, number> = {};
+        for (const row of data) next[row.nafha_id] = (next[row.nafha_id] ?? 0) + 1;
+        setViews(next);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ids, isAdmin]);
+  return views;
+}
+
 async function share(nafha: Nafha): Promise<"shared" | "copied" | "cancelled"> {
   const url = `${window.location.origin}/nafahat#nafha-${nafha.id}`;
   const text = [nafha.title, nafha.body].filter(Boolean).join("\n\n");
@@ -118,66 +144,156 @@ async function share(nafha: Nafha): Promise<"shared" | "copied" | "cancelled"> {
 const sideButton =
   "grid size-8 place-items-center rounded-full bg-white/80 text-muted shadow-[0_1px_1px_rgba(1,42,34,0.12)] backdrop-blur transition hover:bg-white hover:text-emerald disabled:opacity-60";
 
-/** The emoji tray that pops above a bubble, WhatsApp-style. */
-function ReactionPicker({
+/** The bubble's place on screen, to float its copy and the menu exactly there. */
+type Anchor = { top: number; bottom: number; left: number; right: number; width: number };
+
+/**
+ * WhatsApp's long-press menu: the screen dims, the message floats above it where it was, the emoji bar sits
+ * above it (or below, when there is no room) and the actions under the bar, always inside the screen.
+ */
+function MessageMenu({
+  nafha,
+  anchor,
   mine,
+  isAdmin,
   onPick,
+  onShare,
+  onShowPeople,
   onClose,
 }: {
+  nafha: Nafha;
+  anchor: Anchor;
   mine: NafhaEmoji | undefined;
+  isAdmin: boolean;
   onPick: (emoji: NafhaEmoji) => void;
+  onShare: () => void;
+  onShowPeople: () => void;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const onDown = (event: PointerEvent) => !ref.current?.contains(event.target as Node) && onClose();
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
-    document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onClose);
     return () => {
-      document.removeEventListener("pointerdown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onClose);
     };
   }, [onClose]);
 
-  return (
-    <motion.div
-      ref={ref}
-      role="menu"
-      aria-label="اختر تفاعلك"
-      initial={{ opacity: 0, scale: 0.6, y: 8 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.6, y: 8 }}
-      transition={{ type: "spring", damping: 20, stiffness: 380 }}
-      className="absolute bottom-full start-0 z-20 mb-2 flex origin-bottom-right gap-0.5 rounded-full bg-white p-1.5 shadow-lift"
-    >
-      {NAFAHAT_EMOJIS.map((emoji, index) => (
-        <motion.button
-          key={emoji.id}
-          type="button"
-          role="menuitemradio"
-          aria-checked={mine === emoji.id}
-          aria-label={emoji.label}
-          title={emoji.label}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.035 }}
-          onClick={() => onPick(emoji.id)}
-          className={cn(
-            "grid size-10 place-items-center rounded-full text-2xl transition-transform hover:scale-125",
-            mine === emoji.id && "bg-emerald-mist",
+  const menuHeight = isAdmin ? 230 : 190;
+  const above = anchor.top > menuHeight + 24;
+  const top = above ? anchor.top - menuHeight - 8 : Math.min(anchor.bottom + 8, window.innerHeight - menuHeight - 12);
+  const right = Math.max(12, Math.min(window.innerWidth - anchor.right, window.innerWidth - 300));
+  const item = "flex w-full items-center gap-3 px-4 py-3 text-start text-sm font-bold text-ink hover:bg-emerald-mist";
+
+  return createPortal(
+    <motion.div className="fixed inset-0 z-90" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <button type="button" aria-label="إغلاق" onClick={onClose} className="absolute inset-0 bg-emerald-night/55 backdrop-blur-[2px]" />
+      {/* The message itself, lifted above the dimmed chat. */}
+      <motion.div
+        className="pointer-events-none absolute"
+        style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+        initial={{ scale: 0.98 }}
+        animate={{ scale: 1.02 }}
+        transition={{ type: "spring", damping: 18, stiffness: 300 }}
+      >
+        <NafhaCard nafha={nafha} />
+      </motion.div>
+      <motion.div
+        role="menu"
+        aria-label="خيارات النفحة"
+        className="absolute flex w-68 flex-col items-end gap-2"
+        style={{ top: Math.max(12, top), right }}
+        initial={{ opacity: 0, y: above ? 10 : -10, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", damping: 20, stiffness: 360 }}
+      >
+        <div className="flex gap-0.5 rounded-full bg-white p-1.5 shadow-lift">
+          {NAFAHAT_EMOJIS.map((emoji, index) => (
+            <motion.button
+              key={emoji.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={mine === emoji.id}
+              aria-label={emoji.label}
+              title={emoji.label}
+              initial={{ opacity: 0, y: 8, scale: 0.6 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.04 + index * 0.04, type: "spring", damping: 14, stiffness: 400 }}
+              onClick={() => onPick(emoji.id)}
+              className={cn(
+                "grid size-11 place-items-center rounded-full text-[1.7rem] transition-transform hover:scale-125",
+                mine === emoji.id && "bg-emerald-mist ring-2 ring-gold-soft",
+              )}
+            >
+              {emoji.char}
+            </motion.button>
+          ))}
+        </div>
+        <div className="w-full overflow-hidden rounded-2xl bg-white shadow-lift">
+          <button type="button" role="menuitem" onClick={onShare} className={item}>
+            <Share2 className="size-4 text-emerald" aria-hidden /> مشاركة
+          </button>
+          {nafha.media_url && (
+            <a
+              role="menuitem"
+              href={`${nafha.media_url}?download=${encodeURIComponent(downloadName(nafha))}`}
+              onClick={onClose}
+              className={cn(item, "border-t border-line")}
+            >
+              <Download className="size-4 text-emerald" aria-hidden /> {nafha.media_type === "video" ? "تنزيل الفيديو" : "تنزيل الصورة"}
+            </a>
           )}
-        >
-          {emoji.char}
-        </motion.button>
-      ))}
-    </motion.div>
+          {isAdmin && (
+            <button type="button" role="menuitem" onClick={onShowPeople} className={cn(item, "border-t border-line")}>
+              <Users className="size-4 text-emerald" aria-hidden /> المتفاعلون والمشاهدات
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>,
+    document.body,
   );
+}
+
+/** Long press (or right click) opens the menu, as in WhatsApp; a tap or a scroll does not. */
+function useLongPress(onOpen: () => void) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    start.current = null;
+  };
+  return {
+    onPointerDown: (event: React.PointerEvent) => {
+      if (event.button !== 0 || (event.target as HTMLElement).closest("video,a,button")) return;
+      start.current = { x: event.clientX, y: event.clientY };
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        navigator.vibrate?.(15);
+        onOpen();
+      }, 450);
+    },
+    onPointerMove: (event: React.PointerEvent) => {
+      if (start.current && Math.hypot(event.clientX - start.current.x, event.clientY - start.current.y) > 10) cancel();
+    },
+    onPointerUp: cancel,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onContextMenu: (event: React.MouseEvent) => {
+      if ((event.target as HTMLElement).closest("video,a")) return;
+      event.preventDefault();
+      cancel();
+      onOpen();
+    },
+  };
 }
 
 function Message({
   nafha,
   counts,
+  views,
   mine,
   signedIn,
   isAdmin,
@@ -187,6 +303,8 @@ function Message({
 }: {
   nafha: Nafha;
   counts: ReactionCounts;
+  /** Admins only: how many signed-in readers saw it. */
+  views: number | null;
   mine: NafhaEmoji | undefined;
   signedIn: boolean;
   isAdmin: boolean;
@@ -194,10 +312,10 @@ function Message({
   onReact: (emoji: NafhaEmoji) => void;
   onShowReactors: () => void;
 }) {
-  const [picking, setPicking] = useState(false);
+  const bubble = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [sharing, setSharing] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const closePicker = useCallback(() => setPicking(false), []);
   const used = NAFAHAT_EMOJIS.filter((emoji) => (counts[emoji.id] ?? 0) > 0);
   const total = used.reduce((sum, emoji) => sum + (counts[emoji.id] ?? 0), 0);
 
@@ -207,75 +325,84 @@ function Message({
     return () => clearTimeout(id);
   }, [note]);
 
+  const openMenu = () => {
+    const rect = bubble.current?.getBoundingClientRect();
+    if (!rect) return;
+    setAnchor({ top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, width: rect.width });
+  };
+  const closeMenu = useCallback(() => setAnchor(null), []);
+  const press = useLongPress(openMenu);
+
+  async function doShare() {
+    setAnchor(null);
+    setSharing(true);
+    try {
+      if ((await share(nafha)) === "copied") setNote("تم نسخ النفحة والرابط");
+    } catch {
+      setNote("تعذّرت المشاركة");
+    } finally {
+      setSharing(false);
+    }
+  }
+
   return (
     <motion.li
       id={`nafha-${nafha.id}`}
+      data-nafha={nafha.id}
       layout="position"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex scroll-mt-4 flex-col items-start"
     >
       <div className="flex max-w-[92%] items-center gap-2 sm:max-w-[80%]">
-        <NafhaCard nafha={nafha} highlighted={highlighted} className="min-w-0">
-          <AnimatePresence>
-            {picking && (
-              <ReactionPicker
-                mine={mine}
-                onClose={closePicker}
-                onPick={(emoji) => {
-                  setPicking(false);
-                  onReact(emoji);
-                }}
-              />
+        <div ref={bubble} className="min-w-0 select-none [-webkit-touch-callout:none]" {...press}>
+          <NafhaCard nafha={nafha} highlighted={highlighted || anchor !== null}>
+            {(total > 0 || views !== null) && (
+              <div className="relative z-10 -mt-1.5 ms-2 flex items-center gap-1.5">
+                {total > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => (isAdmin ? onShowReactors() : signedIn ? openMenu() : setNote("signin"))}
+                    aria-label={isAdmin ? `عرض المتفاعلين (${total})` : `التفاعلات (${total})`}
+                    className={cn(
+                      "inline-flex h-7 items-center gap-1 rounded-full border bg-white px-2 text-sm shadow-[0_1px_2px_rgba(1,42,34,0.15)]",
+                      mine ? "border-gold-soft" : "border-white",
+                    )}
+                  >
+                    <span className="flex -space-x-0.5 leading-none rtl:space-x-reverse">
+                      {used.slice(0, 3).map((emoji) => (
+                        <span key={emoji.id}>{emoji.char}</span>
+                      ))}
+                    </span>
+                    <span className="text-xs font-bold tabular-nums text-muted">{total.toLocaleString("ar-EG")}</span>
+                  </button>
+                )}
+                {views !== null && (
+                  <button
+                    type="button"
+                    onClick={onShowReactors}
+                    aria-label={`شاهدها ${views}`}
+                    className="inline-flex h-7 items-center gap-1 rounded-full border border-white bg-white px-2 text-xs font-bold text-muted shadow-[0_1px_2px_rgba(1,42,34,0.15)]"
+                  >
+                    <Eye className="size-3.5" aria-hidden /> {views.toLocaleString("ar-EG")}
+                  </button>
+                )}
+              </div>
             )}
-          </AnimatePresence>
-          {total > 0 && (
-            <button
-              type="button"
-              onClick={() => (isAdmin ? onShowReactors() : signedIn ? setPicking(true) : setNote("signin"))}
-              aria-label={isAdmin ? `عرض المتفاعلين (${total})` : `التفاعلات (${total})`}
-              className={cn(
-                "relative z-10 -mt-1.5 ms-2 inline-flex h-7 items-center gap-1 rounded-full border bg-white px-2 text-sm shadow-[0_1px_2px_rgba(1,42,34,0.15)]",
-                mine ? "border-gold-soft" : "border-white",
-              )}
-            >
-              <span className="flex -space-x-0.5 leading-none rtl:space-x-reverse">
-                {used.slice(0, 3).map((emoji) => (
-                  <span key={emoji.id}>{emoji.char}</span>
-                ))}
-              </span>
-              <span className="text-xs font-bold tabular-nums text-muted">{total.toLocaleString("ar-EG")}</span>
-            </button>
-          )}
-        </NafhaCard>
+          </NafhaCard>
+        </div>
 
         <div className="flex shrink-0 flex-col gap-1.5 self-center">
           <button
             type="button"
-            onClick={() => (signedIn ? setPicking((value) => !value) : setNote("signin"))}
+            onClick={() => (signedIn ? openMenu() : setNote("signin"))}
             className={cn(sideButton, mine && "text-gold-deep")}
             aria-label={mine ? `تفاعلك ${CHAR[mine]}، غيّره` : "تفاعل"}
             title="تفاعل"
           >
             {mine ? <span className="text-base leading-none">{CHAR[mine]}</span> : <SmilePlus className="size-4" aria-hidden />}
           </button>
-          <button
-            type="button"
-            disabled={sharing}
-            onClick={async () => {
-              setSharing(true);
-              try {
-                if ((await share(nafha)) === "copied") setNote("تم نسخ النفحة والرابط");
-              } catch {
-                setNote("تعذّرت المشاركة");
-              } finally {
-                setSharing(false);
-              }
-            }}
-            className={sideButton}
-            aria-label="مشاركة"
-            title="مشاركة"
-          >
+          <button type="button" disabled={sharing} onClick={doShare} className={sideButton} aria-label="مشاركة" title="مشاركة">
             {sharing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Share2 className="size-4" aria-hidden />}
           </button>
           {nafha.media_url && (
@@ -291,6 +418,28 @@ function Message({
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {anchor && (
+          <MessageMenu
+            nafha={nafha}
+            anchor={anchor}
+            mine={mine}
+            isAdmin={isAdmin}
+            onClose={closeMenu}
+            onShare={doShare}
+            onShowPeople={() => {
+              setAnchor(null);
+              onShowReactors();
+            }}
+            onPick={(emoji) => {
+              setAnchor(null);
+              if (signedIn) onReact(emoji);
+              else setNote("signin");
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {note && (
         <p role="status" className="mt-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-emerald-deep shadow-soft">
@@ -331,6 +480,7 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
   }
   const ids = useMemo(() => items.map((nafha) => nafha.id), [items]);
   const { counts, mine, react } = useReactions(ids, userId);
+  const views = useViewCounts(ids, isAdmin);
   const [reactorsOf, setReactorsOf] = useState<Nafha | null>(null);
   const closeReactors = useCallback(() => setReactorsOf(null), []);
   const [highlight, setHighlight] = useState<string | null>(null);
@@ -408,6 +558,21 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
     toBottom(false);
   }, [nafahat]);
 
+  // Who saw it: a reader's sighting is recorded once a post is half on screen (the admin's own are not).
+  useEffect(() => {
+    const root = scroller.current;
+    if (!userId || isAdmin || !root) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const seen = entries.filter((entry) => entry.isIntersecting).map((entry) => (entry.target as HTMLElement).dataset.nafha);
+        recordNafhaViews(seen.filter((id): id is string => Boolean(id)));
+      },
+      { root, threshold: 0.5 },
+    );
+    root.querySelectorAll("[data-nafha]").forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [ids, userId, isAdmin]);
+
   const now = hydrated ? new Date() : null;
 
   return (
@@ -472,6 +637,7 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
                       <Message
                         nafha={nafha}
                         counts={counts[nafha.id] ?? {}}
+                        views={isAdmin ? (views[nafha.id] ?? 0) : null}
                         mine={mine[nafha.id]}
                         signedIn={Boolean(userId)}
                         isAdmin={isAdmin}
@@ -531,6 +697,7 @@ export function NafahatChannel({ nafahat }: { nafahat: Nafha[] }) {
           nafhaId={reactorsOf?.id ?? null}
           title={reactorsOf?.title ?? ""}
           counts={reactorsOf ? (counts[reactorsOf.id] ?? {}) : {}}
+          views={reactorsOf ? (views[reactorsOf.id] ?? 0) : 0}
           onClose={closeReactors}
         />
       )}

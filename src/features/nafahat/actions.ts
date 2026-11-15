@@ -151,3 +151,39 @@ export async function getNafhaReactorsAction(
     more: (rows?.length ?? 0) > REACTORS_PAGE,
   };
 }
+
+export interface Viewer {
+  userId: string;
+  name: string;
+  email: string | null;
+  at: string;
+}
+
+/** Who saw a nafha (nafahat_views), newest first, 50 per page (admins only). */
+export async function getNafhaViewersAction(
+  nafhaId: string,
+  page: number,
+): Promise<{ viewers: Viewer[]; more: boolean } | { error: string }> {
+  await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  const from = Math.max(0, Math.floor(page)) * REACTORS_PAGE;
+  const { data: rows, error } = await supabase
+    .from("nafahat_views")
+    .select("user_id, seen_at")
+    .eq("nafha_id", nafhaId)
+    .order("seen_at", { ascending: false })
+    .range(from, from + REACTORS_PAGE); // one extra row tells whether there is a next page
+  if (error) return { error: FAILED };
+
+  const pageRows = (rows ?? []).slice(0, REACTORS_PAGE);
+  const ids = pageRows.map((row) => row.user_id);
+  const { data: profiles } = ids.length ? await supabase.from("profiles").select("id, full_name, email").in("id", ids) : { data: [] };
+  const byId = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  return {
+    viewers: pageRows.map((row) => {
+      const profile = byId.get(row.user_id);
+      return { userId: row.user_id, name: profile?.full_name || "مستخدم بدون اسم", email: profile?.email ?? null, at: row.seen_at };
+    }),
+    more: (rows?.length ?? 0) > REACTORS_PAGE,
+  };
+}

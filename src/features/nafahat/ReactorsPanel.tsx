@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Users, X } from "lucide-react";
+import { Eye, Loader2, SmilePlus, Users, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
 import type { NafhaEmoji } from "@/lib/supabase/database.types";
-import { getNafhaReactorsAction, type Reactor } from "./actions";
+import { getNafhaReactorsAction, getNafhaViewersAction } from "./actions";
 import { NAFAHAT_EMOJIS, formatNafhaDate, type ReactionCounts } from "./shared";
 
 const CHAR = Object.fromEntries(NAFAHAT_EMOJIS.map((emoji) => [emoji.id, emoji.char])) as Record<NafhaEmoji, string>;
@@ -14,10 +14,21 @@ const CHAR = Object.fromEntries(NAFAHAT_EMOJIS.map((emoji) => [emoji.id, emoji.c
 interface PanelProps {
   title: string;
   counts: ReactionCounts;
+  /** How many readers saw it (nafahat_views). */
+  views?: number;
   onClose: () => void;
 }
 
-/** Admins only: who reacted to a nafha and with what, filterable by emoji, 50 at a time. */
+/** One row of either list: a reaction (with its emoji) or a sighting. */
+interface Person {
+  userId: string;
+  name: string;
+  email: string | null;
+  at: string;
+  emoji?: NafhaEmoji;
+}
+
+/** Admins only: who reacted to a nafha and with what (filterable by emoji), and who saw it; 50 at a time. */
 export function ReactorsPanel({ nafhaId, ...rest }: PanelProps & { nafhaId: string | null }) {
   const { onClose } = rest;
   useEffect(() => {
@@ -31,23 +42,29 @@ export function ReactorsPanel({ nafhaId, ...rest }: PanelProps & { nafhaId: stri
   return <AnimatePresence>{nafhaId && <ReactorsDialog key={nafhaId} nafhaId={nafhaId} {...rest} />}</AnimatePresence>;
 }
 
-function ReactorsDialog({ nafhaId, title, counts, onClose }: PanelProps & { nafhaId: string }) {
+function ReactorsDialog({ nafhaId, title, counts, views = 0, onClose }: PanelProps & { nafhaId: string }) {
+  const [mode, setMode] = useState<"reactions" | "views">("reactions");
   const [filter, setFilter] = useState<NafhaEmoji | null>(null);
-  const [reactors, setReactors] = useState<Reactor[]>([]);
+  const [reactors, setReactors] = useState<Person[]>([]);
   const [page, setPage] = useState(0);
   const [more, setMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, start] = useTransition();
 
-  const load = (nextPage: number, emoji: NafhaEmoji | null) =>
+  const load = (nextPage: number, emoji: NafhaEmoji | null, which: "reactions" | "views" = mode) =>
     start(async () => {
-      const result = await getNafhaReactorsAction(nafhaId, nextPage, emoji);
+      const result =
+        which === "views"
+          ? await getNafhaViewersAction(nafhaId, nextPage).then((r) => ("error" in r ? r : { people: r.viewers as Person[], more: r.more }))
+          : await getNafhaReactorsAction(nafhaId, nextPage, emoji).then((r) =>
+              "error" in r ? r : { people: r.reactors as Person[], more: r.more },
+            );
       if ("error" in result) {
         setError(result.error);
         return;
       }
       setError(null);
-      setReactors((current) => (nextPage === 0 ? result.reactors : [...current, ...result.reactors]));
+      setReactors((current) => (nextPage === 0 ? result.people : [...current, ...result.people]));
       setMore(result.more);
       setPage(nextPage);
     });
@@ -61,7 +78,16 @@ function ReactorsDialog({ nafhaId, title, counts, onClose }: PanelProps & { nafh
     setFilter(emoji);
     setReactors([]);
     setMore(false);
-    load(0, emoji);
+    load(0, emoji, "reactions");
+  }
+
+  function switchTo(next: "reactions" | "views") {
+    if (next === mode) return;
+    setMode(next);
+    setFilter(null);
+    setReactors([]);
+    setMore(false);
+    load(0, null, next);
   }
 
   const total = Object.values(counts).reduce((sum, count) => sum + (count ?? 0), 0);
@@ -95,7 +121,7 @@ function ReactorsDialog({ nafhaId, title, counts, onClose }: PanelProps & { nafh
           </span>
           <div className="min-w-0 flex-1">
             <h2 id="reactors-title" className="font-bold text-emerald-deep">
-              المتفاعلون ({total.toLocaleString("ar-EG")})
+              {mode === "views" ? `شاهدوها (${views.toLocaleString("ar-EG")})` : `المتفاعلون (${total.toLocaleString("ar-EG")})`}
             </h2>
             <p className="truncate text-xs text-muted" dir="auto">
               {title}
@@ -112,33 +138,68 @@ function ReactorsDialog({ nafhaId, title, counts, onClose }: PanelProps & { nafh
           </button>
         </header>
 
-        <div role="tablist" aria-label="تصفية حسب التفاعل" className="flex gap-2 overflow-x-auto border-b border-line bg-white px-5 py-3">
-          {tabs.map((tab) => (
+        <div role="tablist" aria-label="التفاعلات أو المشاهدات" className="grid grid-cols-2 gap-1 border-b border-line bg-white p-2">
+          {(
+            [
+              { id: "reactions", label: "التفاعلات", count: total, icon: SmilePlus },
+              { id: "views", label: "شاهدوها", count: views, icon: Eye },
+            ] as const
+          ).map((tab) => (
             <button
-              key={tab.id ?? "all"}
+              key={tab.id}
               type="button"
               role="tab"
-              aria-selected={filter === tab.id}
-              onClick={() => choose(tab.id)}
+              aria-selected={mode === tab.id}
+              onClick={() => switchTo(tab.id)}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold",
-                filter === tab.id ? "bg-emerald-deep text-white" : "border border-line bg-white text-ink hover:bg-emerald-mist",
+                "inline-flex items-center justify-center gap-2 rounded-2xl py-2 text-sm font-bold",
+                mode === tab.id ? "bg-emerald-mist text-emerald-deep" : "text-muted hover:bg-ivory",
               )}
             >
-              <span>{tab.label}</span>
-              <span className={cn("text-xs", filter === tab.id ? "text-white/80" : "text-muted")}>{tab.count.toLocaleString("ar-EG")}</span>
+              <tab.icon className="size-4" aria-hidden /> {tab.label}
+              <span className="text-xs">{tab.count.toLocaleString("ar-EG")}</span>
             </button>
           ))}
         </div>
 
+        {mode === "reactions" && (
+          <div role="tablist" aria-label="تصفية حسب التفاعل" className="flex gap-2 overflow-x-auto border-b border-line bg-white px-5 py-3">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id ?? "all"}
+                type="button"
+                role="tab"
+                aria-selected={filter === tab.id}
+                onClick={() => choose(tab.id)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold",
+                  filter === tab.id ? "bg-emerald-deep text-white" : "border border-line bg-white text-ink hover:bg-emerald-mist",
+                )}
+              >
+                <span>{tab.label}</span>
+                <span className={cn("text-xs", filter === tab.id ? "text-white/80" : "text-muted")}>
+                  {tab.count.toLocaleString("ar-EG")}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto px-3 py-2">
           {error && <p className="p-4 text-center text-sm font-bold text-rose">{error}</p>}
-          {!error && reactors.length === 0 && !loading && <p className="p-8 text-center text-sm text-muted">لا يوجد تفاعل بعد.</p>}
+          {!error && reactors.length === 0 && !loading && (
+            <p className="p-8 text-center text-sm text-muted">
+              {mode === "views" ? "لم يشاهدها أحد من المسجلين بعد." : "لا يوجد تفاعل بعد."}
+            </p>
+          )}
           <ul className="divide-y divide-line">
             {reactors.map((reactor) => (
               <li key={reactor.userId} className="flex items-center gap-3 px-2 py-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-xl shadow-soft" aria-hidden>
-                  {CHAR[reactor.emoji]}
+                <span
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-xl text-emerald shadow-soft"
+                  aria-hidden
+                >
+                  {reactor.emoji ? CHAR[reactor.emoji] : <Eye className="size-4" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold text-ink" dir="auto">
@@ -163,7 +224,7 @@ function ReactorsDialog({ nafhaId, title, counts, onClose }: PanelProps & { nafh
           )}
           {more && !loading && (
             <div className="flex justify-center p-3">
-              <button type="button" onClick={() => load(page + 1, filter)} className={buttonClass("outline", "sm")}>
+              <button type="button" onClick={() => load(page + 1, filter, mode)} className={buttonClass("outline", "sm")}>
                 عرض المزيد
               </button>
             </div>

@@ -208,6 +208,11 @@ export type NafhaReactionRow = {
   created_at: Timestamp;
 };
 /** The nafahat_reaction_counts view: reactions per post and emoji, without who reacted. */
+export type NafhaViewRow = {
+  nafha_id: string;
+  user_id: string;
+  seen_at: Timestamp;
+};
 export type NafhaReactionCountRow = {
   nafha_id: string;
   emoji: NafhaEmoji;
@@ -432,6 +437,7 @@ export type Database = {
         Optional<NafhaRow, "id" | "body" | "media_type" | "media_url" | "media_path" | "created_by" | "created_at">
       >;
       nafahat_reactions: TableDef<NafhaReactionRow, Optional<NafhaReactionRow, "user_id" | "created_at">>;
+      nafahat_views: TableDef<NafhaViewRow, Optional<NafhaViewRow, "user_id" | "seen_at">>;
       sponsors: TableDef<SponsorRow, Optional<SponsorRow, "id" | "link_url" | "logo_url" | "active" | "created_at">>;
       supporters: TableDef<
         SupporterRow,

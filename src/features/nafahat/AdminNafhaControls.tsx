@@ -7,7 +7,17 @@ import { ReactorsPanel } from "./ReactorsPanel";
 import { NAFAHAT_EMOJIS, type ReactionCounts } from "./shared";
 
 /** The reactions cell: counts per emoji; opens the list of who reacted. */
-export function ReactorsButton({ nafhaId, title, counts }: { nafhaId: string; title: string; counts: ReactionCounts }) {
+export function ReactorsButton({
+  nafhaId,
+  title,
+  counts,
+  views,
+}: {
+  nafhaId: string;
+  title: string;
+  counts: ReactionCounts;
+  views: number;
+}) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
   const total = Object.values(counts).reduce((sum, count) => sum + (count ?? 0), 0);
@@ -28,9 +38,10 @@ export function ReactorsButton({ nafhaId, title, counts }: { nafhaId: string; ti
             </span>
           ))
         )}
-        <span className="font-bold text-emerald">· مين اتفاعل؟</span>
+        <span className="inline-flex items-center gap-0.5 text-muted">· 👁 {views.toLocaleString("ar-EG")}</span>
+        <span className="font-bold text-emerald">· مين اتفاعل وشاف؟</span>
       </button>
-      <ReactorsPanel nafhaId={open ? nafhaId : null} title={title} counts={counts} onClose={close} />
+      <ReactorsPanel nafhaId={open ? nafhaId : null} title={title} counts={counts} views={views} onClose={close} />
     </>
   );
 }
