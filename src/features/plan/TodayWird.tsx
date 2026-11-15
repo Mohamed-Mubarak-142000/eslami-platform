@@ -8,7 +8,14 @@ import { toArabicDigits } from "@/lib/arabic";
 import { buttonClass } from "@/components/ui/button";
 import { FormAlert } from "@/features/auth/ui/AuthFields";
 import { useKidsProgress } from "@/features/kids/progress/KidsProgressProvider";
-import { archivePlanAction, completeNewAction, completeReviewAction, type CompleteResult } from "./actions";
+import {
+  archivePlanAction,
+  completeMissedNewAction,
+  completeMissedReviewAction,
+  completeNewAction,
+  completeReviewAction,
+  type CompleteResult,
+} from "./actions";
 import type { DaySchedule, PageLink, TodayView } from "./view";
 import { EditPlanForm } from "./EditPlanForm";
 import type { PickerJuz, PickerSurah } from "./SurahPicker";
@@ -90,10 +97,10 @@ export function TodayWird({ view, surahs, juzList }: { view: TodayView; surahs: 
   const [editing, setEditing] = useState(false);
   const { setAyahsMemorized } = useKidsProgress();
   const [pending, startTransition] = useTransition();
-  const [running, setRunning] = useState<"new" | "review" | "archive" | null>(null);
+  const [running, setRunning] = useState<"new" | "review" | "archive" | "missedNew" | "missedReview" | null>(null);
   const [error, setError] = useState<string | undefined>();
 
-  function run(kind: "new" | "review" | "archive", action: () => Promise<CompleteResult>) {
+  function run(kind: "new" | "review" | "archive" | "missedNew" | "missedReview", action: () => Promise<CompleteResult>) {
     setRunning(kind);
     setError(undefined);
     startTransition(async () => {
@@ -178,6 +185,43 @@ export function TodayWird({ view, surahs, juzList }: { view: TodayView; surahs: 
         </section>
       ) : (
         <>
+          {(view.missedNew || view.missedReview) && (
+            <aside className="flex flex-col gap-3 rounded-3xl border border-gold/40 bg-gold-mist p-5 sm:flex-row sm:items-center">
+              <p className="flex flex-1 gap-2 leading-8 text-ink">
+                <History className="mt-2 size-4 shrink-0 text-gold-deep" aria-hidden />
+                <span>
+                  {view.missedNew && view.missedReview && view.missedNew === view.missedReview
+                    ? `نسيت تسجيل حفظ ومراجعة ${view.missedNew}؟`
+                    : view.missedNew
+                      ? `نسيت تسجيل حفظ ${view.missedNew}؟`
+                      : `نسيت تسجيل مراجعة ${view.missedReview}؟`}{" "}
+                  إن كنت أتممته فسجّله، ويُحسب لك الورد الذي يليه دون أن يأخذ مكان ورد اليوم.
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {view.missedNew && (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => run("missedNew", completeMissedNewAction)}
+                    className={buttonClass("outline", "sm")}
+                  >
+                    {spinner("missedNew") ?? <Check aria-hidden />} حفظت ورد {view.missedNew}
+                  </button>
+                )}
+                {view.missedReview && (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => run("missedReview", completeMissedReviewAction)}
+                    className={buttonClass("outline", "sm")}
+                  >
+                    {spinner("missedReview") ?? <Check aria-hidden />} راجعت {view.missedReview}
+                  </button>
+                )}
+              </div>
+            </aside>
+          )}
           {memorize && (
             <Card
               id="new-heading"

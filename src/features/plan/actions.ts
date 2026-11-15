@@ -9,6 +9,7 @@ import { getSurahAyahCount } from "@/features/kids/progress/surahAyahCounts";
 import { buildJuzRanges, type JuzRange } from "@/features/progress/juz";
 import { getJuzStarts, getMushafPageStarts } from "@/features/quran/textApi";
 import { loadCurrentPlan, loggedOn } from "./data";
+import { missedPlanDay } from "./view";
 import { planBounds, resolveSegments, spansToAyahs } from "./portion";
 import {
   buildJuzPages,
@@ -263,14 +264,29 @@ export interface CompleteResult {
   memorized?: { surah: number; ayahs: number[] }[];
 }
 
+const NO_MISSED = "لا يوجد يوم فائت في الأسبوع الماضي لتسجيله.";
+
 /** Marks today's new portion memorized and moves the plan forward. Safe to press twice. */
 export async function completeNewAction(): Promise<CompleteResult> {
+  return logNew("today");
+}
+
+/**
+ * Records the new portion of a day of the last week memorized but not recorded (as the khatma's missed
+ * day): the next portion counts for that day, and today's portion is the one after it.
+ */
+export async function completeMissedNewAction(): Promise<CompleteResult> {
+  return logNew("missed");
+}
+
+async function logNew(which: "today" | "missed"): Promise<CompleteResult> {
   const { activeLearner } = await requireSession("/plan");
   const supabase = await createSupabaseServerClient();
   const current = await loadCurrentPlan(supabase, activeLearner.id);
   if (!current || current.plan.status !== "active") return { error: "لا توجد خطة نشطة." };
   const { plan, log } = current;
-  const today = planDay();
+  const today = which === "today" ? planDay() : missedPlanDay(plan, log, "new", planDay());
+  if (!today) return { error: NO_MISSED };
   if (loggedOn(log, today, "new")) return {};
 
   const range = plan.kind === "memorize" ? todayNewRange(plan, null) : null;
@@ -305,12 +321,22 @@ export async function completeNewAction(): Promise<CompleteResult> {
 
 /** Marks today's review (recent + older pages) done and rotates the older-pages slice. */
 export async function completeReviewAction(): Promise<CompleteResult> {
+  return logReview("today");
+}
+
+/** Records the review of a day of the last week done but not recorded. */
+export async function completeMissedReviewAction(): Promise<CompleteResult> {
+  return logReview("missed");
+}
+
+async function logReview(which: "today" | "missed"): Promise<CompleteResult> {
   const { activeLearner } = await requireSession("/plan");
   const supabase = await createSupabaseServerClient();
   const current = await loadCurrentPlan(supabase, activeLearner.id);
   if (!current || current.plan.status !== "active") return { error: "لا توجد خطة نشطة." };
   const { plan, log } = current;
-  const today = planDay();
+  const today = which === "today" ? planDay() : missedPlanDay(plan, log, "review", planDay());
+  if (!today) return { error: NO_MISSED };
   if (loggedOn(log, today, "review")) return {};
 
   const anchor = loggedOn(log, today, "new")?.from ?? plan.progress_units;
